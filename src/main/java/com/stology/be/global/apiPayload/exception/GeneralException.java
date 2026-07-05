@@ -1,0 +1,11 @@
+package com.stology.be.global.apiPayload.exception;
+
+import com.stology.be.global.apiPayload.code.BaseErrorCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public class GeneralException extends RuntimeException {
+    private final BaseErrorCode errorCode;
+}
