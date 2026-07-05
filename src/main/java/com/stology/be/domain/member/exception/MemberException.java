@@ -1,7 +1,10 @@
 package com.stology.be.domain.member.exception;
 
-public class MemberException extends RuntimeException {
-    public MemberException(String message) {
-        super(message);
+import com.stology.be.global.apiPayload.code.BaseErrorCode;
+import com.stology.be.global.apiPayload.exception.GeneralException;
+
+public class MemberException extends GeneralException {
+    public MemberException(BaseErrorCode errorCode) {
+        super(errorCode);
     }
 }
