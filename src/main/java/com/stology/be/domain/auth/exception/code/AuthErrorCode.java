@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum AuthErrorCode implements BaseErrorCode {
-    AUTH_INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST,
-            "AUTH400_1",
+    AUTH_INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED,
+            "AUTH401_1",
             "유효하지 않은 Refresh Token입니다.")
     ;
 
