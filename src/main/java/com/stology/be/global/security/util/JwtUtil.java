@@ -25,7 +25,7 @@ public class JwtUtil {
     private final Duration refreshExpiration;
 
     public JwtUtil(
-            @Value("${jwt.token.secretKey:test-secret-key-test-secret-key-test-secret-key}") String secret,
+            @Value("${jwt.token.secretKey}") String secret,
             @Value("${jwt.token.expiration.access:600000}") Long accessExpiration,
             @Value("${jwt.token.expiration.refresh:1200000}") Long refreshExpiration
     ) {
