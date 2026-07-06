@@ -11,6 +11,7 @@ spring:
             client-secret: ${KAKAO_REST_API_SECRET}
             redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
             scope: profile_nickname, account_email
         provider:
           kakao:
@@ -30,7 +31,15 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+  token:
+    secretKey: ${JWT_SECRET_KEY}
+    # 랜덤 문자열 뽑는 명령어(cmd) : powershell -Command "-join ((65..90)+(97..122)+(48..57) | Get-Random -Count 64 | % {[char]$_})"
+    expiration:
+      access: ${JWT_ACCESS_EXPIRATION:3600000}
+      refresh: ${JWT_REFRESH_EXPIRATION:604800000}

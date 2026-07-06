@@ -1,0 +1,38 @@
+name: Backend Deploy
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+    paths:
+      - 'BE/**'
+  workflow_dispatch: 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          script: |
+            cd /home/ubuntu/stology-app
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+
+            if [ "${{ github.ref_name }}" = "main" ]; then
+              echo "Deploying PRODUCTION backend..."
+              docker compose -f docker-compose.yml up -d --build backend
+            else
+              echo "Deploying STAGING backend..."
+              docker compose -f docker-compose.staging.yml up -d --build backend-staging
+            fi
+
+            docker image prune -f
