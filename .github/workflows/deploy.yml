@@ -22,11 +22,11 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
-            cd /home/ubuntu/stology-app
-            git fetch origin
-            git checkout ${{ github.ref_name }}
-            git reset --hard origin/${{ github.ref_name }}
+            cd /home/ubuntu/stology-app/BE && git fetch origin
+            cd /home/ubuntu/stology-app/BE && git checkout ${{ github.ref_name }}
+            cd /home/ubuntu/stology-app/BE && git reset --hard origin/${{ github.ref_name }}
 
+            cd /home/ubuntu/stology-app
             if [ "${{ github.ref_name }}" = "main" ]; then
               echo "Deploying PRODUCTION backend..."
               docker compose -f docker-compose.yml up -d --build backend
