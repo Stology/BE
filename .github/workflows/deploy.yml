@@ -47,6 +47,7 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           script: |
             cd /home/ubuntu/stology-app
+            echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
 
             if [ "$REF_NAME" = "main" ]; then
               echo "Deploying MAIN branch..."
