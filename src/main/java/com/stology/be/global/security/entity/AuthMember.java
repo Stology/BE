@@ -23,11 +23,11 @@ public class AuthMember implements UserDetails {
 
     @Override
     public @Nullable String getPassword() {
-        return "";
+        return null;
     }
 
     @Override
     public String getUsername() {
-        return "";
+        return member.getEmail();
     }
 }

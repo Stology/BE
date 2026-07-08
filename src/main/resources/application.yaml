@@ -38,7 +38,7 @@ spring:
 
 jwt:
   token:
-    secretKey: ${JWT_SECRET_KEY:dev-secret-key-dev-secret-key-dev-secret-key}
+    secretKey: ${JWT_SECRET_KEY}
     # 랜덤 문자열 뽑는 명령어(cmd) : powershell -Command "-join ((65..90)+(97..122)+(48..57) | Get-Random -Count 64 | % {[char]$_})"
     expiration:
       access: ${JWT_ACCESS_EXPIRATION:3600000}

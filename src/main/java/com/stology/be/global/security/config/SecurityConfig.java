@@ -1,31 +1,33 @@
 package com.stology.be.global.security.config;
 
+import com.stology.be.global.security.handler.OAuthSuccessHandler;
 import com.stology.be.global.security.service.CustomOAuthService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 @EnableWebSecurity
+@Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomOAuthService customOAuthService;
-
-    public SecurityConfig(CustomOAuthService customOAuthService) {
-        this.customOAuthService = customOAuthService;
-    }
+    private final OAuthSuccessHandler oAuthSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/oauth2/**").permitAll()
+                        .requestMatchers("/login", "/oauth2/**", "/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
                         .loginPage("/login")
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService))
-                        .defaultSuccessUrl("/home")
+                        .successHandler(oAuthSuccessHandler)
                         .failureUrl("/login?error=true")
                 )
                 .logout(logout -> logout

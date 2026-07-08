@@ -51,11 +51,11 @@ jobs:
             if [ "$REF_NAME" = "main" ]; then
               echo "Deploying MAIN branch..."
               docker pull ${{ secrets.DOCKER_USER }}/sublumen:stology-be-main
-              docker compose up -d --force-recreate backend-main
+              docker compose up -d --force-recreate be-main
             elif [ "$REF_NAME" = "develop" ]; then
               echo "Deploying DEVELOP branch..."
               docker pull ${{ secrets.DOCKER_USER }}/sublumen:stology-be-develop
-              docker compose up -d --force-recreate backend-develop
+              docker compose up -d --force-recreate be-dev
             fi
 
             docker image prune -f
