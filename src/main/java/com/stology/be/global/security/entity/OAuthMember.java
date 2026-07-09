@@ -29,6 +29,6 @@ public class OAuthMember implements OAuth2User {
 
     @Override
     public String getName() {
-        return member != null ? member.getName() : "";
+        return member != null ? member.getSocialUid() : "";
     }
 }
