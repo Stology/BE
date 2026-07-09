@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Repository
@@ -23,8 +24,8 @@ public class RedisRefreshTokenRepository implements RefreshTokenRepository {
     }
 
     @Override
-    public String findByMemberId(String email) {
-        return redisTemplate.opsForValue().get("refresh:" + email);
+    public Optional<String> findBySocialUid(String uid) {
+        return Optional.ofNullable(redisTemplate.opsForValue().get("refresh:" + uid));
     }
 
     @Override
