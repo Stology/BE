@@ -14,10 +14,9 @@ public class MemberConverter {
                 .build();
     }
 
-    public static AuthResDTO.Login toLogin(String accessToken, String refreshToken) {
+    public static AuthResDTO.Login toLogin(String accessToken) {
         return new AuthResDTO.Login(
-                accessToken,
-                refreshToken
+                accessToken
         );
     }
 }
