@@ -1,5 +1,6 @@
 package com.stology.be.global.security.util;
 
+import com.stology.be.domain.member.enums.SocialType;
 import com.stology.be.global.security.entity.AuthMember;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -42,9 +43,22 @@ public class JwtUtil {
         return createToken(member, refreshExpiration);
     }
 
-    public String getEmail(String token) {
+    public String getUid(String token) {
         try {
             return getClaims(token).getPayload().getSubject();
+        } catch (JwtException e) {
+            return null;
+        }
+    }
+
+    public SocialType getSocialType(String token) {
+        try {
+            return SocialType.valueOf(
+                    getClaims(token)
+                            .getPayload()
+                            .get("social_type")
+                            .toString()
+                            .toUpperCase());
         } catch (JwtException e) {
             return null;
         }
@@ -69,7 +83,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .subject(member.getUsername())
                 .claim("role", authorities)
-                .claim("email", member.getUsername())
+                .claim("social_type", member.getMember().getSocialType())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(expiration)))
                 .signWith(secretKey)
