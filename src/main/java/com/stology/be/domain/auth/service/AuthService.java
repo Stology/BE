@@ -4,6 +4,7 @@ import com.stology.be.domain.auth.dto.TokenPair;
 import com.stology.be.domain.auth.exception.AuthException;
 import com.stology.be.domain.auth.exception.code.AuthErrorCode;
 import com.stology.be.domain.auth.repository.RefreshTokenRepository;
+import com.stology.be.domain.member.entity.Member;
 import com.stology.be.domain.member.exception.MemberException;
 import com.stology.be.domain.member.exception.code.MemberErrorCode;
 import com.stology.be.domain.member.repository.MemberRepository;
@@ -55,7 +56,9 @@ public class AuthService {
     public void deleteMember(AuthMember authMember, String refreshToken) {
         String uid = jwtUtil.getUid(refreshToken);
         refreshTokenRepository.delete(uid);
-        memberRepository.delete(authMember.getMember());
+
+        Member member = authMember.getMember();
+        member.softDelete();
     }
 }
 

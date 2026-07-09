@@ -61,6 +61,7 @@ public class CustomOAuthService extends DefaultOAuth2UserService {
                     memberRepository.save(newMember);
                     return newMember;
                 });
+        if (member.getDeletedAt() != null) member.restore();  // 삭제한 계정 복구, 추가 로직 필요할 수도
         return new OAuthMember(member, oAuthMember.getAttributes());
     }
 }
