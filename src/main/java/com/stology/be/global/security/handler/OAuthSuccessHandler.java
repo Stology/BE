@@ -10,10 +10,11 @@ import com.stology.be.global.security.entity.AuthMember;
 import com.stology.be.global.security.entity.OAuthMember;
 import com.stology.be.global.security.util.JwtUtil;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -50,12 +51,14 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
         String refreshToken = jwtUtil.createRefreshToken(new AuthMember(member.getMember()));
 
         // refresh token 발급 (http-only secure 쿠키)
-        Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(7 * 24 * 60 * 60);
-        response.addCookie(refreshCookie);
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("None")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
         refreshTokenRepository.save(member.getName(), refreshToken, 7 * 24 * 60 * 60);
 
         // 응답 통일 객체 래핑

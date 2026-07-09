@@ -1,9 +1,12 @@
 package com.stology.be.domain.auth.service;
 
-import com.stology.be.domain.auth.dto.AuthReqDTO;
-import com.stology.be.domain.auth.dto.AuthResDTO;
+import com.stology.be.domain.auth.dto.TokenPair;
 import com.stology.be.domain.auth.exception.AuthException;
 import com.stology.be.domain.auth.exception.code.AuthErrorCode;
+import com.stology.be.domain.auth.repository.RefreshTokenRepository;
+import com.stology.be.domain.member.exception.MemberException;
+import com.stology.be.domain.member.exception.code.MemberErrorCode;
+import com.stology.be.domain.member.repository.MemberRepository;
 import com.stology.be.global.security.entity.AuthMember;
 import com.stology.be.global.security.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -14,28 +17,45 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final MemberRepository memberRepository;
 
-    public AuthResDTO.Login reissue(AuthReqDTO.Reissue request) {
-        String refreshToken = request.refreshToken();
-
+    public TokenPair reissue(String refreshToken) {
         if (refreshToken == null || !jwtUtil.isValid(refreshToken)) {
+            System.out.println("refreshToken: " + refreshToken);
+            System.out.println("isValid: " + jwtUtil.isValid(refreshToken));
             throw new AuthException(AuthErrorCode.AUTH_INVALID_REFRESH_TOKEN);
         }
 
-        String email = jwtUtil.getEmail(refreshToken);
-        AuthMember member = new AuthMember(null);
+        String uid = jwtUtil.getUid(refreshToken);
+        String savedToken = refreshTokenRepository.findBySocialUid(uid)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.AUTH_INVALID_REFRESH_TOKEN));
+        if (!refreshToken.equals(savedToken)) {
+            throw new AuthException(AuthErrorCode.AUTH_INVALID_REFRESH_TOKEN);
+        }
+
+        refreshTokenRepository.delete(uid);
+
+        AuthMember member = new AuthMember(
+                memberRepository.findBySocialUid(uid)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND
+                )));
         String newAccessToken = jwtUtil.createAccessToken(member);
         String newRefreshToken = jwtUtil.createRefreshToken(member);
+        refreshTokenRepository.save(uid, newRefreshToken, 7 * 24 * 60 * 60);
 
-        return new AuthResDTO.Login(newAccessToken, newRefreshToken);
+        return new TokenPair(newAccessToken, newRefreshToken);
     }
 
-    public void logout(String username) {
-        // 토큰 블랙리스트 처리 or 세션 무효화
+    public void logout(String refreshToken) {
+        String uid = jwtUtil.getUid(refreshToken);
+        refreshTokenRepository.delete(uid);
     }
 
-    public void delete(String username) {
-        // DB에서 유저 삭제
+    public void deleteMember(AuthMember authMember, String refreshToken) {
+        String uid = jwtUtil.getUid(refreshToken);
+        refreshTokenRepository.delete(uid);
+        memberRepository.delete(authMember.getMember());
     }
 }
 

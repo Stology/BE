@@ -4,4 +4,8 @@ public class AuthResDTO {
     public record Login(
             String accessToken
     ) {}
+
+    public record Reissue(
+            String accessToken
+    ) {}
 }
