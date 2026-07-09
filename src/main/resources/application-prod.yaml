@@ -9,7 +9,7 @@ spring:
           kakao:
             client-id: ${KAKAO_REST_API_KEY}
             client-secret: ${KAKAO_REST_API_SECRET}
-            redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
+            redirect-uri: "http://${BASE_URL}/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             scope: profile_nickname, account_email
@@ -22,16 +22,16 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL} # jdbc:mysql://localhost:3306/{데이터베이스명}
-    username: ${DB_USER} # MySQL 유저 이름
-    password: ${DB_PW} # MySQL 비밀번호
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PW}
 
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
