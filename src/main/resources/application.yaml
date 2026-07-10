@@ -34,7 +34,7 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -43,6 +43,12 @@ spring:
     redis:
       host: localhost
       port: 6379
+
+  neo4j:
+    uri: ${NEO_URL}
+    authentication:
+      username: ${NEO_USERNAME}
+      password: ${NEO_PW}
 
   cloud:
     aws:

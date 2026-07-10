@@ -38,6 +38,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.1'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'com.github.codemonstur:embedded-redis:1.4.3'
+    implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
