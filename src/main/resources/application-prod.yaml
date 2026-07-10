@@ -51,6 +51,17 @@ spring:
       username: ${NEO_USERNAME}
       password: ${NEO_PW}
 
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: stology-s3
+        path: ${S3_PATH}
+
 jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}
