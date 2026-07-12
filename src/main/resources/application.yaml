@@ -51,3 +51,8 @@ jwt:
     expiration:
       access: ${JWT_ACCESS_EXPIRATION:3600000}
       refresh: ${JWT_REFRESH_EXPIRATION:604800000}
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent
