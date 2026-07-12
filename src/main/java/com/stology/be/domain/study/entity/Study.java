@@ -31,5 +31,6 @@ public class Study extends BaseEntity {
     @Builder.Default
     private Boolean isActive = true;
     
-    private String studyLeader;
+    @Column(name = "leader_member_id")
+    private Long leaderMemberId;
 }
