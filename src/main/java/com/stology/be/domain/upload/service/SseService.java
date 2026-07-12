@@ -18,20 +18,40 @@ public class SseService {
             Long studyId,
             Long memberId
     ) {
+        //이미터 고유 ID 생성
         String emitterId = createEmitterId(studyId, memberId);
 
+        //이미터 생성
         SseEmitter emitter = new SseEmitter(TIMEOUT);
-
+        //이미터 정보 서버에 저장
         repository.save(studyId, emitterId, emitter);
 
+        //프론트로 보낼 이미터 정보 설정
         setEmitterConfig(emitter,studyId,emitterId);
-
+        //프론트 와연동 되었는지 실험
         testSseEmitterConnect(emitter,studyId,emitterId);
 
 
         return emitter;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+    객체 내부 매서드
+
+     */
     private String createEmitterId(Long studyId,Long memberId){
         return studyId + "_" + memberId +"_" +
                 System.currentTimeMillis();

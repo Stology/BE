@@ -5,8 +5,10 @@ import com.stology.be.domain.upload.dto.res.SseConnectRes;
 import com.stology.be.domain.upload.exception.code.UploadSuccessCode;
 import com.stology.be.domain.upload.service.SseService;
 import com.stology.be.global.apiPayload.ApiResponse;
+import com.stology.be.global.security.entity.AuthMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -25,11 +27,15 @@ public class UploadController {
      */
     @GetMapping("/uploadSSE")
     public ApiResponse<SseConnectRes> uploadSSE(
-            @PathVariable Long studyId
+            @PathVariable Long studyId,
+            @AuthenticationPrincipal AuthMember authMember
     ) {
         // TODO: SSE 연결 및 실시간 업로드 상태 전송
         return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,
-                new SseConnectRes(sseService.subscribe(studyId, studyId)) );
+                SseConnectRes.builder()
+                        .emitter(sseService.subscribe(studyId, authMember.getMemberId()))
+                        .build()
+        );
     }
 
     /**

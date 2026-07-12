@@ -19,7 +19,12 @@ public class StudyNode extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
     private Study study;
-    
+
+
+    @Column(nullable = false)
+    private String title;
+
+
     @Builder.Default
     private Integer activeLevel = 0;
 }
