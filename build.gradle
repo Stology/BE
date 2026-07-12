@@ -18,6 +18,12 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:4.0.2"
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -32,6 +38,8 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.1'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'com.github.codemonstur:embedded-redis:1.4.3'
+    implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
@@ -39,6 +47,14 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+
+
+    // AWS S3
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+
+
 
 }
 
