@@ -1,12 +1,10 @@
-package com.stology.be.domain.upload.Component;
+package com.stology.be.domain.upload.component;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import java.util.Collection;
 
 /*
 
@@ -40,13 +38,14 @@ public class SseEmitterRepository {
                 .put(emitterId, emitter);
     }
 
-    public Collection<SseEmitter> findAllByStudyId(Long studyId) {
-        return emitters
-                .getOrDefault(
-                        studyId,
-                        Map.of()
-                )
-                .values();
+    public Map<String, SseEmitter> findAllByStudyId(Long studyId) {
+        Map<String, SseEmitter> studyEmitters = emitters.get(studyId);
+
+        if (studyEmitters == null) {
+            return Map.of();
+        }
+
+        return Map.copyOf(studyEmitters);
     }
 
     public void delete(

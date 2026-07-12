@@ -1,6 +1,6 @@
 package com.stology.be.domain.upload.service;
 
-import com.stology.be.domain.upload.Component.SseEmitterRepository;
+import com.stology.be.domain.upload.component.SseEmitterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -29,13 +29,33 @@ public class SseService {
         //프론트로 보낼 이미터 정보 설정
         setEmitterConfig(emitter,studyId,emitterId);
         //프론트 와연동 되었는지 실험
-        testSseEmitterConnect(emitter,studyId,emitterId);
+        sendConnectEvent(emitter,studyId,emitterId);
 
 
         return emitter;
     }
 
+    public void sendToStudy(
+            Long studyId,
+            String eventName,
+            Object data
+    ) {
+        repository.findAllByStudyId(studyId)
+                .forEach((emitterId, emitter) -> {
+                    try {
+                        emitter.send(
+                                SseEmitter.event()
+                                        .name(eventName)
+                                        .data(data)
+                                        .reconnectTime(3000L)
+                        );
 
+                    } catch (IOException | IllegalStateException exception) {
+                        repository.delete(studyId, emitterId);
+                        emitter.completeWithError(exception);
+                    }
+                });
+    }
 
 
 
@@ -69,7 +89,7 @@ public class SseService {
                 exception -> repository.delete(studyId, emitterId)
         );
     };
-    private void testSseEmitterConnect(SseEmitter emitter,Long studyId,String emitterId) {
+    private void sendConnectEvent(SseEmitter emitter,Long studyId,String emitterId) {
         try {
             emitter.send(
                     SseEmitter.event()
