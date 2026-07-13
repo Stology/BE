@@ -6,10 +6,13 @@ import com.stology.be.domain.study.entity.Study;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MemberStudyRepository extends JpaRepository<MemberStudy, Long> {
     List<MemberStudy> findByMember(Member member);
     Integer countByStudyId(Long id);
     boolean existsByMemberAndStudy(Member member, Study study);
+    Optional<MemberStudy> findByStudyIdAndMemberId(Long studyId, Long memberId);
+
 }
