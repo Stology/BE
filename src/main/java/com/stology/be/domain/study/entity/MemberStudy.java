@@ -1,7 +1,6 @@
 package com.stology.be.domain.study.entity;
 
 import com.stology.be.domain.member.entity.Member;
-import com.stology.be.domain.node.entity.NodeCandidate2StudyMaterial;
 import com.stology.be.domain.node.entity.StudyMaterial;
 import com.stology.be.global.entity.BaseEntity;
 import jakarta.persistence.*;

@@ -42,7 +42,6 @@ public class StudyMaterial extends BaseEntity {
     private int week;
 
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     private MemberStudy memberStudy;
 
@@ -53,18 +52,11 @@ public class StudyMaterial extends BaseEntity {
             orphanRemoval = true
     )
     @Builder.Default
-    private List<NodeCandidate2StudyMaterial> nodeCandidate2StudyMaterials
-            = new ArrayList<>();
+    private List<NodeCandidate> nodeCandidates = new ArrayList<>();
 
     public void changeDataState(DataState dataState) {
         this.dataState = dataState;
     }
 
-    public void addNodeCandidate(NodeCandidate nodeCandidate) {
-        NodeCandidate2StudyMaterial relation =
-                NodeCandidate2StudyMaterial.create(nodeCandidate, this);
 
-        this.nodeCandidate2StudyMaterials.add(relation);
-        nodeCandidate.getNodeCandidate2StudyMaterials().add(relation);
-    }
 }

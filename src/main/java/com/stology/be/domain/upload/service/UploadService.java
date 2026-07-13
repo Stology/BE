@@ -7,7 +7,7 @@ import com.stology.be.domain.node.repository.NodeCandidateRepository;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
 import com.stology.be.domain.node.repository.StudyNodeRepository;
 import com.stology.be.domain.study.entity.MemberStudy;
-import com.stology.be.domain.study.entity.repository.MemberStudyRepository;
+import com.stology.be.domain.study.repository.MemberStudyRepository;
 import com.stology.be.domain.upload.dto.req.UploadReq;
 import com.stology.be.domain.upload.dto.res.RecentFileRes;
 import com.stology.be.domain.upload.dto.res.RecentFilesRes;
