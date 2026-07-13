@@ -58,15 +58,15 @@ public class WeekNodeService {
         // 2. 요청한 노드가 해당 스터디에 속하는지 확인
         StudyNode studyNode = getStudyNode(studyId, nodeId);
 
-        // 3. 해당 노드, 주차에서 ACCEPT 상태인 노드 후보 조회
-        List<NodeCandidate> acceptedCandidates =
-                nodeCandidateRepository
-                        .findByStudyNode_IdAndState(
-                                nodeId,
-                                CandidateState.ACCEPTED
-                        );
 
-        // 승인된 노드 후보가 하나도 없다면 빈 리스트 반환
+        // 3. 해당 스터디 노드에 연결된 ACCEPTED 상태의 후보 조회
+        List<NodeCandidate> acceptedCandidates =
+                nodeCandidateRepository.findByStudyNode_IdAndState(
+                        nodeId,
+                        CandidateState.ACCEPTED
+                );
+
+        // 승인된 후보가 없으면 빈 리스트 반환
         if (acceptedCandidates.isEmpty()) {
             return NodeInfoRes.of(
                     studyNode.getId(),
@@ -74,47 +74,19 @@ public class WeekNodeService {
             );
         }
 
-        // 4. 승인된 노드 후보 ID 목록 생성
-        List<Long> candidateIds = acceptedCandidates.stream()
-                .map(NodeCandidate::getId)
-                .toList();
-
-        // 5. 후보들과 연결된 스터디 자료 및 업로더 정보를 함께 조회
-        List<NodeCandidate2StudyMaterial> relations =
-                nodeCandidate2StudyMaterialRepository
-                        .findAllWithMaterialAndMemberByCandidateIds(
-                                candidateIds
-                        );
-
-        /*
-         * 하나의 StudyMaterial이 여러 NodeCandidate와 연결되어 있을 경우
-         * 같은 자료가 중복 반환될 수 있으므로 StudyMaterial ID 기준으로 제거
-         */
-        /*
-        Map<Long, StudyMaterial> uniqueMaterials = new LinkedHashMap<>();
-
-        for (NodeCandidate2StudyMaterial relation : relations) {
-            StudyMaterial studyMaterial = relation.getStudyMaterial();
-
-            uniqueMaterials.putIfAbsent(
-                    studyMaterial.getId(),
-                    studyMaterial
-            );
-        }
-
-         */
-
-        // 6. StudyMaterial을 응답 DTO로 변환
+        // 4. NodeCandidate가 참조하는 StudyMaterial을 DTO로 변환
         List<NodeInfoRes.MaterialInfo> materials =
-                uniqueMaterials.values().stream()
+                acceptedCandidates.stream()
+                        .map(NodeCandidate::getStudyMaterial)
                         .map(NodeInfoRes.MaterialInfo::from)
                         .toList();
 
-        // 7. 최종 응답 조립
-        return NodeInfoRes.of(
-                studyNode.getId(),
-                materials
-        );
+        // 5. 최종 응답 조립
+                return NodeInfoRes.of(
+                        studyNode.getId(),
+                        materials
+                );
+
     }
 
 
