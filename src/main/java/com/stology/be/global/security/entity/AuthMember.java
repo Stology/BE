@@ -31,4 +31,8 @@ public class AuthMember implements UserDetails {
         // return member.getEmail();
         return member.getSocialUid();
     }
+
+    public Long getMemberId(){
+        return member.getId();
+    }
 }

@@ -1,8 +1,16 @@
-package com.stology.be.domain.study.entity;
+package com.stology.be.domain.report.entity;
 
+import com.stology.be.domain.report.converter.MemberActivityStatisticsListConverter;
+import com.stology.be.domain.report.converter.RecommendedNodeListConverter;
+import com.stology.be.domain.report.converter.WeeklyCoreNodeListConverter;
+import com.stology.be.domain.report.dto.MemberActivityStatisticsDto;
+import com.stology.be.domain.report.dto.RecommendedNodeDto;
+import com.stology.be.domain.report.dto.WeeklyCoreNodeDto;
+import com.stology.be.domain.study.entity.Study;
 import com.stology.be.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.List;
 
 @Entity
 @Getter
@@ -29,17 +37,20 @@ public class Report extends BaseEntity {
     private Integer reinforcedNodeCount = 0;
     
     @Column(columnDefinition = "json")
-    private String weeklyCoreNodeList;
+    @Convert(converter = WeeklyCoreNodeListConverter.class)
+    private List<WeeklyCoreNodeDto> weeklyCoreNodeList;
     
     @Column(columnDefinition = "text")
     private String aiReviewContent;
     
     @Column(columnDefinition = "json")
-    private String recommendedNodeList;
+    @Convert(converter = RecommendedNodeListConverter.class)
+    private List<RecommendedNodeDto> recommendedNodeList;
     
     @Column(columnDefinition = "text")
     private String followUpContent;
     
     @Column(columnDefinition = "json")
-    private String memberActivityStatisticsList;
+    @Convert(converter = MemberActivityStatisticsListConverter.class)
+    private List<MemberActivityStatisticsDto> memberActivityStatisticsList;
 }
