@@ -16,7 +16,7 @@ public class StudyConverter {
         return Study.builder()
                 .name(dto.name())
                 .description(dto.description())
-                .leader(member)
+                .leaderMemberId(member.getId())
                 .startDate(dto.startDate())
                 .template(template)
                 .build();

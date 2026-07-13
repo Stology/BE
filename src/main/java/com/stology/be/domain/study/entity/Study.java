@@ -37,15 +37,14 @@ public class Study extends BaseEntity {
     @Builder.Default
     private Boolean isActive = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "leader_member_id")
-    private Member leader;
+    @Column(name = "leader_member_id")
+    private Long leaderMemberId;
 
     private LocalDate startDate;
 
     // 스터디장 확인
     public void validateLeader(Member member){
-        if(!leader.getId().equals(member.getId())){
+        if(!leaderMemberId.equals(member.getId())){
             throw new StudyException(StudyErrorCode.STUDY_LEADER_ACCESS_DENIED);
         }
     }
