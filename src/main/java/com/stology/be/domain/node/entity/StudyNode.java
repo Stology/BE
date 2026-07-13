@@ -24,6 +24,9 @@ public class StudyNode extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private int activationWeek=0;
 
     @Builder.Default
     private Integer activeLevel = 0;

@@ -31,15 +31,13 @@ public class NodeCandidate extends BaseEntity {
     private Integer acceptCount = 0;
 
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "study_node_id", nullable = false)
+    private StudyNode studyNode;
 
-    @OneToMany(
-            mappedBy = "nodeCandidate",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    @Builder.Default
-    private List<NodeCandidate2StudyMaterial> nodeCandidate2StudyMaterials
-            = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "study_material_id", nullable = false)
+    private StudyMaterial studyMaterial;
 
 
     public void increaseAcceptCount() {
@@ -51,12 +49,6 @@ public class NodeCandidate extends BaseEntity {
     }
 
 
-    public void addStudyMaterial(StudyMaterial studyMaterial) {
-        NodeCandidate2StudyMaterial relation =
-                NodeCandidate2StudyMaterial.create(this, studyMaterial);
 
-        this.nodeCandidate2StudyMaterials.add(relation);
-        studyMaterial.getNodeCandidate2StudyMaterials().add(relation);
-    }
 
 }

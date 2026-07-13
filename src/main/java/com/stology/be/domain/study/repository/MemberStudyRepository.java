@@ -11,8 +11,12 @@ import java.util.Optional;
 @Repository
 public interface MemberStudyRepository extends JpaRepository<MemberStudy, Long> {
     List<MemberStudy> findByMember(Member member);
+
     Integer countByStudyId(Long id);
+
     boolean existsByMemberAndStudy(Member member, Study study);
+
     Optional<MemberStudy> findByStudyIdAndMemberId(Long studyId, Long memberId);
+
 
 }
