@@ -23,6 +23,7 @@ public class UploadedSseListener {
         UploadSseRes response =
                 new UploadSseRes(
                         event.studyId(),
+                        event.studyMaterialId(),
                         event.uploaderMemberId(),
                         event.uploaderName(),
                         event.dataTitle(),

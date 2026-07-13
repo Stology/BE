@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Builder
 public record UploadedEvent(
         Long studyId,
+        Long studyMaterialId,
         Long uploaderMemberId,
         String uploaderName,
         String dataTitle,

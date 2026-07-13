@@ -32,9 +32,6 @@ public class NodeCandidate extends BaseEntity {
 
 
 
-    @Column(name = "week")
-    private int week;
-
     @OneToMany(
             mappedBy = "nodeCandidate",
             cascade = CascadeType.ALL,
