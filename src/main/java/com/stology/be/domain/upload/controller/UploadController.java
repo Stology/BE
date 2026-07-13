@@ -2,6 +2,7 @@ package com.stology.be.domain.upload.controller;
 
 import com.stology.be.domain.upload.component.SseEmitterRepository;
 import com.stology.be.domain.upload.dto.req.UploadReq;
+import com.stology.be.domain.upload.dto.res.RecentFilesRes;
 import com.stology.be.domain.upload.dto.res.SseConnectRes;
 import com.stology.be.domain.upload.exception.code.UploadSuccessCode;
 import com.stology.be.domain.upload.service.SseService;
@@ -55,6 +56,23 @@ public class UploadController {
 
 
         return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,null);
+    }
+    /**
+     * 스터디 자료 조회
+     * POST /api/study/{studyId}/upload
+     */
+
+    @GetMapping("/upload")
+    public ApiResponse<RecentFilesRes> getStudyUploadFiles (
+            @PathVariable Long studyId,
+            @AuthenticationPrincipal AuthMember authMember,
+            @Valid @ModelAttribute UploadReq request
+    ) {
+
+
+        RecentFilesRes result = uploadService.getStudyUploadFiles(studyId,authMember.getMemberId());
+
+        return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,result);
     }
 
     /**

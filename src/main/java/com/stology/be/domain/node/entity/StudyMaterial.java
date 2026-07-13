@@ -1,6 +1,7 @@
 package com.stology.be.domain.node.entity;
 
 import com.stology.be.domain.member.entity.Member;
+import com.stology.be.domain.study.entity.MemberStudy;
 import com.stology.be.domain.upload.enums.DataState;
 import com.stology.be.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -37,8 +38,13 @@ public class StudyMaterial extends BaseEntity {
     @Column(name = "data_title")
     private String dataTitle;
 
+    @Column(name = "week")
+    private int week;
+
+
+
     @ManyToOne(fetch = FetchType.LAZY)
-    private Member member;
+    private MemberStudy memberStudy;
 
 
     @OneToMany(
