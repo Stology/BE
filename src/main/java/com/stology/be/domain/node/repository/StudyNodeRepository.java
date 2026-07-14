@@ -11,6 +11,12 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
     Optional<StudyNode> findTopByStudyIdOrderByUpdatedAtDesc(Long studyId);
     Optional<StudyNode> findByIdAndStudyId(Long studyNodeId, Long studyId);
 
+    //존재 여부만 검사
+    boolean existsByIdAndStudyId(
+            Long studyNodeId,
+            Long studyId
+    );
+
 
     List<StudyNode>
     findByStudy_IdAndActivationWeekAndActiveLevelBetweenOrderByActiveLevelAsc(

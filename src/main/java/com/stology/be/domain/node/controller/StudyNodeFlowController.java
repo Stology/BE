@@ -1,11 +1,14 @@
 package com.stology.be.domain.node.controller;
 
 
+import com.stology.be.domain.node.dto.req.AcceptNodeReq;
+import com.stology.be.domain.node.dto.res.AcceptNodeRes;
 import com.stology.be.domain.node.dto.res.NodeExaminationInfoRes;
 import com.stology.be.domain.node.exception.code.NodeSuccessCode;
 import com.stology.be.domain.node.service.NodeVoteService;
 import com.stology.be.global.apiPayload.ApiResponse;
 import com.stology.be.global.security.entity.AuthMember;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -20,23 +23,28 @@ public class StudyNodeFlowController {
     /**
      * 노드 승인/반려
      */
-    /*
+
     @PatchMapping("/acceptnode")
-    public ApiResponse<Void> acceptNode(
+    public ApiResponse<AcceptNodeRes> acceptNode(
             @PathVariable Long studyId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody AcceptNodeReq request
+            @Valid @RequestBody AcceptNodeReq request
     ) {
-        nodeService.acceptNode(
+        nodeVoteService.vote(
                 studyId,
-                authMember.memberId(),
+                authMember,
                 request
         );
 
-        return ApiResponse.onSuccess(null);
+        return ApiResponse.onSuccess(NodeSuccessCode.GET_SUCCESS,
+                nodeVoteService.vote(
+                studyId,
+                authMember,
+                request
+        ));
     }
 
-     */
+
 
     /**
      * 검토 정보 조회

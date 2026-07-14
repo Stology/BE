@@ -15,6 +15,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+
 public class NodeCandidate extends BaseEntity {
     
     @Id
@@ -38,6 +39,17 @@ public class NodeCandidate extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "study_material_id", nullable = false)
     private StudyMaterial studyMaterial;
+
+
+    @OneToMany(
+            mappedBy = "nodeCandidate",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<NodeCandidateVoteInfo> nodeCandidateVoteInfo = new ArrayList<>();
+
+
 
 
     public void increaseAcceptCount() {

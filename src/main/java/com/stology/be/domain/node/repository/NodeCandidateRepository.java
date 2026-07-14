@@ -7,12 +7,22 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface NodeCandidateRepository extends JpaRepository<NodeCandidate, Long> {
 
     List<NodeCandidate>
     findByStudyNode_IdAndState(
             Long studyNodeId,
+            CandidateState state
+    );
+
+
+    Optional<NodeCandidate>
+    findByIdAndStudyNode_IdAndStudyNode_Study_IdAndState(
+            Long nodeCandidateId,
+            Long studyNodeId,
+            Long studyId,
             CandidateState state
     );
 

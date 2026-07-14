@@ -21,14 +21,6 @@ public class MemberStudy extends BaseEntity {
     private Long id;
 
 
-    @OneToMany(
-            mappedBy = "memberStudy",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-
-    @Builder.Default
-    private List<StudyMaterial> studyMaterials = new ArrayList<>();
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
@@ -37,4 +29,15 @@ public class MemberStudy extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
     private Study study;
+
+    @OneToMany(
+            mappedBy = "memberStudy",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<StudyMaterial> studyMaterials = new ArrayList<>();
+
+
+
 }

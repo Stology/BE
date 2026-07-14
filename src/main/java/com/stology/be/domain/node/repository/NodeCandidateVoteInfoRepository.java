@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface NodeCandidateVoteInfoRepository extends JpaRepository<NodeCandidateVoteInfo, Long> {
@@ -36,5 +37,11 @@ public interface NodeCandidateVoteInfoRepository extends JpaRepository<NodeCandi
             @Param("state") CandidateState state
     );
 
+    //노드 후보 id와 맴버 id로 투표 정보 찾기
+    Optional<NodeCandidateVoteInfo>
+    findByNodeCandidate_IdAndMember_Id(
+            Long nodeCandidateId,
+            Long memberId
+    );
 
 }
