@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -101,49 +102,43 @@ public class StudyService {
         List<Study> studies = memberStudyRepository.findByMember(member).stream()
                 .map(MemberStudy::getStudy)
                 .toList();
-        List<StudyResDTO.Study> studyList = List.of();
+        Stream<Study> stream = studies.stream()
+                .filter(study -> study.getDeletedAt() == null);
         // status 필터링
-        if(!studies.isEmpty()){
-            if(status.equals("active")){
-                studyList = studies.stream()
-                        .filter(study -> study.getIsActive() && study.getDeletedAt() == null)
-                        .sorted(Comparator.comparingLong(Study::getId))
-                        .map(study -> new StudyResDTO.Study(
-                                study.getId(),
-                                study.getName(),
-                                study.getStartDate(),
-                                study.getDescription(),
-                                true
-                        ))
-                        .toList();
-            }else if(status.equals("closed")){
-                studyList = studies.stream()
-                        .filter(study -> !study.getIsActive() && study.getDeletedAt() == null)
-                        .sorted(Comparator.comparingLong(Study::getId))
-                        .map(study -> new StudyResDTO.Study(
-                                study.getId(),
-                                study.getName(),
-                                study.getStartDate(),
-                                study.getDescription(),
-                                false
-                        ))
-                        .toList();
-            }
+        if ("active".equals(status)) {
+            stream = stream.filter(Study::getIsActive);
+        } else if ("closed".equals(status)) {
+            stream = stream.filter(study -> !study.getIsActive());
         }
+        List<StudyResDTO.Study> studyList = stream
+                .sorted(Comparator.comparingLong(Study::getId))
+                .map(study -> new StudyResDTO.Study(
+                        study.getId(),
+                        study.getName(),
+                        study.getStartDate(),
+                        study.getDescription(),
+                        study.getIsActive()))
+                .toList();
         return new StudyResDTO.GetStudy(studyList);
     }
 
     // 온톨로지 템플릿 검색
-    public StudyResDTO.GetTemplate getTemplate() {
-        List<StudyResDTO.Template> templates = templateRepository.findAll().stream()
+    public StudyResDTO.GetTemplate getTemplate(String search) {
+        List<Template> templates;
+        Stream<Template> stream = templateRepository.findAll().stream();
+        if(search == null || search.isEmpty()){
+            templates = templateRepository.findAll();
+        } else {
+            templates = templateRepository.findByNameContainingIgnoreCase(search.trim());
+        }
+        List<StudyResDTO.Template> templateList = templates.stream()
                 .map(template -> new StudyResDTO.Template(
                         template.getId(),
                         template.getName(),
                         template.getUploader().getName(),
-                        template.getDescription()
-                ))
+                        template.getDescription()))
                 .toList();
-         return new StudyResDTO.GetTemplate(templates);
+         return new StudyResDTO.GetTemplate(templateList);
     }
 
     // 검토 인원수 조회
