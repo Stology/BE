@@ -74,9 +74,10 @@ public class StudyController {
     // 온톨로지 템플릿 검색
     @GetMapping("/template")
     public ApiResponse<StudyResDTO.GetTemplate> getTemplate(
+            @RequestParam(required = false) String search
     ){
         BaseSuccessCode code = StudySuccessCode.TEMPLATE_GET_SUCCESS;
-        return ApiResponse.onSuccess(code, studyService.getTemplate());
+        return ApiResponse.onSuccess(code, studyService.getTemplate(search));
     }
 
     // 검토 인원수 조회
