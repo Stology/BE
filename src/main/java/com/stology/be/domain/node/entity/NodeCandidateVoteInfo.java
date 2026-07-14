@@ -6,7 +6,18 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "node_candidate_vote")
+@Table(
+        name = "node_candidate_vote_info",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_candidate_member_vote",
+                        columnNames = {
+                                "node_candidate_id",
+                                "member_id"
+                        }
+                )
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -31,4 +42,10 @@ public class NodeCandidateVoteInfo {
     @Enumerated(EnumType.STRING)
     @Column(name = "vote_type", nullable = false)
     private VoteType voteType;
+
+
+
+    public void updateVote(VoteType voteType) {
+        this.voteType = voteType;
+    }
 }
