@@ -27,6 +27,23 @@ public class Question extends BaseEntity {
     
     @Builder.Default
     private Integer answerCount = 0;
-    
+
     private Boolean isAttached;
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
+    public void increaseAnswerCount() {
+        this.answerCount = this.answerCount + 1;
+    }
+
+    public void decreaseAnswerCount() {
+        this.answerCount = Math.max(0, this.answerCount - 1);
+    }
+
+    public void updateAttached(boolean attached) {
+        this.isAttached = attached;
+    }
 }
