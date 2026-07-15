@@ -20,6 +20,10 @@ public class Answer extends BaseEntity {
     private Question question;
     
     private String content;
-    
+
     private String memberName;
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }
