@@ -62,6 +62,11 @@ spring:
         bucket: stology-s3
         path: ${S3_PATH}
 
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
+    url: ${GEMINI_API_URL}
+
 jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}
