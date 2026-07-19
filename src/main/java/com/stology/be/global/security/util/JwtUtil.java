@@ -73,6 +73,15 @@ public class JwtUtil {
         }
     }
 
+    public long getRemainingExpirationSeconds(String token) {
+        try {
+            Date expiration = getClaims(token).getPayload().getExpiration();
+            return Math.max(0, Duration.between(Instant.now(), expiration.toInstant()).getSeconds());
+        } catch (JwtException e) {
+            return 0;
+        }
+    }
+
     private String createToken(AuthMember member, Duration expiration) {
         Instant now = Instant.now();
 

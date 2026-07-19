@@ -54,7 +54,7 @@ public class AuthController {
             HttpServletResponse response
     ) {
         Cookie cookie = getRefreshTokenCookie(request);
-        authService.logout(cookie.getValue());
+        authService.logout(cookie.getValue(), resolveAccessToken(request));
         response.addHeader(HttpHeaders.SET_COOKIE, getExpiredRefreshTokenCookie().toString());
 
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
@@ -67,7 +67,7 @@ public class AuthController {
             HttpServletResponse response,
             @AuthenticationPrincipal AuthMember authMember) {
         Cookie cookie = getRefreshTokenCookie(request);
-        authService.deleteMember(authMember, cookie.getValue());
+        authService.deleteMember(authMember, cookie.getValue(), resolveAccessToken(request));
         response.addHeader(HttpHeaders.SET_COOKIE, getExpiredRefreshTokenCookie().toString());
 
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
@@ -83,6 +83,14 @@ public class AuthController {
             }
         }
         throw new AuthException(AuthErrorCode.AUTH_REFRESH_TOKEN_MISSING);
+    }
+
+    private String resolveAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     private ResponseCookie getExpiredRefreshTokenCookie() {
