@@ -13,7 +13,6 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
-import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +42,7 @@ public class InquiryImageUploader {
             throw new InquiryException(InquiryErrorCode.IMAGE_FILE_INVALID);
         }
 
-        String key = pathPrefix + subDirectory + "/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
+        String key = pathPrefix + subDirectory + "/" + UUID.randomUUID() + "-" + safeFileName(file.getOriginalFilename());
 
         try (var inputStream = file.getInputStream()) {
             S3Resource resource = s3Template.upload(bucket, key, inputStream);
@@ -83,15 +82,14 @@ public class InquiryImageUploader {
             throw new InquiryException(InquiryErrorCode.IMAGE_URL_INVALID);
         }
 
-        URI uri;
-        try {
-            uri = URI.create(uploadedUrl);
-        } catch (IllegalArgumentException e) {
+        int schemeEnd = uploadedUrl.indexOf("://");
+        if (schemeEnd < 0) {
             throw new InquiryException(InquiryErrorCode.IMAGE_URL_INVALID);
         }
 
-        String host = uri.getHost();
-        if (host == null || !host.contains(bucket)) {
+        int hostEnd = uploadedUrl.indexOf('/', schemeEnd + 3);
+        String host = hostEnd < 0 ? "" : uploadedUrl.substring(schemeEnd + 3, hostEnd);
+        if (!host.contains(bucket)) {
             throw new InquiryException(InquiryErrorCode.IMAGE_URL_INVALID);
         }
 
@@ -100,11 +98,33 @@ public class InquiryImageUploader {
             throw new InquiryException(InquiryErrorCode.IMAGE_URL_INVALID);
         }
 
-        return uri.getScheme() + "://" + host + "/" + key;
+        return uploadedUrl.substring(0, schemeEnd) + "://" + host + "/" + key;
     }
 
+    /**
+     * 원본 파일명에는 공백·괄호·한글이 들어올 수 있는데, 그대로 key에 쓰면 저장된 URL이
+     * 파싱 불가능해져(공백은 URI 불법 문자) 조회 시점에 터진다. key에는 안전한 문자만 남긴다.
+     */
+    private String safeFileName(String originalFileName) {
+        if (originalFileName == null || originalFileName.isBlank()) {
+            return "image";
+        }
+        String cleaned = originalFileName.replaceAll("[^A-Za-z0-9._-]", "_");
+        return cleaned.isBlank() ? "image" : cleaned;
+    }
+
+    /**
+     * URI.create()는 공백이 든 기존 URL에서 예외를 던지므로 문자열로 직접 자른다.
+     * (이미 잘못된 key로 저장된 과거 데이터도 500 대신 정상 동작하도록)
+     */
     private String extractKey(String storedUrl) {
-        String path = URI.create(storedUrl).getPath();
-        return path.startsWith("/") ? path.substring(1) : path;
+        int schemeEnd = storedUrl.indexOf("://");
+        int pathStart = storedUrl.indexOf('/', schemeEnd < 0 ? 0 : schemeEnd + 3);
+        if (pathStart < 0) {
+            return "";
+        }
+        String path = storedUrl.substring(pathStart + 1);
+        int queryStart = path.indexOf('?');
+        return queryStart < 0 ? path : path.substring(0, queryStart);
     }
 }
