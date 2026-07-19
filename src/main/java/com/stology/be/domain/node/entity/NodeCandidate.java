@@ -30,4 +30,9 @@ public class NodeCandidate extends BaseEntity {
     
     @Builder.Default
     private Integer acceptCount = 0;
+
+    public void updateReviewResult(CandidateState state, int acceptCount) {
+        this.state = state;
+        this.acceptCount = acceptCount;
+    }
 }
