@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +47,9 @@ public class InquiryServiceImpl implements InquiryService {
     private final MemberStudyRepository memberStudyRepository;
     private final MemberRepository memberRepository;
     private final InquiryImageUploader inquiryImageUploader;
+
+    /** 본문에 심긴 이미지 자리표시자. 프론트의 [[img:N]] 토큰과 같은 형식이다. */
+    private static final Pattern IMAGE_TOKEN = Pattern.compile("\\[\\[img:\\d+]]");
 
     @Override
     public InquiryResDTO.QuestionList getQuestions(Long studyId, Integer page, Integer size, Long memberId) {
@@ -119,12 +123,12 @@ public class InquiryServiceImpl implements InquiryService {
 
         List<Answer> answers = inquiryReplyRepository.findByQuestionIdAndDeletedAtIsNullOrderByCreatedAtAsc(questionId);
         for (Answer answer : answers) {
-            inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNull(answer.getId())
+            inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNullOrderByIdAsc(answer.getId())
                     .forEach(AnswerImage::delete);
             answer.delete();
         }
 
-        inquiryImageRepository.findByQuestionIdAndDeletedAtIsNull(questionId)
+        inquiryImageRepository.findByQuestionIdAndDeletedAtIsNullOrderByIdAsc(questionId)
                 .forEach(QuestionImage::delete);
 
         question.delete();
@@ -197,7 +201,7 @@ public class InquiryServiceImpl implements InquiryService {
         requireAnswerOwner(answer, member);
         requireStudyActive(answer.getQuestion().getStudy());
 
-        inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNull(answerId)
+        inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNullOrderByIdAsc(answerId)
                 .forEach(AnswerImage::delete);
         answer.delete();
         answer.getQuestion().decreaseAnswerCount();
@@ -269,7 +273,7 @@ public class InquiryServiceImpl implements InquiryService {
         if (imageUrls == null) {
             return;
         }
-        inquiryImageRepository.findByQuestionIdAndDeletedAtIsNull(question.getId())
+        inquiryImageRepository.findByQuestionIdAndDeletedAtIsNullOrderByIdAsc(question.getId())
                 .forEach(QuestionImage::delete);
         question.updateAttached(false);
         attachQuestionImages(question, imageUrls);
@@ -290,13 +294,13 @@ public class InquiryServiceImpl implements InquiryService {
         if (imageUrls == null) {
             return;
         }
-        inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNull(answer.getId())
+        inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNullOrderByIdAsc(answer.getId())
                 .forEach(AnswerImage::delete);
         attachAnswerImages(answer, imageUrls);
     }
 
     private List<InquiryResDTO.ImageInfo> getQuestionImages(Long questionId) {
-        return inquiryImageRepository.findByQuestionIdAndDeletedAtIsNull(questionId).stream()
+        return inquiryImageRepository.findByQuestionIdAndDeletedAtIsNullOrderByIdAsc(questionId).stream()
                 .map(image -> new InquiryResDTO.ImageInfo(
                         image.getId(),
                         image.getImageUrl(),
@@ -305,7 +309,7 @@ public class InquiryServiceImpl implements InquiryService {
     }
 
     private List<InquiryResDTO.ImageInfo> getAnswerImages(Long answerId) {
-        return inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNull(answerId).stream()
+        return inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNullOrderByIdAsc(answerId).stream()
                 .map(image -> new InquiryResDTO.ImageInfo(
                         image.getId(),
                         image.getImageUrl(),
@@ -369,14 +373,24 @@ public class InquiryServiceImpl implements InquiryService {
         }
     }
 
+    /** 이미지 자리표시자를 제외한 실제 텍스트 길이 */
+    private int textLength(String content) {
+        return IMAGE_TOKEN.matcher(content).replaceAll("").length();
+    }
+
     private void validateTitle(String title) {
         if (title == null || title.isBlank() || title.length() > 50) {
             throw new InquiryException(InquiryErrorCode.INQUIRY_TITLE_INVALID);
         }
     }
 
+    /**
+     * 본문의 [[img:N]]은 이미지 자리표시자일 뿐 사용자가 입력한 텍스트가 아니다.
+     * 길이 제한(1000자)은 "본문 텍스트 기준"이므로 토큰을 제외하고 센다.
+     * 다만 필수값 검사는 원본 기준이라, 이미지만 있고 글이 없는 본문도 통과한다.
+     */
     private void validateContent(String content) {
-        if (content == null || content.isBlank() || content.length() > 1000) {
+        if (content == null || content.isBlank() || textLength(content) > 1000) {
             throw new InquiryException(InquiryErrorCode.INQUIRY_BODY_INVALID);
         }
     }
