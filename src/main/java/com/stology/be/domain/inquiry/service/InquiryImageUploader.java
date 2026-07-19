@@ -1,4 +1,4 @@
-package com.stology.be.domain.inquiry.component;
+package com.stology.be.domain.inquiry.service;
 
 import com.stology.be.domain.inquiry.exception.InquiryErrorCode;
 import com.stology.be.domain.inquiry.exception.InquiryException;
