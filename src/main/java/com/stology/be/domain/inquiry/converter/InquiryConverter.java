@@ -16,13 +16,14 @@ import java.util.stream.Collectors;
 public class InquiryConverter {
 
     public static Question toQuestion(InquiryReqDTO.WriteQuestion request, Study study, Member member) {
+        boolean hasImage = request.imageUrls() != null && !request.imageUrls().isEmpty();
         return Question.builder()
                 .study(study)
                 .title(request.title())
                 .content(request.content())
                 .memberName(member.getName())
                 .answerCount(0)
-                .isAttached(false)
+                .isAttached(hasImage)
                 .build();
     }
 
@@ -76,20 +77,20 @@ public class InquiryConverter {
         );
     }
 
-    public static InquiryResDTO.AnswerDetail toAnswerDetail(Answer answer, List<String> imageUrls, String currentMemberName) {
+    public static InquiryResDTO.AnswerDetail toAnswerDetail(Answer answer, List<InquiryResDTO.ImageInfo> images, String currentMemberName) {
         return new InquiryResDTO.AnswerDetail(
                 answer.getId(),
                 answer.getMemberName(),
                 answer.getCreatedAt(),
                 answer.getContent(),
-                imageUrls,
+                images,
                 answer.getMemberName().equals(currentMemberName)
         );
     }
 
     public static InquiryResDTO.QuestionDetail toQuestionDetail(
             Question question,
-            List<String> imageUrls,
+            List<InquiryResDTO.ImageInfo> images,
             List<InquiryResDTO.AnswerDetail> answerList,
             boolean studyEnded,
             String currentMemberName
@@ -100,7 +101,7 @@ public class InquiryConverter {
                 question.getContent(),
                 question.getMemberName(),
                 question.getCreatedAt(),
-                imageUrls,
+                images,
                 answerList,
                 studyEnded,
                 question.getMemberName().equals(currentMemberName)

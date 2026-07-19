@@ -66,14 +66,14 @@ public class InquiryServiceImpl implements InquiryService {
         Member member = getMember(memberId);
 
         Question question = getQuestionInStudy(studyId, questionId);
-        List<String> imageUrls = getQuestionImageUrls(questionId);
+        List<InquiryResDTO.ImageInfo> images = getQuestionImages(questionId);
 
         List<Answer> answers = inquiryReplyRepository.findByQuestionIdAndDeletedAtIsNullOrderByCreatedAtAsc(questionId);
         List<InquiryResDTO.AnswerDetail> answerList = answers.stream()
-                .map(answer -> InquiryConverter.toAnswerDetail(answer, getAnswerImageUrls(answer.getId()), member.getName()))
+                .map(answer -> InquiryConverter.toAnswerDetail(answer, getAnswerImages(answer.getId()), member.getName()))
                 .collect(Collectors.toList());
 
-        return InquiryConverter.toQuestionDetail(question, imageUrls, answerList, !study.getIsActive(), member.getName());
+        return InquiryConverter.toQuestionDetail(question, images, answerList, !study.getIsActive(), member.getName());
     }
 
     @Override
@@ -87,6 +87,7 @@ public class InquiryServiceImpl implements InquiryService {
 
         Question question = InquiryConverter.toQuestion(request, study, member);
         inquiryRepository.save(question);
+        attachQuestionImages(question, request.imageUrls());
 
         return new InquiryResDTO.WriteQuestionResult(question.getId());
     }
@@ -103,6 +104,7 @@ public class InquiryServiceImpl implements InquiryService {
         requireStudyActive(question.getStudy());
 
         question.update(request.title(), request.content());
+        replaceQuestionImages(question, request.imageUrls());
 
         return new InquiryResDTO.UpdateQuestionResult(question.getId());
     }
@@ -145,7 +147,10 @@ public class InquiryServiceImpl implements InquiryService {
         question.updateAttached(true);
 
         List<InquiryResDTO.UploadedImage> result = images.stream()
-                .map(image -> new InquiryResDTO.UploadedImage(image.getId(), inquiryImageUploader.toDisplayUrl(image.getImageUrl())))
+                .map(image -> new InquiryResDTO.UploadedImage(
+                        image.getId(),
+                        image.getImageUrl(),
+                        inquiryImageUploader.toDisplayUrl(image.getImageUrl())))
                 .collect(Collectors.toList());
         return new InquiryResDTO.UploadImageResult(result);
     }
@@ -162,6 +167,7 @@ public class InquiryServiceImpl implements InquiryService {
 
         Answer answer = InquiryConverter.toAnswer(request, question, member);
         inquiryReplyRepository.save(answer);
+        attachAnswerImages(answer, request.imageUrls());
         question.increaseAnswerCount();
 
         return new InquiryResDTO.WriteAnswerResult(answer.getId());
@@ -178,6 +184,7 @@ public class InquiryServiceImpl implements InquiryService {
         requireStudyActive(answer.getQuestion().getStudy());
 
         answer.updateContent(request.content());
+        replaceAnswerImages(answer, request.imageUrls());
 
         return new InquiryResDTO.UpdateAnswerResult(answer.getId());
     }
@@ -211,22 +218,98 @@ public class InquiryServiceImpl implements InquiryService {
         inquiryReplyImageRepository.saveAll(images);
 
         List<InquiryResDTO.UploadedImage> result = images.stream()
-                .map(image -> new InquiryResDTO.UploadedImage(image.getId(), inquiryImageUploader.toDisplayUrl(image.getImageUrl())))
+                .map(image -> new InquiryResDTO.UploadedImage(
+                        image.getId(),
+                        image.getImageUrl(),
+                        inquiryImageUploader.toDisplayUrl(image.getImageUrl())))
                 .collect(Collectors.toList());
         return new InquiryResDTO.UploadImageResult(result);
     }
 
-    private List<String> getQuestionImageUrls(Long questionId) {
+    /**
+     * 질문 작성 모달처럼 아직 questionId가 없는 시점에 이미지를 먼저 올린다.
+     * S3에만 올리고 DB에는 남기지 않으므로, 모달을 취소해도 고아 레코드가 생기지 않는다.
+     * 반환된 imageUrl을 질문 작성/수정 요청 body의 imageUrls에 담아 보내면 그때 연결된다.
+     */
+    @Override
+    public InquiryResDTO.StageImageResult stageQuestionImages(Long studyId, Long memberId, List<MultipartFile> files) {
+        getActiveStudyForMember(studyId, memberId);
+        return stage(files, "question/staging");
+    }
+
+    /** 답글 작성 시점에도 answerId가 없으므로 동일하게 선업로드를 제공한다. */
+    @Override
+    public InquiryResDTO.StageImageResult stageAnswerImages(Long studyId, Long questionId, Long memberId, List<MultipartFile> files) {
+        getActiveStudyForMember(studyId, memberId);
+        getQuestionInStudy(studyId, questionId);
+        return stage(files, "answer/staging");
+    }
+
+    private InquiryResDTO.StageImageResult stage(List<MultipartFile> files, String subDirectory) {
+        List<InquiryResDTO.StagedImage> images = inquiryImageUploader.uploadAll(files, subDirectory).stream()
+                .map(url -> new InquiryResDTO.StagedImage(url, inquiryImageUploader.toDisplayUrl(url)))
+                .collect(Collectors.toList());
+        return new InquiryResDTO.StageImageResult(images);
+    }
+
+    private void attachQuestionImages(Question question, List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return;
+        }
+        List<QuestionImage> images = imageUrls.stream()
+                .map(inquiryImageUploader::toStoredUrl)
+                .map(url -> InquiryConverter.toQuestionImage(url, question))
+                .collect(Collectors.toList());
+        inquiryImageRepository.saveAll(images);
+        question.updateAttached(true);
+    }
+
+    /** imageUrls가 null이면 이미지를 건드리지 않고, 그 외에는 전달된 목록으로 전체 교체한다. */
+    private void replaceQuestionImages(Question question, List<String> imageUrls) {
+        if (imageUrls == null) {
+            return;
+        }
+        inquiryImageRepository.findByQuestionIdAndDeletedAtIsNull(question.getId())
+                .forEach(QuestionImage::delete);
+        question.updateAttached(false);
+        attachQuestionImages(question, imageUrls);
+    }
+
+    private void attachAnswerImages(Answer answer, List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return;
+        }
+        List<AnswerImage> images = imageUrls.stream()
+                .map(inquiryImageUploader::toStoredUrl)
+                .map(url -> InquiryConverter.toAnswerImage(url, answer))
+                .collect(Collectors.toList());
+        inquiryReplyImageRepository.saveAll(images);
+    }
+
+    private void replaceAnswerImages(Answer answer, List<String> imageUrls) {
+        if (imageUrls == null) {
+            return;
+        }
+        inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNull(answer.getId())
+                .forEach(AnswerImage::delete);
+        attachAnswerImages(answer, imageUrls);
+    }
+
+    private List<InquiryResDTO.ImageInfo> getQuestionImages(Long questionId) {
         return inquiryImageRepository.findByQuestionIdAndDeletedAtIsNull(questionId).stream()
-                .map(QuestionImage::getImageUrl)
-                .map(inquiryImageUploader::toDisplayUrl)
+                .map(image -> new InquiryResDTO.ImageInfo(
+                        image.getId(),
+                        image.getImageUrl(),
+                        inquiryImageUploader.toDisplayUrl(image.getImageUrl())))
                 .collect(Collectors.toList());
     }
 
-    private List<String> getAnswerImageUrls(Long answerId) {
+    private List<InquiryResDTO.ImageInfo> getAnswerImages(Long answerId) {
         return inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNull(answerId).stream()
-                .map(AnswerImage::getImageUrl)
-                .map(inquiryImageUploader::toDisplayUrl)
+                .map(image -> new InquiryResDTO.ImageInfo(
+                        image.getId(),
+                        image.getImageUrl(),
+                        inquiryImageUploader.toDisplayUrl(image.getImageUrl())))
                 .collect(Collectors.toList());
     }
 

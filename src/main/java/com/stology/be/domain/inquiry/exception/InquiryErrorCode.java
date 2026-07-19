@@ -19,6 +19,7 @@ public enum InquiryErrorCode implements BaseErrorCode {
     STUDY_MEMBER_FORBIDDEN(HttpStatus.FORBIDDEN, "INQUIRY403_3", "스터디 멤버만 이용할 수 있습니다."),
     STUDY_ENDED(HttpStatus.BAD_REQUEST, "INQUIRY400_4", "종료된 스터디에서는 이용할 수 없습니다."),
     IMAGE_FILE_INVALID(HttpStatus.BAD_REQUEST, "INQUIRY400_5", "이미지 파일만 업로드할 수 있습니다."),
+    IMAGE_URL_INVALID(HttpStatus.BAD_REQUEST, "INQUIRY400_6", "업로드 API가 발급한 이미지 URL만 사용할 수 있습니다."),
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "INQUIRY500_1", "이미지 업로드에 실패했습니다.")
     ;
 

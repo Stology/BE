@@ -73,6 +73,36 @@ public class InquiryImageUploader {
         return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 
+    /**
+     * 선업로드 API가 내려준 URL을 클라이언트가 되돌려주면 DB에 저장하기 전에 검증한다.
+     * 임의의 외부 URL이 image_url로 저장되는 것을 막고, presigned 쿼리스트링이 붙어 돌아온
+     * 경우에도 만료 정보 없는 정규 형태(scheme://host/key)로 normalize 한다.
+     */
+    public String toStoredUrl(String uploadedUrl) {
+        if (uploadedUrl == null || uploadedUrl.isBlank()) {
+            throw new InquiryException(InquiryErrorCode.IMAGE_URL_INVALID);
+        }
+
+        URI uri;
+        try {
+            uri = URI.create(uploadedUrl);
+        } catch (IllegalArgumentException e) {
+            throw new InquiryException(InquiryErrorCode.IMAGE_URL_INVALID);
+        }
+
+        String host = uri.getHost();
+        if (host == null || !host.contains(bucket)) {
+            throw new InquiryException(InquiryErrorCode.IMAGE_URL_INVALID);
+        }
+
+        String key = extractKey(uploadedUrl);
+        if (key.isBlank() || !key.startsWith(pathPrefix)) {
+            throw new InquiryException(InquiryErrorCode.IMAGE_URL_INVALID);
+        }
+
+        return uri.getScheme() + "://" + host + "/" + key;
+    }
+
     private String extractKey(String storedUrl) {
         String path = URI.create(storedUrl).getPath();
         return path.startsWith("/") ? path.substring(1) : path;
