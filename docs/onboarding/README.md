@@ -27,4 +27,4 @@
 
 ## 다음 읽기
 
-패키지와 공통 구성요소는 [도메인 온보딩](domain/README.md)에서, 구현·검토 기준은 [가이드](../guides/README.md)에서 확인합니다.
+관계형 저장 구조는 [데이터베이스 스키마](database-schema.md)에서, 패키지와 공통 구성요소는 [도메인 온보딩](domain/README.md)에서, 구현·검토 기준은 [가이드](../guides/README.md)에서 확인합니다.
