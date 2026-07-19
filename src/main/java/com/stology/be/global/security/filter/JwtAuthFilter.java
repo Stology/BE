@@ -1,5 +1,6 @@
 package com.stology.be.global.security.filter;
 
+import com.stology.be.domain.auth.repository.BlacklistTokenRepository;
 import com.stology.be.domain.member.enums.SocialType;
 import com.stology.be.global.security.service.CustomUserDetailsService;
 import com.stology.be.global.security.util.JwtUtil;
@@ -22,6 +23,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
+    private final BlacklistTokenRepository blacklistTokenRepository;
 
     @Override
     protected void doFilterInternal(
@@ -31,7 +33,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = resolveToken(request);  // Bearer 뒤의 토큰만 나옴
-        if (token == null || !jwtUtil.isValid(token)) {
+        if (token == null || blacklistTokenRepository.exists(token) || !jwtUtil.isValid(token)) {
             filterChain.doFilter(request, response);
             return;
         }
