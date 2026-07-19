@@ -1,0 +1,89 @@
+name: Backend PR Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: stology_test
+          MYSQL_ROOT_PASSWORD: testpassword
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p testpassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      neo4j:
+        image: neo4j:5
+        env:
+          NEO4J_AUTH: neo4j/testpassword
+        ports:
+          - 7474:7474
+          - 7687:7687
+        options: >-
+          --health-cmd="cypher-shell -u neo4j -p testpassword 'RETURN 1'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://localhost:3306/stology_test?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      DB_USER: root
+      DB_PW: testpassword
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      NEO_URL: bolt://localhost:7687
+      NEO_USERNAME: neo4j
+      NEO_PW: testpassword
+      KAKAO_REST_API_KEY: test-kakao-rest-api-key
+      KAKAO_REST_API_SECRET: test-kakao-rest-api-secret
+      KAKAO_REDIRECT_URI: http://localhost:8080/login/oauth2/code/kakao
+      AWS_ACCESS_KEY: test-aws-access-key
+      AWS_SECRET_KEY: test-aws-secret-key
+      JWT_SECRET_KEY: test-jwt-secret-key-for-ci-must-be-at-least-32-bytes-long
+      GEMINI_API_KEY: test-gemini-api-key
+      GEMINI_API_URL: http://localhost/gemini
+      S3_PATH: test/
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        run: ./gradlew test
