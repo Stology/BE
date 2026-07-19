@@ -1,6 +1,5 @@
 package com.stology.be.domain.inquiry.service;
 
-import com.stology.be.domain.inquiry.component.InquiryImageUploader;
 import com.stology.be.domain.inquiry.converter.InquiryConverter;
 import com.stology.be.domain.inquiry.dto.request.InquiryReqDTO;
 import com.stology.be.domain.inquiry.dto.response.InquiryResDTO;
@@ -114,6 +113,7 @@ public class InquiryServiceImpl implements InquiryService {
         Question question = getQuestionInStudy(studyId, questionId);
         Member member = getMember(memberId);
         requireQuestionOwner(question, member);
+        requireStudyActive(question.getStudy());
 
         List<Answer> answers = inquiryReplyRepository.findByQuestionIdAndDeletedAtIsNullOrderByCreatedAtAsc(questionId);
         for (Answer answer : answers) {
@@ -188,6 +188,7 @@ public class InquiryServiceImpl implements InquiryService {
         Answer answer = getAnswerInQuestion(studyId, questionId, answerId);
         Member member = getMember(memberId);
         requireAnswerOwner(answer, member);
+        requireStudyActive(answer.getQuestion().getStudy());
 
         inquiryReplyImageRepository.findByAnswerIdAndDeletedAtIsNull(answerId)
                 .forEach(AnswerImage::delete);
