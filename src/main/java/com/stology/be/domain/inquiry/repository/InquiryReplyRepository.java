@@ -11,4 +11,7 @@ public interface InquiryReplyRepository extends JpaRepository<Answer, Long> {
     List<Answer> findByQuestionIdAndDeletedAtIsNullOrderByCreatedAtAsc(Long questionId);
 
     Optional<Answer> findByIdAndQuestionIdAndDeletedAtIsNull(Long id, Long questionId);
+
+    /** 질문과 같은 이유로 soft delete된 행까지 포함해 조회한다. */
+    Optional<Answer> findByIdAndQuestionId(Long id, Long questionId);
 }

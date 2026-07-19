@@ -346,15 +346,30 @@ public class InquiryServiceImpl implements InquiryService {
         return study;
     }
 
+    /**
+     * 삭제된 항목(410)과 애초에 없는 항목(404)을 구분한다.
+     * 다른 사용자가 방금 지운 글을 눌렀을 때 프론트가 "목록 새로고침"으로 안내할 수 있어야 하기 때문이다.
+     */
     private Question getQuestionInStudy(Long studyId, Long questionId) {
-        return inquiryRepository.findByIdAndStudyIdAndDeletedAtIsNull(questionId, studyId)
+        Question question = inquiryRepository.findByIdAndStudyId(questionId, studyId)
                 .orElseThrow(() -> new InquiryException(InquiryErrorCode.INQUIRY_NOT_FOUND));
+
+        if (question.getDeletedAt() != null) {
+            throw new InquiryException(InquiryErrorCode.INQUIRY_GONE);
+        }
+        return question;
     }
 
     private Answer getAnswerInQuestion(Long studyId, Long questionId, Long answerId) {
         getQuestionInStudy(studyId, questionId);
-        return inquiryReplyRepository.findByIdAndQuestionIdAndDeletedAtIsNull(answerId, questionId)
+
+        Answer answer = inquiryReplyRepository.findByIdAndQuestionId(answerId, questionId)
                 .orElseThrow(() -> new InquiryException(InquiryErrorCode.REPLY_NOT_FOUND));
+
+        if (answer.getDeletedAt() != null) {
+            throw new InquiryException(InquiryErrorCode.REPLY_GONE);
+        }
+        return answer;
     }
 
     /**
