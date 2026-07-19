@@ -20,6 +20,7 @@ jobs:
         env:
           MYSQL_DATABASE: stology_test
           MYSQL_ROOT_PASSWORD: testpassword
+          MYSQL_ROOT_HOST: "%"
         ports:
           - 3306:3306
         options: >-
