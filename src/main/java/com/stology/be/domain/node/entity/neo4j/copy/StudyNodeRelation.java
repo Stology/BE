@@ -3,16 +3,15 @@ package com.stology.be.domain.node.entity.neo4j.copy;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.neo4j.core.schema.RelationshipId;
-import org.springframework.data.neo4j.core.schema.RelationshipProperties;
-import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.core.schema.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @RelationshipProperties
 public class StudyNodeRelation {
 
-    @RelationshipId
+    @Id
+    @GeneratedValue
     private Long id;
 
     private String relation;

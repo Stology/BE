@@ -1,0 +1,81 @@
+{
+  "title": "농구",
+  "nodes": [
+    { "title": "농구" },
+    { "title": "드리블" },
+    { "title": "패스" },
+    { "title": "슛" },
+    { "title": "레이업" },
+    { "title": "덩크슛" },
+    { "title": "3점슛" },
+    { "title": "리바운드" },
+    { "title": "어시스트" },
+    { "title": "파울" },
+    { "title": "자유투" },
+    { "title": "NBA" },
+    { "title": "농구공" },
+    { "title": "골대" }
+  ],
+  "relations": [
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "농구공",
+      "relation": "사용 장비"
+    },
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "골대",
+      "relation": "목표"
+    },
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "드리블",
+      "relation": "기본 기술"
+    },
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "패스",
+      "relation": "기본 기술"
+    },
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "슛",
+      "relation": "기본 기술"
+    },
+    {
+      "sourceTitle": "슛",
+      "targetTitle": "레이업",
+      "relation": "종류"
+    },
+    {
+      "sourceTitle": "슛",
+      "targetTitle": "덩크슛",
+      "relation": "종류"
+    },
+    {
+      "sourceTitle": "슛",
+      "targetTitle": "3점슛",
+      "relation": "종류"
+    },
+    {
+      "sourceTitle": "슛",
+      "targetTitle": "리바운드",
+      "relation": "실패 후 발생"
+    },
+    {
+      "sourceTitle": "패스",
+      "targetTitle": "어시스트",
+      "relation": "성공 결과"
+    },
+    {
+      "sourceTitle": "파울",
+      "targetTitle": "자유투",
+      "relation": "발생 시 부여"
+    },
+    {
+      "sourceTitle": "NBA",
+      "targetTitle": "농구",
+      "relation": "프로 리그"
+    }
+  ]
+}

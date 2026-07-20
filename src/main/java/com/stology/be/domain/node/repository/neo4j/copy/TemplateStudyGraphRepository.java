@@ -2,8 +2,9 @@ package com.stology.be.domain.node.repository.neo4j.copy;
 
 
 import com.stology.be.domain.node.entity.neo4j.copy.TemplateStudyGraphNode;
-import org.springframework.data.jpa.repository.Query;
+
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;

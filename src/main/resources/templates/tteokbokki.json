@@ -1,0 +1,50 @@
+{
+  "title": "떡볶이",
+  "nodes": [
+    {
+      "title": "떡볶이"
+    },
+    {
+      "title": "떡"
+    },
+    {
+      "title": "고추장"
+    },
+    {
+      "title": "어묵"
+    },
+    {
+      "title": "라볶이"
+    },
+    {
+      "title": "신전떡볶이"
+    }
+  ],
+  "relations": [
+    {
+      "sourceTitle": "떡볶이",
+      "targetTitle": "떡",
+      "relation": "주재료"
+    },
+    {
+      "sourceTitle": "떡볶이",
+      "targetTitle": "고추장",
+      "relation": "양념"
+    },
+    {
+      "sourceTitle": "떡볶이",
+      "targetTitle": "어묵",
+      "relation": "함께 사용"
+    },
+    {
+      "sourceTitle": "라볶이",
+      "targetTitle": "떡볶이",
+      "relation": "파생"
+    },
+    {
+      "sourceTitle": "신전떡볶이",
+      "targetTitle": "떡볶이",
+      "relation": "브랜드"
+    }
+  ]
+}
