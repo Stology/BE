@@ -21,6 +21,9 @@ repositories {
 dependencyManagement {
     imports {
         mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:4.0.2"
+
+        // Spring-ai
+        mavenBom "org.springframework.ai:spring-ai-bom:2.0.0"
     }
 }
 
@@ -49,9 +52,7 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
 
 
-
-    // AWS S3
-    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+    implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'
 
 
 

@@ -60,6 +60,17 @@ spring:
       s3:
         bucket: stology-s3
         path: dev/
+  ##스프링 ai
+  ai:
+    model:
+      chat: google-genai
+
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY}
+        chat:
+          model: gemini-2.5-flash
+          temperature: 0.5
 
 jwt:
   token:
