@@ -27,7 +27,6 @@ public class UploadedSseListener {
                         event.uploaderMemberId(),
                         event.uploaderName(),
                         event.dataTitle(),
-                        event.week(),
                         DataState.READY,
                         event.createdAt()
                 );

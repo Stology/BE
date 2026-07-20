@@ -96,7 +96,6 @@ public class UploadedAiListener {
                         event.uploaderMemberId(),
                         event.uploaderName(),
                         event.dataTitle(),
-                        event.week(),
                         dataState,
                         event.createdAt()
                 );

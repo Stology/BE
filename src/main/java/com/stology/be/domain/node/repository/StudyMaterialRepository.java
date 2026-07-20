@@ -17,7 +17,6 @@ public interface StudyMaterialRepository extends CrudRepository<StudyMaterial, L
                 m.id,
                 m.name,
                 sm.dataTitle,
-                sm.week,
                 sm.dataState,
                 sm.createdAt
             )

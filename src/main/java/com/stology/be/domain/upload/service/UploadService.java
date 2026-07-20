@@ -13,6 +13,7 @@ import com.stology.be.domain.upload.dto.res.RecentFileRes;
 import com.stology.be.domain.upload.dto.res.RecentFilesRes;
 import com.stology.be.domain.upload.event.UploadedEvent;
 import com.stology.be.domain.upload.enums.DataState;
+import com.stology.be.global.external.s3.S3Uploader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
@@ -31,13 +32,15 @@ import java.util.Locale;
 public class UploadService {
 
     private final MemberRepository memberRepository;
-    private final StudyNodeRepository studyNodeRepository;
     private final StudyMaterialRepository studyMaterialRepository;
-    private final NodeCandidateRepository nodeCandidateRepository;
     private final MemberStudyRepository memberStudyRepository;
+
     private final ApplicationEventPublisher eventPublisher;
+    private final S3Uploader s3Uploader;
+
 
     private static final int RECENT_FILE_COUNT = 4;
+
 
     @Transactional
     public void upload(
@@ -49,14 +52,16 @@ public class UploadService {
         MemberStudy memberStudy = getMemberStudy(studyId, memberId);
         validateMarkdownFile(request.getFile());
 
+
+        //1. S3에 파일 저장
+        String fileUrl = s3Uploader.uploadByFile(
+                request.getFile(),
+                "study-material/" + studyId
+        );
+
         //변환
         String content = readMarkdown(request.getFile());
 
-        //1. S3에 파일 저장
-        String fileUrl = null;
-        /* 나중에 구현 일단 null
-        String fileUrl = fileStorageService.upload(request.getFile());
-         */
         //2. DB에 개인자료 저장 N저장
         Member member = memberRepository.findById(memberId).orElse(null);
 
@@ -79,7 +84,6 @@ public class UploadService {
                         .uploaderMemberId(memberId)
                         .uploaderName(member.getName())
                         .dataTitle(request.getTitle())
-                        .week(request.getWeek())
                         .createdAt(studyMaterial.getCreatedAt())
                         .build()
         );

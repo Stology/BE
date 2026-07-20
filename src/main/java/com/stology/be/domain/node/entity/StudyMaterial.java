@@ -38,8 +38,6 @@ public class StudyMaterial extends BaseEntity {
     @Column(name = "data_title")
     private String dataTitle;
 
-    @Column(name = "week")
-    private int week;
 
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -9,7 +9,6 @@ public record UploadSseRes(
         Long uploaderMemberId,
         String uploaderName,
         String dataTitle,
-        Integer week,
         DataState dataState,
         LocalDateTime createdAt
 ) {

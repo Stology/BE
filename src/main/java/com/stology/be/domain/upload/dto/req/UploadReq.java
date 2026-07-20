@@ -16,9 +16,6 @@ public class UploadReq {
     /**
      * 몇 주차 자료인지
      */
-    @NotNull(message = "주차 정보는 필수입니다.")
-    @Positive(message = "주차는 1 이상이어야 합니다.")
-    private Integer week;
 
     /**
      * 자료 제목
