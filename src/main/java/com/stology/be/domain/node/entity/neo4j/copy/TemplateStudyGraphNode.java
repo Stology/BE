@@ -1,5 +1,4 @@
 package com.stology.be.domain.node.entity.neo4j.copy;
-import com.stology.be.domain.node.entity.StudyNode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +23,7 @@ public class TemplateStudyGraphNode {
     private Long templateId;
 
     @Relationship(type = "HAS_NODE")
-    private Set<StudyNode> studyNodes = new HashSet<>();
+    private Set<StudyNodeGraphNode> studyNodes = new HashSet<>();
 
     public TemplateStudyGraphNode(
             Long studyId,

@@ -32,7 +32,7 @@ public class StudyNodeGraphNode {
     @Relationship(type = "SIMILAR_TO")
     private Set<StudyNodeRelation> relatedNodes = new HashSet<>();
 
-    public StudyNode(
+    public StudyNodeGraphNode(
             Long studyNodeId,
             Long originTemplateNodeId,
             String title,
@@ -42,5 +42,17 @@ public class StudyNodeGraphNode {
         this.originTemplateNodeId = originTemplateNodeId;
         this.title = title;
         this.description = description;
+    }
+
+    public void addRelatedNode(
+            String relation,
+            StudyNodeGraphNode targetNode
+    ) {
+        this.relatedNodes.add(
+                new StudyNodeRelation(
+                        relation,
+                        targetNode
+                )
+        );
     }
 }

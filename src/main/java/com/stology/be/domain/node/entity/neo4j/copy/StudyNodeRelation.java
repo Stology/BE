@@ -1,6 +1,5 @@
 package com.stology.be.domain.node.entity.neo4j.copy;
 
-mport lombok.AccessLevel;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
