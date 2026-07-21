@@ -5,6 +5,7 @@ import com.stology.be.domain.upload.enums.DataState;
 import com.stology.be.domain.upload.event.UploadedEvent;
 import com.stology.be.domain.upload.service.SseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -27,7 +28,6 @@ public class UploadedSseListener {
                         event.uploaderMemberId(),
                         event.uploaderName(),
                         event.dataTitle(),
-                        event.week(),
                         DataState.READY,
                         event.createdAt()
                 );

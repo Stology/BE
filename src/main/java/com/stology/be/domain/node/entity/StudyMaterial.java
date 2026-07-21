@@ -25,9 +25,17 @@ public class StudyMaterial extends BaseEntity {
     @Column(name = "file_url")
     private String fileUrl;
 
+    @Column
+    private String objectKey;
+
+
     @Lob
     @Column(name = "content", columnDefinition = "LONGTEXT")
     private String content;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String summary;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "data_state", nullable = false)
@@ -37,8 +45,6 @@ public class StudyMaterial extends BaseEntity {
     @Column(name = "data_title")
     private String dataTitle;
 
-    @Column(name = "week")
-    private int week;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -56,6 +62,11 @@ public class StudyMaterial extends BaseEntity {
     public void changeDataState(DataState dataState) {
         this.dataState = dataState;
     }
+
+    public void updateSummary(String summary) {
+        this.summary = summary;
+    }
+
 
 
 }

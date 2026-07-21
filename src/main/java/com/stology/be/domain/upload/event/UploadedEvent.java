@@ -12,7 +12,6 @@ public record UploadedEvent(
         Long uploaderMemberId,
         String uploaderName,
         String dataTitle,
-        Integer week,
         LocalDateTime createdAt
 ) {
 }
