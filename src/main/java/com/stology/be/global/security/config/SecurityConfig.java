@@ -47,7 +47,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
-                        .loginPage("/oauth2/authorization/kakao")
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService))
                         .successHandler(oAuthSuccessHandler)
                         .failureUrl("/login?error=true")
