@@ -1,6 +1,7 @@
 package com.stology.be.domain.template.component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stology.be.domain.node.repository.neo4j.TemplateGraphRepository;
+import com.stology.be.domain.template.dto.TemplateNodeCountProjection;
 import com.stology.be.domain.template.service.TemplateImportService;
 import com.stology.be.domain.template.dto.TemplateImportDto;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +35,11 @@ public class TemplateInitializer
                 );
 
 
-        // importService.importTemplate(dto);
+         //importService.importTemplate(dto);
 
 
-/* DB 확인용
+
+ //DB 확인용
         System.out.println("==============================");
         System.out.println("Template Count     : "
                 + templateGraphRepository.count());
@@ -55,7 +57,7 @@ public class TemplateInitializer
             );
         }
 
-        System.out.println("==============================");*/
+        System.out.println("==============================");
 
 
 

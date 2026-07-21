@@ -4,6 +4,12 @@ import java.util.List;
 
 public record AiSummaryResult(
         String summary,
-        List<String> keywords
+        List<KeywordInfo> keywords
 ) {
+
+    public record KeywordInfo(
+            Long Id,
+            String title
+    ) {
+    }
 }

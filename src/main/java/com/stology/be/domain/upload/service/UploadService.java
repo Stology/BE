@@ -14,6 +14,7 @@ import com.stology.be.domain.upload.dto.res.RecentFilesRes;
 import com.stology.be.domain.upload.event.UploadedEvent;
 import com.stology.be.domain.upload.enums.DataState;
 import com.stology.be.global.external.s3.S3Uploader;
+import com.stology.be.global.external.s3.dto.S3InfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
@@ -54,7 +55,7 @@ public class UploadService {
 
 
         //1. S3에 파일 저장
-        String fileUrl = s3Uploader.uploadByFile(
+        S3InfoDto s3Info = s3Uploader.uploadByFile(
                 request.getFile(),
                 "study-material/" + studyId
         );
@@ -70,7 +71,8 @@ public class UploadService {
                 .memberStudy(memberStudy)
                 .dataTitle(request.getTitle())
                 .content(content)
-                .fileUrl(fileUrl)
+                .fileUrl(s3Info.url())
+                .objectKey(s3Info.objectKey())
                 .build();
 
         studyMaterialRepository.save(studyMaterial);

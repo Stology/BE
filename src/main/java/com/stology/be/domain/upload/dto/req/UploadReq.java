@@ -1,5 +1,6 @@
 package com.stology.be.domain.upload.dto.req;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -31,6 +32,10 @@ public class UploadReq {
     /**
      * Markdown 파일
      */
+    @Schema(
+            type = "string",
+            format = "binary"
+    )
     @NotNull(message = "파일은 필수입니다.")
     private MultipartFile file;
 }

@@ -12,7 +12,9 @@ import com.stology.be.domain.study.exception.StudyException;
 import com.stology.be.domain.study.exception.code.StudyErrorCode;
 import com.stology.be.domain.study.repository.MemberStudyRepository;
 import com.stology.be.domain.study.repository.StudyRepository;
+import com.stology.be.domain.template.dto.TemplateActivateDto;
 import com.stology.be.domain.template.repository.TemplateRepository;
+import com.stology.be.domain.template.service.TemplateActivateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,8 @@ public class StudyService {
     private final TemplateRepository templateRepository;
     private final MemberStudyRepository memberStudyRepository;
 
+    private final TemplateActivateService templateActivateService;
+
     private static final String STOLOGY_URL = "https://stology.com";
 
     // 스터디 방 생성
@@ -46,6 +50,9 @@ public class StudyService {
         // 스터디 방 생성
         Study study = StudyConverter.toCreateStudy(dto, template, member);
         studyRepository.save(study);
+        // 스터디 템플릿 복제 작업
+        templateActivateService.activateTemplate(study.getId(), template.getId());
+
         // MemberStudy 유저 생성
         MemberStudy memberStudy = StudyConverter.toCreateMemberStudy(study, member);
         memberStudyRepository.save(memberStudy);

@@ -1,5 +1,6 @@
 package com.stology.be.global.external.s3;
 
+import com.stology.be.global.external.s3.dto.S3InfoDto;
 import com.stology.be.global.external.s3.exception.S3ErrorCode;
 import com.stology.be.global.external.s3.exception.S3Exception;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class S3Uploader {
     /**
      * MultipartFile을 S3에 업로드하고 객체 URL을 반환합니다.
      */
-    public String uploadByFile(
+    public S3InfoDto uploadByFile(
             MultipartFile file,
             String dirName
     ) {
@@ -69,7 +70,7 @@ public class S3Uploader {
     /**
      * 외부 URL의 파일을 읽어서 S3에 업로드합니다.
      */
-    public String uploadByUrl(
+    public S3InfoDto uploadByUrl(
             String fileUrl,
             String dirName
     ) {
@@ -165,7 +166,7 @@ public class S3Uploader {
     /**
      * S3 업로드 공통 로직입니다.
      */
-    private String putS3(
+    private S3InfoDto putS3(
             InputStream inputStream,
             String originalFilename,
             String contentType,
@@ -196,7 +197,7 @@ public class S3Uploader {
                 objectKey
         );
 
-        return createObjectUrl(objectKey);
+        return new S3InfoDto(createObjectUrl(objectKey),objectKey);
     }
 
     /**
@@ -216,7 +217,6 @@ public class S3Uploader {
                 encodeFileName(originalFilename);
 
         return basePath
-                + "/"
                 + safeDirectory
                 + "/"
                 + UUID.randomUUID()

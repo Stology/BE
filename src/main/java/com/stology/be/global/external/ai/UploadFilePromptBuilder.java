@@ -1,10 +1,14 @@
 package com.stology.be.global.external.ai;
 
+import com.stology.be.domain.node.dto.StudyNodePromptDto;
 import com.stology.be.domain.node.entity.StudyMaterial;
 import com.stology.be.domain.node.entity.TemplateNode;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
+import com.stology.be.domain.node.repository.neo4j.copy.TemplateStudyGraphRepository;
 import com.stology.be.domain.study.entity.Study;
 import com.stology.be.domain.study.repository.StudyRepository;
+import com.stology.be.domain.template.repository.TemplateRepository;
+import com.stology.be.global.external.s3.S3Reader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +17,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -20,6 +25,8 @@ public class UploadFilePromptBuilder {
 
     private final StudyMaterialRepository studyMaterialRepository;
     private final StudyRepository studyRepository;
+    private final TemplateStudyGraphRepository templateStudyGraphRepository;
+    private final S3Reader s3Reader;
 
     private static final String RULE = """
 너는 학습 자료를 분석하는 AI이다.
@@ -34,8 +41,8 @@ public class UploadFilePromptBuilder {
   "summary":"...",
   "keywords":[
       {
-          "id":101,
-          "name":"..."
+          "Id": 1,
+          "title": "..."
       }
   ]
 }
@@ -49,7 +56,10 @@ public class UploadFilePromptBuilder {
 
         StudyMaterial studyMaterial = getStudyMaterial(studyMaterialId);
 
-        String fileContent = readFileFromUrl(studyMaterial.getFileUrl());
+        String fileContent =
+                s3Reader.readString(
+                        studyMaterial.getObjectKey()
+                );
 
 
         if (fileContent.isBlank()) {
@@ -66,30 +76,30 @@ public class UploadFilePromptBuilder {
 
 
     public String makeSystemPrompt(Long studyId) {
+
         Study study = studyRepository.findById(studyId).orElse(null);
+        //null 불가능, 자료를 올리려면 템플릿이 등록된 스터디가 있어야함.
+        Long templateId = study.getTemplate().getId();
 
         //1. 탬플릿 정보 전부다 가져오기 | 템플릿 정보 = {노드 이름, 노드 ID}
         //2. 템플릿 정보로 만들기 { 떡볶이: 1, 고추장 : 2, 오뎅 : 3 ,... }
         //4. 템플릿 이름 정보 + RulE을 합쳐서 시스템 프롬프트 만들기
-
-        /*
-        List<TemplateNode> nodes;
+        List<StudyNodePromptDto> nodes =
+                templateStudyGraphRepository.findPromptNodes(studyId, templateId);
 
         String nodeList =
                 nodes.stream()
                         .map(node ->
                                 "%d : %s".formatted(
-                                        node.getId(),
-                                        node.getName()
+                                        node.studyNodeId(),
+                                        node.title()
                                 )
                         )
                         .collect(Collectors.joining("\n"));
 
-        return RULE.formatted(nodeList);'
-     */
+        return RULE.formatted(nodeList);
 
 
-        return null;
     }
 
 
@@ -98,51 +108,6 @@ public class UploadFilePromptBuilder {
 
 
 
-
-
-
-    private String readFileFromUrl(String fileUrl) {
-
-        HttpURLConnection connection = null;
-
-        try {
-            URI uri = URI.create(fileUrl);
-
-            connection =
-                    (HttpURLConnection) uri.toURL()
-                            .openConnection();
-
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(5_000);
-            connection.setReadTimeout(30_000);
-
-            int statusCode = connection.getResponseCode();
-
-            if (statusCode < 200 || statusCode >= 300) {
-                throw new IllegalStateException(
-                        "파일 다운로드에 실패했습니다. statusCode="
-                                + statusCode
-                );
-            }
-
-            try (var inputStream = connection.getInputStream()) {
-                return new String(
-                        inputStream.readAllBytes(),
-                        StandardCharsets.UTF_8
-                );
-            }
-
-        } catch (IOException exception) {
-            throw new IllegalStateException(
-                    "업로드된 파일을 읽는 중 오류가 발생했습니다.",
-                    exception
-            );
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
-    }
 
     private String buildPrompt(
             String title,
