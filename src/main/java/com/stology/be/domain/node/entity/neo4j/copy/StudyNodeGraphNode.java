@@ -21,15 +21,15 @@ public class StudyNodeGraphNode {
     @Property("title")
     private String title;
 
+    private int week;
 
-    @Relationship(type = "SIMILAR_TO")
+
+    @Relationship(type = "RELATED_TO")
     private Set<StudyNodeRelation> relatedNodes = new HashSet<>();
 
     public StudyNodeGraphNode(
-            Long studyNodeId,
             String title
     ) {
-        this.studyNodeId = studyNodeId;
         this.title = title;
     }
 

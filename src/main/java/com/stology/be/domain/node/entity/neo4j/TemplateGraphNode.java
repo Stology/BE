@@ -13,16 +13,14 @@ import java.util.Set;
 public class TemplateGraphNode {
 
     @Id
-    @GeneratedValue
     private Long templateId;
 
-    private String title;
 
     @Relationship(type = "HAS_NODE", direction = Relationship.Direction.OUTGOING)
     private Set<TemplateNodeGraphNode> templateNodes = new HashSet<>();
 
-    public TemplateGraphNode(String title) {
-        this.title = title;
+    public TemplateGraphNode(Long templateId) {
+        this.templateId = templateId;
     }
 
     public void addTemplateNode(

@@ -16,13 +16,16 @@ public class TemplateNodeGraphNode {
     @GeneratedValue
     private Long templateNodeId;
 
-    private String name;
+    private String title;
+
+    private int week;
 
     @Relationship(type = "RELATED_TO", direction = Relationship.Direction.OUTGOING)
     private Set<TemplateNodeRelation> relatedNodes = new HashSet<>();
 
-    public TemplateNodeGraphNode(String name) {
-        this.name = name;
+    public TemplateNodeGraphNode(String name,int week) {
+        this.title = name;
+        this.week = week;
     }
 
 

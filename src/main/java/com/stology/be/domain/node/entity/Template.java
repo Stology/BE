@@ -20,7 +20,7 @@ public class Template extends BaseEntity {
     @JoinColumn(name = "uploader")
     private Member uploader;
     
-    private String name;
+    private String title;
     
     private String description;
 }

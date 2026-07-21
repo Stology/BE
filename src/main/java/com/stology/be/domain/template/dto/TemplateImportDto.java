@@ -6,6 +6,8 @@ public record TemplateImportDto(
 
         String title,
 
+        String description,
+
         List<TemplateNodeDto> nodes,
 
         List<TemplateRelationDto> relations
