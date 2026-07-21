@@ -5,8 +5,9 @@ import com.stology.be.domain.report.dto.response.ReportResponseDto.*;
 import com.stology.be.domain.report.entity.Report;
 import com.stology.be.domain.report.repository.ReportRepository;
 import com.stology.be.domain.study.repository.QuestionRepository;
+import com.stology.be.domain.report.exception.ReportErrorCode;
 import com.stology.be.global.apiPayload.code.GeneralErrorCode;
-import com.stology.be.global.apiPayload.exception.GeneralException;
+import com.stology.be.domain.report.exception.ReportException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class ReportService {
             log.info("새로운 수정/생성 활동이 감지되었습니다. (최신 활동: {}, 기존 리포트 생성: {}) Groq 갱신을 시작합니다.", latestActivityTime, lastReportTime);
             
             if(currentReport == null) {
-               throw new GeneralException(GeneralErrorCode.NOT_FOUND); // 첫 리포트가 없는 경우는 다른 플로우(ex: 첫 가입)에서 처리해야 함
+               throw new ReportException(ReportErrorCode.STUDY_NOT_FOUND); // 첫 리포트가 없는 경우는 다른 플로우(ex: 첫 가입)에서 처리해야 함
             }
             
             com.stology.be.domain.report.dto.AiReportOutputDto output = aiReportService.generateNewReport(currentReport.getStudy(), generateDbStatsContent(currentReport.getStudy(), currentReport.getStudy().getId()));
@@ -220,7 +221,7 @@ public class ReportService {
         if (reports.isEmpty()) {
             // 첫 리포트가 없는 경우 즉시 새로 생성
             com.stology.be.domain.study.entity.Study study = studyRepository.findById(studyId)
-                    .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
+                    .orElseThrow(() -> new ReportException(ReportErrorCode.STUDY_NOT_FOUND));
             com.stology.be.domain.report.dto.AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId));
             
             int currentWeek = 1;
@@ -276,7 +277,7 @@ public class ReportService {
                 targetReport = checkAndUpdateReport(studyId, targetReport);
             } else {
                 if (week < 1 || week > reports.size()) {
-                    throw new GeneralException(GeneralErrorCode.NOT_FOUND);
+                    throw new ReportException(ReportErrorCode.REPORT_NOT_FOUND);
                 }
                 targetReport = reports.get(week - 1);
             }
@@ -317,7 +318,7 @@ public class ReportService {
     public AiReviewResponse getAiReview(Long studyId, Long aiReviewId) {
         // AI 리뷰는 특정 reportId(aiReviewId)를 콕 집어 요청하므로 갱신 검사 불필요
         Report report = reportRepository.findByIdAndStudyId(aiReviewId, studyId)
-                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new ReportException(ReportErrorCode.REPORT_NOT_FOUND));
                 
         return AiReviewResponse.builder()
                 .aiReviewContent(report.getAiReviewContent())
@@ -371,7 +372,7 @@ public class ReportService {
 
     public void checkAndGenerateMissingReports(Long studyId) {
         com.stology.be.domain.study.entity.Study study = studyRepository.findById(studyId)
-                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new ReportException(ReportErrorCode.STUDY_NOT_FOUND));
 
         if (study.getStartDate() == null) return;
 
