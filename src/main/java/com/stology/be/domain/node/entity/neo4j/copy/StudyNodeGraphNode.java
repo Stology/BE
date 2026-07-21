@@ -14,7 +14,6 @@ import java.util.Set;
 public class StudyNodeGraphNode {
 
     @Id
-    @GeneratedValue
     private Long studyNodeId;
 
 
@@ -28,9 +27,13 @@ public class StudyNodeGraphNode {
     private Set<StudyNodeRelation> relatedNodes = new HashSet<>();
 
     public StudyNodeGraphNode(
-            String title
+            Long studyNodeId,
+            String title,
+            int week
     ) {
+        this.studyNodeId = studyNodeId;
         this.title = title;
+        this.week = week;
     }
 
     public void addRelatedNode(

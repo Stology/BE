@@ -24,7 +24,7 @@ public class MysqlTemplateImportService {
 
         Template savedTemplate =
                 templateRepository.save(template);
-        
+
 
         return savedTemplate.getId();
     }

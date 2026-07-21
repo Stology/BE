@@ -1,20 +1,24 @@
 {
   "title": "Java",
+  "description": "Java의 실행 환경, 객체지향 개념, 언어 기능 및 관련 프레임워크를 학습하기 위한 템플릿입니다.",
   "nodes": [
-    { "title": "Java" },
-    { "title": "JVM" },
-    { "title": "JDK" },
-    { "title": "JRE" },
-    { "title": "클래스" },
-    { "title": "객체" },
-    { "title": "인터페이스" },
-    { "title": "추상 클래스" },
-    { "title": "상속" },
-    { "title": "다형성" },
-    { "title": "캡슐화" },
-    { "title": "예외 처리" },
-    { "title": "컬렉션 프레임워크" },
-    { "title": "Spring Boot" }
+    { "title": "Java", "week": 1 },
+    { "title": "JVM", "week": 1 },
+    { "title": "JDK", "week": 1 },
+    { "title": "JRE", "week": 1 },
+
+    { "title": "클래스", "week": 2 },
+    { "title": "객체", "week": 2 },
+    { "title": "인터페이스", "week": 2 },
+    { "title": "추상 클래스", "week": 2 },
+
+    { "title": "상속", "week": 3 },
+    { "title": "다형성", "week": 3 },
+    { "title": "캡슐화", "week": 3 },
+
+    { "title": "예외 처리", "week": 4 },
+    { "title": "컬렉션 프레임워크", "week": 4 },
+    { "title": "Spring Boot", "week": 4 }
   ],
   "relations": [
     {
@@ -90,7 +94,7 @@
     {
       "sourceTitle": "Spring Boot",
       "targetTitle": "Java",
-      "relation": "프레임워크"
+      "relation": "기반 언어"
     }
   ]
 }

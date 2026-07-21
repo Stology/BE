@@ -2,68 +2,104 @@ package com.stology.be.domain.template.service;
 
 import com.stology.be.domain.node.entity.neo4j.TemplateGraphNode;
 import com.stology.be.domain.node.entity.neo4j.TemplateNodeGraphNode;
-import com.stology.be.domain.node.entity.neo4j.TemplateNodeRelation;
-import com.stology.be.domain.node.entity.neo4j.copy.StudyNodeGraphNode;
-import com.stology.be.domain.node.entity.neo4j.copy.TemplateStudyGraphNode;
 import com.stology.be.domain.node.repository.neo4j.TemplateGraphRepository;
-import com.stology.be.domain.node.repository.neo4j.copy.TemplateStudyGraphRepository;
+import com.stology.be.domain.template.dto.TemplateActivateDto;
+import com.stology.be.domain.template.dto.TemplateNodeActivateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class TemplateActivateService {
 
     private final TemplateGraphRepository templateGraphRepository;
-    private final TemplateStudyGraphRepository templateStudyGraphRepository;
+    private final MysqlTemplateActivateService mysqlActivateService;
+    private final Neo4jTemplateActivateService neo4jActivateService;
 
-    @Transactional("neo4jTransactionManager")
-    public Long makeDuplicate(
+    public Long activateTemplate(
             Long studyId,
             Long templateId
     ) {
+        validateInput(studyId, templateId);
+
+        /*
+         * Neo4j 원본 Template을 읽어서
+         * MySQL StudyNode 생성에 필요한 정보만 추출한다.
+         *
+         * 읽기 작업이므로 아직 데이터를 생성하지 않는다.
+         */
         TemplateGraphNode template =
                 getTemplate(templateId);
 
-        validateDuplicateStudy(studyId);
+        List<TemplateNodeActivateDto> templateNodes =
+                convertTemplateNodes(template);
 
-        TemplateStudyGraphNode templateStudy =
-                createTemplateStudy(
+        /*
+         * 1. MySQL StudyNode 생성 및 커밋
+         */
+        TemplateActivateDto activateResult =
+                mysqlActivateService.createStudyNodes(
                         studyId,
                         templateId,
-                        template
+                        templateNodes
+                );
+        try {
+            /*
+             * 2. MySQL ID를 사용하여 Neo4j 그래프 생성
+             */
+            return neo4jActivateService.createStudyGraph(
+                    activateResult
+            );
+
+        } catch (RuntimeException neo4jException) {
+
+            try {
+                /*
+                 * 3. Neo4j 실패 시 이번에 생성한
+                 *    MySQL StudyNode만 보상 삭제
+                 */
+                mysqlActivateService.deleteCreatedStudyNodes(
+                        activateResult.createdStudyNodeIds()
                 );
 
-        Map<Long, StudyNodeGraphNode> copiedNodeMap =
-                copyTemplateNodes(
-                        template,
-                        templateStudy
+            } catch (RuntimeException compensationException) {
+
+                neo4jException.addSuppressed(
+                        compensationException
                 );
 
-        copyTemplateRelations(
-                template,
-                copiedNodeMap
-        );
-        TemplateStudyGraphNode savedTemplateStudy =
-                saveTemplateStudy(templateStudy);
+                throw new IllegalStateException(
+                        "Neo4j 그래프 생성과 MySQL StudyNode 보상 삭제가 모두 실패했습니다.",
+                        neo4jException
+                );
+            }
 
-
-        return savedTemplateStudy.getTemplateStudyId();
+            throw new IllegalStateException(
+                    "Neo4j 그래프 생성에 실패하여 MySQL StudyNode를 보상 삭제했습니다.",
+                    neo4jException
+            );
+        }
     }
 
+    private void validateInput(
+            Long studyId,
+            Long templateId
+    ) {
+        if (studyId == null) {
+            throw new IllegalArgumentException(
+                    "studyId는 필수입니다."
+            );
+        }
 
+        if (templateId == null) {
+            throw new IllegalArgumentException(
+                    "templateId는 필수입니다."
+            );
+        }
+    }
 
-
-
-
-
-    /**
-     * templateId로 원본 Template 그래프를 조회한다.
-     */
     private TemplateGraphNode getTemplate(
             Long templateId
     ) {
@@ -76,214 +112,29 @@ public class TemplateActivateService {
                 );
     }
 
-    /**
-     * 같은 Study에 TemplateStudy가 중복으로 생성되는 것을 방지한다.
-     */
-    private void validateDuplicateStudy(
-            Long studyId
-    ) {
-        boolean alreadyExists =
-                templateStudyGraphRepository.existsByStudyId(studyId);
-
-        if (alreadyExists) {
-            throw new IllegalStateException(
-                    "이미 그래프가 생성된 스터디입니다. studyId="
-                            + studyId
-            );
-        }
-    }
-
-    /**
-     * Template 정보와 studyId를 이용해
-     * 새로운 TemplateStudy 루트 노드를 생성한다.
-     */
-    private TemplateStudyGraphNode createTemplateStudy(
-            Long studyId,
-            Long templateId,
+    private List<TemplateNodeActivateDto> convertTemplateNodes(
             TemplateGraphNode template
     ) {
-        return new TemplateStudyGraphNode(
-                studyId,
-                templateId
-        );
+        return template.getTemplateNodes()
+                .stream()
+                .map(this::convertTemplateNode)
+                .toList();
     }
 
-    /**
-     * 모든 TemplateNode를 StudyNode로 복제한다.
-     *
-     * 반환되는 Map의 구조:
-     *
-     * 원본 TemplateNode ID
-     *          ↓
-     * 복제된 StudyNode 객체
-     *
-     * 이 Map은 이후 관계를 복제할 때 사용된다.
-     */
-    private Map<Long, StudyNodeGraphNode> copyTemplateNodes(
-            TemplateGraphNode template,
-            TemplateStudyGraphNode templateStudy
-    ) {
-        Map<Long, StudyNodeGraphNode> copiedNodeMap =
-                new HashMap<>();
-
-        for (TemplateNodeGraphNode templateNode
-                : template.getTemplateNodes()) {
-
-            StudyNodeGraphNode studyNode =
-                    createStudyNode(templateNode);
-
-            addCopiedNodeToMap(
-                    copiedNodeMap,
-                    templateNode,
-                    studyNode
-            );
-
-            templateStudy.addStudyNode(studyNode);
-        }
-
-        return copiedNodeMap;
-    }
-
-    /**
-     * TemplateNode 하나를 StudyNode로 복제한다.
-     */
-    private StudyNodeGraphNode createStudyNode(
+    private TemplateNodeActivateDto convertTemplateNode(
             TemplateNodeGraphNode templateNode
     ) {
-        return new StudyNodeGraphNode(
-                templateNode.getTitle()
-        );
-    }
-
-    /**
-     * 원본 TemplateNode와 복제 StudyNode의 대응 관계를 Map에 저장한다.
-     */
-    private void addCopiedNodeToMap(
-            Map<Long, StudyNodeGraphNode> copiedNodeMap,
-            TemplateNodeGraphNode templateNode,
-            StudyNodeGraphNode studyNode
-    ) {
-        Long templateNodeId =
-                templateNode.getTemplateNodeId();
-
-        if (templateNodeId == null) {
+        if (templateNode.getTemplateNodeId() == null) {
             throw new IllegalStateException(
-                    "원본 TemplateNode의 ID가 없습니다. title="
+                    "TemplateNode ID가 없습니다. title="
                             + templateNode.getTitle()
             );
         }
 
-        copiedNodeMap.put(
-                templateNodeId,
-                studyNode
+        return new TemplateNodeActivateDto(
+                templateNode.getTemplateNodeId(),
+                templateNode.getTitle(),
+                templateNode.getWeek()
         );
-    }
-
-    /**
-     * 원본 TemplateNode 사이의 모든 관계를
-     * 복제된 StudyNode 사이에 그대로 생성한다.
-     */
-    private void copyTemplateRelations(
-            TemplateGraphNode template,
-            Map<Long, StudyNodeGraphNode> copiedNodeMap
-    ) {
-        for (TemplateNodeGraphNode sourceTemplateNode
-                : template.getTemplateNodes()) {
-
-            copyRelationsOfNode(
-                    sourceTemplateNode,
-                    copiedNodeMap
-            );
-        }
-    }
-
-    /**
-     * 특정 TemplateNode가 가진 모든 outgoing 관계를 복제한다.
-     */
-    private void copyRelationsOfNode(
-            TemplateNodeGraphNode sourceTemplateNode,
-            Map<Long, StudyNodeGraphNode> copiedNodeMap
-    ) {
-        StudyNodeGraphNode sourceStudyNode =
-                getCopiedStudyNode(
-                        sourceTemplateNode,
-                        copiedNodeMap,
-                        "출발"
-                );
-
-        for (TemplateNodeRelation templateRelation
-                : sourceTemplateNode.getRelatedNodes()) {
-
-            copySingleRelation(
-                    sourceStudyNode,
-                    templateRelation,
-                    copiedNodeMap
-            );
-        }
-    }
-
-    /**
-     * TemplateNodeRelation 하나를 StudyNodeRelation으로 복제한다.
-     */
-    private void copySingleRelation(
-            StudyNodeGraphNode sourceStudyNode,
-            TemplateNodeRelation templateRelation,
-            Map<Long, StudyNodeGraphNode> copiedNodeMap
-    ) {
-        TemplateNodeGraphNode targetTemplateNode =
-                templateRelation.getTargetNode();
-
-        if (targetTemplateNode == null) {
-            throw new IllegalStateException(
-                    "TemplateNodeRelation의 targetNode가 없습니다. relation="
-                            + templateRelation.getRelation()
-            );
-        }
-
-        StudyNodeGraphNode targetStudyNode =
-                getCopiedStudyNode(
-                        targetTemplateNode,
-                        copiedNodeMap,
-                        "도착"
-                );
-
-        sourceStudyNode.addRelatedNode(
-                templateRelation.getRelation(),
-                targetStudyNode
-        );
-    }
-
-    /**
-     * 원본 TemplateNode에 대응하는 복제 StudyNode를 Map에서 조회한다.
-     */
-    private StudyNodeGraphNode getCopiedStudyNode(
-            TemplateNodeGraphNode templateNode,
-            Map<Long, StudyNodeGraphNode> copiedNodeMap,
-            String nodeRole
-    ) {
-        Long templateNodeId =
-                templateNode.getTemplateNodeId();
-
-        StudyNodeGraphNode studyNode =
-                copiedNodeMap.get(templateNodeId);
-
-        if (studyNode == null) {
-            throw new IllegalStateException(
-                    "복제된 " + nodeRole
-                            + " 노드를 찾을 수 없습니다. templateNodeId="
-                            + templateNodeId
-            );
-        }
-
-        return studyNode;
-    }
-
-    /**
-     * 완성된 TemplateStudy 객체 그래프를 저장한다.
-     */
-    private TemplateStudyGraphNode saveTemplateStudy(
-            TemplateStudyGraphNode templateStudy
-    ) {
-        return templateStudyGraphRepository.save(templateStudy);
     }
 }

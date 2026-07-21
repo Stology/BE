@@ -1,20 +1,24 @@
 {
   "title": "농구",
+  "description": "농구의 기본 개념, 장비, 기술, 규칙 및 프로 리그를 학습하기 위한 템플릿입니다.",
   "nodes": [
-    { "title": "농구" },
-    { "title": "드리블" },
-    { "title": "패스" },
-    { "title": "슛" },
-    { "title": "레이업" },
-    { "title": "덩크슛" },
-    { "title": "3점슛" },
-    { "title": "리바운드" },
-    { "title": "어시스트" },
-    { "title": "파울" },
-    { "title": "자유투" },
-    { "title": "NBA" },
-    { "title": "농구공" },
-    { "title": "골대" }
+    { "title": "농구", "week": 1 },
+    { "title": "농구공", "week": 1 },
+    { "title": "골대", "week": 1 },
+
+    { "title": "드리블", "week": 2 },
+    { "title": "패스", "week": 2 },
+    { "title": "슛", "week": 2 },
+
+    { "title": "레이업", "week": 3 },
+    { "title": "덩크슛", "week": 3 },
+    { "title": "3점슛", "week": 3 },
+    { "title": "리바운드", "week": 3 },
+    { "title": "어시스트", "week": 3 },
+
+    { "title": "파울", "week": 4 },
+    { "title": "자유투", "week": 4 },
+    { "title": "NBA", "week": 4 }
   ],
   "relations": [
     {

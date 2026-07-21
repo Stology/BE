@@ -1,8 +1,10 @@
 package com.stology.be.domain.template.component;
 
+import com.stology.be.domain.node.repository.neo4j.TemplateGraphRepository;
+import com.stology.be.domain.template.dto.TemplateNodeCountProjection;
+import com.stology.be.domain.template.service.TemplateImportService;
 import tools.jackson.databind.ObjectMapper;
 import com.stology.be.domain.template.dto.TemplateImportDto;
-import com.stology.be.domain.template.service.Neo4jTemplateImportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.boot.CommandLineRunner;
@@ -15,8 +17,9 @@ public class TemplateInitializer
         implements CommandLineRunner {
 
     private final ObjectMapper objectMapper;
+    private final TemplateGraphRepository templateGraphRepository;
 
-    private final Neo4jTemplateImportService importService;
+    private final TemplateImportService importService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -33,7 +36,30 @@ public class TemplateInitializer
                 );
 
 
-//        importService.importTemplate(dto);
+        // importService.importTemplate(dto);
+
+
+/* DB 확인용 
+        System.out.println("==============================");
+        System.out.println("Template Count     : "
+                + templateGraphRepository.count());
+
+        System.out.println("TemplateNode Count : "
+                + templateGraphRepository.countTemplateNodes());
+
+
+        for (TemplateNodeCountProjection info :
+                templateGraphRepository.findTemplateNodeCounts()) {
+
+            System.out.println(
+                    "TemplateId = " + info.templateId()
+                            + ", NodeCount = " + info.nodeCount()
+            );
+        }
+
+        System.out.println("==============================");*/
+
+
 
     }
 }
