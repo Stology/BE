@@ -20,14 +20,13 @@ public class StudyMaterial extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "study_material_id")
     private Long id;
 
     @Column(name = "file_url")
     private String fileUrl;
 
     @Lob
-    @Column(name = "content")
+    @Column(name = "content", columnDefinition = "LONGTEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
