@@ -51,8 +51,19 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
+<<<<<<< HEAD
     // Spring AI
     implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M6'
+=======
+    implementation 'org.springframework.boot:spring-boot-starter-jackson'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // AWS S3
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+
+
+
+>>>>>>> 6496c82 (fix : 오브잭트 매퍼 의존성 추가)
 }
 
 tasks.named('test') {
