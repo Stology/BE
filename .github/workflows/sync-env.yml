@@ -1,0 +1,37 @@
+name: Sync Submodule
+
+on:
+  repository_dispatch:
+    types: [submodule-update]
+
+permissions:
+  contents: write # Git Commit & Push를 위해 write 권한 필요
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 대상 브랜치(main 또는 develop)로 Checkout
+      - name: Checkout Main Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.ref_name }}
+          token: ${{ secrets.SUBMODULE_TOKEN }}
+          submodules: true
+          fetch-depth: 0
+
+      # 2. 서브모듈을 최신 커밋으로 업데이트
+      - name: Update Submodule
+        run: |
+          git config local user.email "github-actions[bot]@users.noreply.github.com"
+          git config local user.name "github-actions[bot]"
+          
+          git submodule update --remote --merge
+
+          # 변경사항이 있을 때만 커밋 및 푸시
+          if ! git diff --quiet; then
+            git commit -am "chore: update submodule env configuration"
+            git push origin ${{ github.event.client_payload.ref_name }}
+          else
+            echo "No submodule updates to commit."
+          fi
