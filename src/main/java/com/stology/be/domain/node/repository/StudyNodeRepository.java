@@ -25,4 +25,6 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
             Integer minActiveLevel,
             Integer maxActiveLevel
     );
+
+    Long countByStudy_Id(Long studyId);
 }

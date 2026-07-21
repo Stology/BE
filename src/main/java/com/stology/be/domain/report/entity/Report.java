@@ -47,10 +47,20 @@ public class Report extends BaseEntity {
     @Convert(converter = RecommendedNodeListConverter.class)
     private List<RecommendedNodeDto> recommendedNodeList;
     
-    @Column(columnDefinition = "text")
-    private String followUpContent;
-    
     @Column(columnDefinition = "json")
     @Convert(converter = MemberActivityStatisticsListConverter.class)
     private List<MemberActivityStatisticsDto> memberActivityStatisticsList;
+
+    public void update(Integer totalNodeCount, Integer newActiveNodeCount, Integer reinforcedNodeCount, 
+                       List<WeeklyCoreNodeDto> weeklyCoreNodeList, String aiReviewContent, 
+                       List<RecommendedNodeDto> recommendedNodeList, 
+                       List<MemberActivityStatisticsDto> memberActivityStatisticsList) {
+        this.totalNodeCount = totalNodeCount;
+        this.newActiveNodeCount = newActiveNodeCount;
+        this.reinforcedNodeCount = reinforcedNodeCount;
+        this.weeklyCoreNodeList = weeklyCoreNodeList;
+        this.aiReviewContent = aiReviewContent;
+        this.recommendedNodeList = recommendedNodeList;
+        this.memberActivityStatisticsList = memberActivityStatisticsList;
+    }
 }
