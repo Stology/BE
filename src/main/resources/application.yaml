@@ -72,6 +72,13 @@ spring:
           model: gemini-2.5-flash
           temperature: 0.5
 
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+
 jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}
@@ -79,16 +86,3 @@ jwt:
     expiration:
       access: ${JWT_ACCESS_EXPIRATION:3600000}
       refresh: ${JWT_REFRESH_EXPIRATION:604800000}
-
-gemini:
-  api:
-    key: ${GEMINI_API_KEY}
-    url: ${GEMINI_API_URL}
-
-cloud:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
-    region:
-      static: ap-northeast-2
