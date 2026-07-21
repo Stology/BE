@@ -4,6 +4,7 @@ import com.stology.be.domain.node.entity.StudyNode;
 import com.stology.be.domain.study.entity.MemberStudy;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,8 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
             Long studyId
     );
 
+    boolean existsByStudyId(Long studyId);
+
 
     List<StudyNode>
     findByStudy_IdAndActivationWeekAndActiveLevelBetweenOrderByActiveLevelAsc(
@@ -25,6 +28,10 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
             Integer minActiveLevel,
             Integer maxActiveLevel
     );
+    long deleteByIdIn(
+            Collection<Long> studyNodeIds
+    );
+
 
     Long countByStudy_Id(Long studyId);
 }
