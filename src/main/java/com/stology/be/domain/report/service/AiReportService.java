@@ -3,7 +3,6 @@ package com.stology.be.domain.report.service;
 import com.stology.be.domain.report.dto.AiReportOutputDto;
 import com.stology.be.domain.study.entity.Study;
 import com.stology.be.global.apiPayload.code.GeneralErrorCode;
-import com.stology.be.global.apiPayload.exception.GeneralException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -58,7 +57,7 @@ public class AiReportService {
 
         } catch (Exception e) {
             log.error("AI Report generation failed", e);
-            throw new GeneralException(GeneralErrorCode.INTERNAL_SERVER_ERROR);
+            throw new com.stology.be.domain.report.exception.ReportException(com.stology.be.domain.report.exception.ReportErrorCode.REPORT_GENERATION_FAILED);
         }
     }
 }
