@@ -9,7 +9,7 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 @EnableJpaAuditing
 @SpringBootApplication
 @EnableScheduling
-@EnableNeo4jRepositories(basePackages = {"com.stology.be.domain.study.repository.neo4j"})
+//@EnableNeo4jRepositories(basePackages = {"com.stology.be.domain.study.repository.neo4j"})
 public class BeApplication {
 
     public static void main(String[] args) {
