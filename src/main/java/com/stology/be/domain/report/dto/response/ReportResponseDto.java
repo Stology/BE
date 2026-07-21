@@ -40,13 +40,22 @@ public class ReportResponseDto {
 
     @Getter
     @Builder
-    public static class FollowUpResponse {
-        private String followUpContent;
+    public static class MemberActivityStatisticsResponse {
+        private List<MemberActivityStatisticsDto> memberActivityStatisticsList;
     }
 
     @Getter
     @Builder
-    public static class MemberActivityStatisticsResponse {
+    public static class FullReportResponse {
+        private Long reportId;
+        private Integer totalNodeCount;
+        private Integer newActiveNodeCount;
+        private Integer newActiveNodePercentage;
+        private Integer reinforcedNodeCount;
+        private Integer reinforcedNodePercentage;
+        private List<WeeklyCoreNodeDto> weeklyCoreNodeList;
+        private String aiReviewContent;
+        private List<RecommendedNodeDto> recommendedNodeList;
         private List<MemberActivityStatisticsDto> memberActivityStatisticsList;
     }
 }

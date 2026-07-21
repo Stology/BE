@@ -32,4 +32,6 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
             Collection<Long> studyNodeIds
     );
 
+
+    Long countByStudy_Id(Long studyId);
 }

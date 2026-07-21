@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface StudyRepository extends JpaRepository<Study, Long> {
     boolean existsByName(String name);
     Optional<Study> findByInvitationToken(String token);
+    java.util.List<Study> findByIsActiveTrue();
 }
