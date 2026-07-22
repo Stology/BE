@@ -98,6 +98,7 @@ public class UploadService {
             Long studyId,
             Long memberId
     ) {
+
         MemberStudy memberStudy = getMemberStudy(studyId, memberId);
 
 

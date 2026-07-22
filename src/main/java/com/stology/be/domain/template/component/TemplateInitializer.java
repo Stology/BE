@@ -1,6 +1,9 @@
 package com.stology.be.domain.template.component;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stology.be.domain.node.repository.StudyNodeRepository;
 import com.stology.be.domain.node.repository.neo4j.TemplateGraphRepository;
+import com.stology.be.domain.node.repository.neo4j.TemplateNodeGraphRepository;
+import com.stology.be.domain.node.repository.neo4j.copy.TemplateStudyGraphRepository;
 import com.stology.be.domain.template.dto.TemplateNodeCountProjection;
 import com.stology.be.domain.template.service.TemplateImportService;
 import com.stology.be.domain.template.dto.TemplateImportDto;
@@ -20,6 +23,9 @@ public class TemplateInitializer
 
     private final TemplateImportService importService;
 
+    private final TemplateNodeGraphRepository templateNodeGraphRepository;
+    private final TemplateStudyGraphRepository templateStudyGraphRepository;
+
     @Override
     public void run(String... args) throws Exception {
 
@@ -35,7 +41,7 @@ public class TemplateInitializer
                 );
 
 
-         //importService.importTemplate(dto);
+         importService.importTemplate(dto);
 
 
 

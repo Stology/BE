@@ -116,4 +116,14 @@ public interface TemplateNodeGraphRepository
             @Param("sourceTemplateNodeId") Long sourceTemplateNodeId,
             @Param("targetTemplateNodeId") Long targetTemplateNodeId
     );
+
+    @Query("""
+    MATCH (n)
+    WHERE n:Template
+       OR n:TemplateNode
+       OR n:TemplateStudy
+       OR n:StudyNode
+    DETACH DELETE n
+    """)
+    void deleteAllTemplateAndStudyGraphs();
 }

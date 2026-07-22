@@ -30,11 +30,7 @@ public class StudyNodeFlowController {
             @AuthenticationPrincipal AuthMember authMember,
             @Valid @RequestBody AcceptNodeReq request
     ) {
-        nodeVoteService.vote(
-                studyId,
-                authMember,
-                request
-        );
+
 
         return ApiResponse.onSuccess(NodeSuccessCode.GET_SUCCESS,
                 nodeVoteService.vote(
