@@ -23,7 +23,7 @@ class InquiryConverterTest {
 
     @Test
     void toQuestion_shouldMapRequestAndEntities() {
-        InquiryReqDTO.WriteQuestion request = new InquiryReqDTO.WriteQuestion("제목", "본문");
+        InquiryReqDTO.WriteQuestion request = new InquiryReqDTO.WriteQuestion("제목", "본문", null);
         Study study = TestFixtures.study(4L);
         Member member = TestFixtures.member(3L);
 
@@ -77,14 +77,17 @@ class InquiryConverterTest {
 
         InquiryResDTO.AnswerDetail detail = InquiryConverter.toAnswerDetail(
                 answer,
-                List.of("img1.png", "img2.png"),
+                List.of(
+                        new InquiryResDTO.ImageInfo(1L, "img1.png", "display1.png"),
+                        new InquiryResDTO.ImageInfo(2L, "img2.png", "display2.png")
+                ),
                 "writer"
         );
 
         assertNotNull(detail);
         assertEquals(answer.getId(), detail.answerId());
         assertEquals("답변입니다", detail.content());
-        assertEquals(2, detail.imageUrls().size());
+        assertEquals(2, detail.images().size());
         assertTrue(detail.isMine());
     }
 
@@ -96,7 +99,7 @@ class InquiryConverterTest {
 
         InquiryResDTO.QuestionDetail detail = InquiryConverter.toQuestionDetail(
                 question,
-                List.of("img.png"),
+                List.of(new InquiryResDTO.ImageInfo(1L, "img.png", "display.png")),
                 List.of(InquiryConverter.toAnswerDetail(answer, List.of(), "writer")),
                 false,
                 "writer"
