@@ -20,6 +20,10 @@ public interface InquiryService {
 
     InquiryResDTO.UploadImageResult uploadQuestionImages(Long studyId, Long questionId, Long memberId, List<MultipartFile> files);
 
+    InquiryResDTO.StageImageResult stageQuestionImages(Long studyId, Long memberId, List<MultipartFile> files);
+
+    InquiryResDTO.StageImageResult stageAnswerImages(Long studyId, Long questionId, Long memberId, List<MultipartFile> files);
+
     InquiryResDTO.WriteAnswerResult writeAnswer(Long studyId, Long questionId, Long memberId, InquiryReqDTO.WriteAnswer request);
 
     InquiryResDTO.UpdateAnswerResult updateAnswer(Long studyId, Long questionId, Long answerId, Long memberId, InquiryReqDTO.UpdateAnswer request);

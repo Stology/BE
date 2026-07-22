@@ -72,6 +72,33 @@ public class InquiryController {
         return ApiResponse.onSuccess(InquirySuccessCode.DELETE_INQUIRY, null);
     }
 
+    /**
+     * 질문 작성/수정 모달에서 questionId 없이 이미지를 먼저 올린다.
+     * 응답의 imageUrl을 질문 작성/수정 요청 body의 imageUrls에 담아 보내면 질문에 연결된다.
+     * 경로가 {questionId}와 겹쳐 보이지만 Spring은 리터럴 세그먼트를 우선 매칭한다.
+     */
+    @PostMapping("/image")
+    public ApiResponse<InquiryResDTO.StageImageResult> stageQuestionImages(
+            @PathVariable Long studyId,
+            @AuthenticationPrincipal AuthMember authMember,
+            @RequestParam("images") List<MultipartFile> images
+    ) {
+        return ApiResponse.onSuccess(InquirySuccessCode.ATTACH_IMAGE,
+                inquiryService.stageQuestionImages(studyId, authMember.getMemberId(), images));
+    }
+
+    /** 답글 작성 시점에도 answerId가 없으므로 동일하게 선업로드를 제공한다. */
+    @PostMapping("/{questionId}/answer/image")
+    public ApiResponse<InquiryResDTO.StageImageResult> stageAnswerImages(
+            @PathVariable Long studyId,
+            @PathVariable Long questionId,
+            @AuthenticationPrincipal AuthMember authMember,
+            @RequestParam("images") List<MultipartFile> images
+    ) {
+        return ApiResponse.onSuccess(InquirySuccessCode.ATTACH_IMAGE,
+                inquiryService.stageAnswerImages(studyId, questionId, authMember.getMemberId(), images));
+    }
+
     @PostMapping("/{questionId}/image")
     public ApiResponse<InquiryResDTO.UploadImageResult> uploadQuestionImages(
             @PathVariable Long studyId,
