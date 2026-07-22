@@ -16,14 +16,14 @@ public class ReportController {
     @GetMapping
     public ApiResponse<ReportSummaryResponse> getReportSummary(
             @PathVariable Long studyId,
-            @RequestParam Integer week) {
+            @RequestParam(required = false) Integer week) {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.getReportSummary(studyId, week));
     }
 
     @GetMapping("/node/week")
     public ApiResponse<WeeklyCoreNodeResponse> getWeeklyCoreNode(
             @PathVariable Long studyId,
-            @RequestParam Integer week) {
+            @RequestParam(required = false) Integer week) {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.getWeeklyCoreNode(studyId, week));
     }
 
@@ -37,24 +37,30 @@ public class ReportController {
     @GetMapping("/node/recommend")
     public ApiResponse<RecommendedNodeResponse> getRecommendedNode(
             @PathVariable Long studyId,
-            @RequestParam Integer week) {
+            @RequestParam(required = false) Integer week) {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.getRecommendedNode(studyId, week));
-    }
-
-    @GetMapping("/follow-up")
-    public ApiResponse<FollowUpResponse> getFollowUp(
-            @PathVariable Long studyId,
-            @RequestParam Integer week) {
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.getFollowUp(studyId, week));
     }
 
     @GetMapping("/statistics")
     public ApiResponse<MemberActivityStatisticsResponse> getStatistics(
             @PathVariable Long studyId,
-            @RequestParam Integer week) {
+            @RequestParam(required = false) Integer week) {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.getStatistics(studyId, week));
     }
 
-}
+    @GetMapping("/all")
+    public ApiResponse<FullReportResponse> getFullReport(
+            @PathVariable Long studyId,
+            @RequestParam(required = false) Integer week) {
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.getFullReport(studyId, week));
+    }
 
+    @DeleteMapping("/{reportId}")
+    public ApiResponse<String> deleteReport(
+            @PathVariable Long studyId,
+            @PathVariable Long reportId) {
+        reportService.deleteReport(reportId);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, "리포트가 성공적으로 삭제되었습니다.");
+    }
+}
 

@@ -19,8 +19,10 @@ public class Template extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploader")
     private Member uploader;
-    
+
     private String name;
+    
+    private String title;
     
     private String description;
 }

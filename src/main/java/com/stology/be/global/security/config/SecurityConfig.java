@@ -1,5 +1,6 @@
 package com.stology.be.global.security.config;
 
+import com.stology.be.domain.auth.repository.BlacklistTokenRepository;
 import com.stology.be.domain.auth.repository.RefreshTokenRepository;
 import com.stology.be.global.security.filter.JwtAuthFilter;
 import com.stology.be.global.security.handler.CustomAccessDenied;
@@ -33,6 +34,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistTokenRepository blacklistTokenRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, CustomLogoutSuccessHandler customLogoutSuccessHandler) throws Exception {
@@ -45,7 +47,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
-                        .loginPage("/oauth2/authorization/kakao")
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService))
                         .successHandler(oAuthSuccessHandler)
                         .failureUrl("/login?error=true")
@@ -89,7 +90,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthFilter jwtAuthFilter() {
-        return new JwtAuthFilter(jwtUtil, customUserDetailsService);
+        return new JwtAuthFilter(jwtUtil, customUserDetailsService, blacklistTokenRepository);
     }
 
     @Bean
@@ -104,6 +105,6 @@ public class SecurityConfig {
 
     @Bean
     public CustomLogoutSuccessHandler customLogoutSuccessHandler() {
-        return new CustomLogoutSuccessHandler(jwtUtil, refreshTokenRepository);
+        return new CustomLogoutSuccessHandler(jwtUtil, refreshTokenRepository, blacklistTokenRepository);
     }
 }

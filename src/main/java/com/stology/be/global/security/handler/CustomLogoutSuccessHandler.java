@@ -3,6 +3,7 @@ package com.stology.be.global.security.handler;
 import com.stology.be.domain.auth.exception.AuthException;
 import com.stology.be.domain.auth.exception.code.AuthErrorCode;
 import com.stology.be.domain.auth.exception.code.AuthSuccessCode;
+import com.stology.be.domain.auth.repository.BlacklistTokenRepository;
 import com.stology.be.domain.auth.repository.RefreshTokenRepository;
 import com.stology.be.global.apiPayload.ApiResponse;
 import com.stology.be.global.apiPayload.code.BaseSuccessCode;
@@ -18,7 +19,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
@@ -28,6 +29,7 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistTokenRepository blacklistTokenRepository;
 
     @Override
     public void onLogoutSuccess(
@@ -46,6 +48,7 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
             String uid = jwtUtil.getUid(cookie.getValue());
             refreshTokenRepository.delete(uid);
         }
+        blacklistAccessToken(resolveAccessToken(request));
         response.addHeader(HttpHeaders.SET_COOKIE, getExpiredRefreshTokenCookie().toString());
 
         ApiResponse<Void> responseBody = ApiResponse.onSuccess(code, null);
@@ -63,6 +66,25 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
             }
         }
         throw new AuthException(AuthErrorCode.AUTH_REFRESH_TOKEN_MISSING);
+    }
+
+    private String resolveAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
+
+    private void blacklistAccessToken(String accessToken) {
+        if (accessToken == null || !jwtUtil.isValid(accessToken)) {
+            return;
+        }
+
+        long ttlSeconds = jwtUtil.getRemainingExpirationSeconds(accessToken);
+        if (ttlSeconds > 0) {
+            blacklistTokenRepository.save(accessToken, ttlSeconds);
+        }
     }
 
     private ResponseCookie getExpiredRefreshTokenCookie() {

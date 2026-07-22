@@ -11,6 +11,8 @@ import com.stology.be.global.apiPayload.ApiResponse;
 import com.stology.be.global.security.entity.AuthMember;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +47,9 @@ public class UploadController {
      * 자료 업로드
      * POST /api/study/{studyId}/upload
      */
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ApiResponse<Void> upload(
             @PathVariable Long studyId,
             @AuthenticationPrincipal AuthMember authMember,
@@ -65,8 +69,7 @@ public class UploadController {
     @GetMapping("/upload")
     public ApiResponse<RecentFilesRes> getStudyUploadFiles (
             @PathVariable Long studyId,
-            @AuthenticationPrincipal AuthMember authMember,
-            @Valid @ModelAttribute UploadReq request
+            @AuthenticationPrincipal AuthMember authMember
     ) {
 
 
