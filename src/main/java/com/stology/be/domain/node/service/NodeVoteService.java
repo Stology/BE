@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NodeVoteService {
 
-    MemberStudyRepository memberStudyRepository;
-    NodeCandidateRepository nodeCandidateRepository;
-    NodeCandidateVoteInfoRepository nodeCandidateVoteInfoRepository;
+    private final MemberStudyRepository memberStudyRepository;
+    private final NodeCandidateRepository nodeCandidateRepository;
+    private final NodeCandidateVoteInfoRepository nodeCandidateVoteInfoRepository;
 
 
     @Transactional(readOnly = true)
@@ -40,7 +40,7 @@ public class NodeVoteService {
                 Math.toIntExact(memberStudyRepository.countByStudyId(studyId));
 
         List<NodeVoteInfoDto> rows =
-                nodeCandidateVoteInfoRepository.findPendingVoteInfos(studyId, CandidateState.PENDING);
+                nodeCandidateRepository.findPendingVoteInfos(studyId, CandidateState.PENDING);
 
         Map<Long, List<NodeVoteInfoDto>> grouped =
                 rows.stream()
@@ -102,6 +102,8 @@ public class NodeVoteService {
                     )
             );
         }
+        // 스터디 노드 활성화 정도 조절 로직 추가 예정. activation_week, activation_level을 추가해야함.
+
 
         return AcceptNodeRes.from(acceptInfos);
 
