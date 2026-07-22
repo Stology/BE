@@ -13,8 +13,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.stology.be.domain.node.entity.StudyNode;
+import com.stology.be.domain.node.entity.StudyMaterial;
+import com.stology.be.domain.study.entity.Question;
+import com.stology.be.domain.study.entity.Study;
+import com.stology.be.domain.report.dto.AiReportOutputDto;
+import com.stology.be.domain.report.dto.WeeklyCoreNodeDto;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -29,8 +45,8 @@ public class ReportService {
     private final com.stology.be.domain.study.repository.StudyRepository studyRepository;
     private final AiReportService aiReportService;
     
-    @jakarta.persistence.PersistenceContext
-    private jakarta.persistence.EntityManager entityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     // 온디맨드 갱신 처리 (데이터 변경이 감지되면 새 리포트 생성 및 저장)
     protected Report checkAndUpdateReport(Long studyId, Report currentReport) {
@@ -57,44 +73,44 @@ public class ReportService {
                throw new ReportException(ReportErrorCode.STUDY_NOT_FOUND); // 첫 리포트가 없는 경우는 다른 플로우(ex: 첫 가입)에서 처리해야 함
             }
             
-            com.stology.be.domain.report.dto.AiReportOutputDto output = aiReportService.generateNewReport(currentReport.getStudy(), generateDbStatsContent(currentReport.getStudy(), currentReport.getStudy().getId()));
+            AiReportOutputDto output = aiReportService.generateNewReport(currentReport.getStudy(), generateDbStatsContent(currentReport.getStudy(), currentReport.getStudy().getId()));
             
             // Build weeklyCoreNodeList manually based on actual database values, avoiding AI hallucination
             int currentWeek = 1;
             if (currentReport.getStudy().getStartDate() != null) {
-                currentWeek = (int) java.time.temporal.ChronoUnit.WEEKS.between(currentReport.getStudy().getStartDate(), java.time.LocalDate.now()) + 1;
+                currentWeek = (int) ChronoUnit.WEEKS.between(currentReport.getStudy().getStartDate(), LocalDate.now()) + 1;
             }
             
-            java.time.LocalDateTime startOfWeek = java.time.LocalDateTime.now().minusDays(7);
+            LocalDateTime startOfWeek = LocalDateTime.now().minusDays(7);
             if (currentReport.getStudy().getStartDate() != null) {
                 startOfWeek = currentReport.getStudy().getStartDate().plusWeeks(currentWeek - 1).atStartOfDay();
             }
             
-            List<com.stology.be.domain.node.entity.StudyNode> activeNodesThisWeek = entityManager.createQuery(
+            List<StudyNode> activeNodesThisWeek = entityManager.createQuery(
                     "SELECT DISTINCT n FROM StudyNode n " +
                     "JOIN NodeCandidate nc ON nc.studyNode.id = n.id " +
                     "JOIN nc.studyMaterial m " +
                     "WHERE m.createdAt >= :startOfWeek AND n.study.id = :studyId",
-                    com.stology.be.domain.node.entity.StudyNode.class)
+                    StudyNode.class)
                     .setParameter("studyId", currentReport.getStudy().getId())
                     .setParameter("startOfWeek", startOfWeek)
                     .getResultList();
                     
             final int targetCurrentWeek = currentWeek;
-            List<com.stology.be.domain.node.entity.StudyNode> newNodes = activeNodesThisWeek.stream()
+            List<StudyNode> newNodes = activeNodesThisWeek.stream()
                     .filter(n -> n.getActivationWeek() == targetCurrentWeek)
                     .toList();
     
-            List<com.stology.be.domain.node.entity.StudyNode> coreNodes = activeNodesThisWeek.stream()
+            List<StudyNode> coreNodes = activeNodesThisWeek.stream()
                     .filter(n -> n.getActivationWeek() < targetCurrentWeek && n.getActiveLevel() > 0)
                     .toList();
                     
-            List<com.stology.be.domain.report.dto.WeeklyCoreNodeDto> coreNodeDtoList = new java.util.ArrayList<>();
-            for (com.stology.be.domain.node.entity.StudyNode node : newNodes) {
-                coreNodeDtoList.add(new com.stology.be.domain.report.dto.WeeklyCoreNodeDto(node.getTitle(), "신규 활성화", node.getActiveLevel()));
+            List<WeeklyCoreNodeDto> coreNodeDtoList = new ArrayList<>();
+            for (StudyNode node : newNodes) {
+                coreNodeDtoList.add(new WeeklyCoreNodeDto(node.getTitle(), "신규 활성화", node.getActiveLevel()));
             }
-            for (com.stology.be.domain.node.entity.StudyNode node : coreNodes) {
-                coreNodeDtoList.add(new com.stology.be.domain.report.dto.WeeklyCoreNodeDto(node.getTitle(), "활성", node.getActiveLevel()));
+            for (StudyNode node : coreNodes) {
+                coreNodeDtoList.add(new WeeklyCoreNodeDto(node.getTitle(), "활성", node.getActiveLevel()));
             }
 
             currentReport.update(
@@ -113,36 +129,36 @@ public class ReportService {
         return currentReport;
     }
 
-    private String generateDbStatsContent(com.stology.be.domain.study.entity.Study study, Long studyId) {
+    private String generateDbStatsContent(Study study, Long studyId) {
         int currentWeek = 1;
         if (study.getStartDate() != null) {
-            currentWeek = (int) java.time.temporal.ChronoUnit.WEEKS.between(study.getStartDate(), java.time.LocalDate.now()) + 1;
+            currentWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), LocalDate.now()) + 1;
         }
 
         long totalNodeCount = entityManager.createQuery("SELECT COUNT(n) FROM StudyNode n WHERE n.study.id = :studyId", Long.class)
                 .setParameter("studyId", studyId)
                 .getSingleResult();
         
-        java.time.LocalDateTime startOfWeek = java.time.LocalDateTime.now().minusDays(7);
+        LocalDateTime startOfWeek = LocalDateTime.now().minusDays(7);
         if (study.getStartDate() != null) {
             startOfWeek = study.getStartDate().plusWeeks(currentWeek - 1).atStartOfDay();
         }
 
         // 이번 주에 등록된 학습 자료 조회
-        List<com.stology.be.domain.node.entity.StudyMaterial> recentMaterials = entityManager.createQuery(
+        List<StudyMaterial> recentMaterials = entityManager.createQuery(
                 "SELECT m FROM StudyMaterial m JOIN m.memberStudy ms JOIN ms.study s WHERE s.id = :studyId AND m.createdAt >= :startOfWeek", 
-                com.stology.be.domain.node.entity.StudyMaterial.class)
+                StudyMaterial.class)
                 .setParameter("studyId", studyId)
                 .setParameter("startOfWeek", startOfWeek)
                 .getResultList();
 
         // 이번 주에 활동(자료 업로드)이 있는 노드들 추출
-        List<com.stology.be.domain.node.entity.StudyNode> activeNodesThisWeek = entityManager.createQuery(
+        List<StudyNode> activeNodesThisWeek = entityManager.createQuery(
                 "SELECT DISTINCT n FROM StudyNode n " +
                 "JOIN NodeCandidate nc ON nc.studyNode.id = n.id " +
                 "JOIN nc.studyMaterial m " +
                 "WHERE m.createdAt >= :startOfWeek AND n.study.id = :studyId",
-                com.stology.be.domain.node.entity.StudyNode.class)
+                StudyNode.class)
                 .setParameter("studyId", studyId)
                 .setParameter("startOfWeek", startOfWeek)
                 .getResultList();
@@ -150,17 +166,17 @@ public class ReportService {
         // 신규 노드 (원래 활성도 0 -> 이번 주 활동) 와 보강 노드 (기존 활성도 > 0 -> 이번 주 활동) 분리
         // DB 구조상 현재 activeLevel이 이미 반영되어 있다면, activationWeek가 현재 주차(currentWeek)인 것을 신규 노드로 판단.
         final int targetCurrentWeek = currentWeek;
-        List<com.stology.be.domain.node.entity.StudyNode> newNodes = activeNodesThisWeek.stream()
+        List<StudyNode> newNodes = activeNodesThisWeek.stream()
                 .filter(n -> n.getActivationWeek() == targetCurrentWeek)
                 .toList();
 
-        List<com.stology.be.domain.node.entity.StudyNode> coreNodes = activeNodesThisWeek.stream()
+        List<StudyNode> coreNodes = activeNodesThisWeek.stream()
                 .filter(n -> n.getActivationWeek() < targetCurrentWeek && n.getActiveLevel() > 0)
                 .toList();
 
-        List<com.stology.be.domain.study.entity.Question> recentQuestions = entityManager.createQuery(
+        List<Question> recentQuestions = entityManager.createQuery(
                 "SELECT q FROM Question q WHERE q.study.id = :studyId AND q.createdAt >= :startOfWeek", 
-                com.stology.be.domain.study.entity.Question.class)
+                Question.class)
                 .setParameter("studyId", studyId)
                 .setParameter("startOfWeek", startOfWeek)
                 .getResultList();
@@ -174,13 +190,19 @@ public class ReportService {
         sb.append("\n");
 
         sb.append("- 멤버별 업로드 현황 및 주요 자료 내용:\n");
-        java.util.Map<String, Long> materialCountByMember = recentMaterials.stream()
+        Map<String, Long> materialCountByMember = recentMaterials.stream()
                 .filter(m -> m.getMemberStudy() != null && m.getMemberStudy().getMember() != null && m.getMemberStudy().getMember().getName() != null)
-                .collect(java.util.stream.Collectors.groupingBy(m -> m.getMemberStudy().getMember().getName(), java.util.stream.Collectors.counting()));
-        java.util.Map<String, Long> questionCountByMember = recentQuestions.stream()
-                .collect(java.util.stream.Collectors.groupingBy(q -> q.getMemberName() != null ? q.getMemberName() : "알 수 없음", java.util.stream.Collectors.counting()));
+                .collect(Collectors.groupingBy(m -> m.getMemberStudy().getMember().getName(), Collectors.counting()));
+        Map<String, Long> questionCountByMember = recentQuestions.stream()
+                .collect(Collectors.groupingBy(q -> q.getMemberName() != null ? q.getMemberName() : "알 수 없음", Collectors.counting()));
         
-        java.util.Set<String> allMembers = new java.util.HashSet<>();
+        // Fetch all members of the study explicitly to ensure inactive members are included
+        List<String> allStudyMembers = entityManager.createQuery(
+                "SELECT ms.member.name FROM MemberStudy ms WHERE ms.study.id = :studyId", String.class)
+                .setParameter("studyId", studyId)
+                .getResultList();
+
+        Set<String> allMembers = new HashSet<>(allStudyMembers);
         allMembers.addAll(materialCountByMember.keySet());
         allMembers.addAll(questionCountByMember.keySet());
 
@@ -191,13 +213,13 @@ public class ReportService {
             sb.append("  * [").append(member).append("] 님의 활동 요약: 자료 ").append(materials).append("개, 질문 ").append(questions).append("개\n");
             
             // 해당 멤버가 업로드한 자료 내용 추가
-            java.util.List<com.stology.be.domain.node.entity.StudyMaterial> memberMaterials = recentMaterials.stream()
+            List<StudyMaterial> memberMaterials = recentMaterials.stream()
                     .filter(m -> m.getMemberStudy() != null && m.getMemberStudy().getMember() != null && member.equals(m.getMemberStudy().getMember().getName()))
                     .toList();
             
             if (!memberMaterials.isEmpty()) {
                 sb.append("    [업로드한 자료 상세 내용]\n");
-                for (com.stology.be.domain.node.entity.StudyMaterial m : memberMaterials) {
+                for (StudyMaterial m : memberMaterials) {
                     String title = m.getDataTitle() != null ? m.getDataTitle() : "제목 없음";
                     String content = m.getContent() != null ? m.getContent() : "내용 없음";
                     // 너무 긴 텍스트 방지 (1500자 제한)
@@ -220,43 +242,43 @@ public class ReportService {
         Report targetReport;
         if (reports.isEmpty()) {
             // 첫 리포트가 없는 경우 즉시 새로 생성
-            com.stology.be.domain.study.entity.Study study = studyRepository.findById(studyId)
+            Study study = studyRepository.findById(studyId)
                     .orElseThrow(() -> new ReportException(ReportErrorCode.STUDY_NOT_FOUND));
-            com.stology.be.domain.report.dto.AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId));
+            AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId));
             
             int currentWeek = 1;
             if (study.getStartDate() != null) {
-                currentWeek = (int) java.time.temporal.ChronoUnit.WEEKS.between(study.getStartDate(), java.time.LocalDate.now()) + 1;
+                currentWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), LocalDate.now()) + 1;
             }
-            java.time.LocalDateTime startOfWeek = java.time.LocalDateTime.now().minusDays(7);
+            LocalDateTime startOfWeek = LocalDateTime.now().minusDays(7);
             if (study.getStartDate() != null) {
                 startOfWeek = study.getStartDate().plusWeeks(currentWeek - 1).atStartOfDay();
             }
-            List<com.stology.be.domain.node.entity.StudyNode> activeNodesThisWeek = entityManager.createQuery(
+            List<StudyNode> activeNodesThisWeek = entityManager.createQuery(
                     "SELECT DISTINCT n FROM StudyNode n " +
                     "JOIN NodeCandidate nc ON nc.studyNode.id = n.id " +
                     "JOIN nc.studyMaterial m " +
                     "WHERE m.createdAt >= :startOfWeek AND n.study.id = :studyId",
-                    com.stology.be.domain.node.entity.StudyNode.class)
+                    StudyNode.class)
                     .setParameter("studyId", studyId)
                     .setParameter("startOfWeek", startOfWeek)
                     .getResultList();
                     
             final int targetCurrentWeek = currentWeek;
-            List<com.stology.be.domain.node.entity.StudyNode> newNodes = activeNodesThisWeek.stream()
+            List<StudyNode> newNodes = activeNodesThisWeek.stream()
                     .filter(n -> n.getActivationWeek() == targetCurrentWeek)
                     .toList();
     
-            List<com.stology.be.domain.node.entity.StudyNode> coreNodes = activeNodesThisWeek.stream()
+            List<StudyNode> coreNodes = activeNodesThisWeek.stream()
                     .filter(n -> n.getActivationWeek() < targetCurrentWeek && n.getActiveLevel() > 0)
                     .toList();
                     
-            List<com.stology.be.domain.report.dto.WeeklyCoreNodeDto> coreNodeDtoList = new java.util.ArrayList<>();
-            for (com.stology.be.domain.node.entity.StudyNode node : newNodes) {
-                coreNodeDtoList.add(new com.stology.be.domain.report.dto.WeeklyCoreNodeDto(node.getTitle(), "신규 활성화", node.getActiveLevel()));
+            List<WeeklyCoreNodeDto> coreNodeDtoList = new ArrayList<>();
+            for (StudyNode node : newNodes) {
+                coreNodeDtoList.add(new WeeklyCoreNodeDto(node.getTitle(), "신규 활성화", node.getActiveLevel()));
             }
-            for (com.stology.be.domain.node.entity.StudyNode node : coreNodes) {
-                coreNodeDtoList.add(new com.stology.be.domain.report.dto.WeeklyCoreNodeDto(node.getTitle(), "활성", node.getActiveLevel()));
+            for (StudyNode node : coreNodes) {
+                coreNodeDtoList.add(new WeeklyCoreNodeDto(node.getTitle(), "활성", node.getActiveLevel()));
             }
 
             Report newReport = Report.builder()
@@ -371,12 +393,12 @@ public class ReportService {
     }
 
     public void checkAndGenerateMissingReports(Long studyId) {
-        com.stology.be.domain.study.entity.Study study = studyRepository.findById(studyId)
+        Study study = studyRepository.findById(studyId)
                 .orElseThrow(() -> new ReportException(ReportErrorCode.STUDY_NOT_FOUND));
 
         if (study.getStartDate() == null) return;
 
-        int currentWeek = (int) java.time.temporal.ChronoUnit.WEEKS.between(study.getStartDate(), java.time.LocalDate.now()) + 1;
+        int currentWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), LocalDate.now()) + 1;
         List<Report> reports = reportRepository.findAllByStudyIdOrderByCreatedAtAsc(studyId);
 
         // 스터디 시작일로부터 계산된 currentWeek 만큼 리포트가 존재해야 함.
@@ -387,36 +409,36 @@ public class ReportService {
             int targetWeek = reports.size() + 1; // 누락된 주차 번호
             
             // Generate for targetWeek
-            java.time.LocalDateTime startOfWeek = study.getStartDate().plusWeeks(targetWeek - 1).atStartOfDay();
-            java.time.LocalDateTime endOfWeek = startOfWeek.plusDays(7); // 이 시점까지의 데이터만 집계
+            LocalDateTime startOfWeek = study.getStartDate().plusWeeks(targetWeek - 1).atStartOfDay();
+            LocalDateTime endOfWeek = startOfWeek.plusDays(7); // 이 시점까지의 데이터만 집계
 
-            com.stology.be.domain.report.dto.AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId));
+            AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId));
             
-            List<com.stology.be.domain.node.entity.StudyNode> activeNodesThisWeek = entityManager.createQuery(
+            List<StudyNode> activeNodesThisWeek = entityManager.createQuery(
                     "SELECT DISTINCT n FROM StudyNode n " +
                     "JOIN NodeCandidate nc ON nc.studyNode.id = n.id " +
                     "JOIN nc.studyMaterial m " +
                     "WHERE m.createdAt >= :startOfWeek AND m.createdAt < :endOfWeek AND n.study.id = :studyId",
-                    com.stology.be.domain.node.entity.StudyNode.class)
+                    StudyNode.class)
                     .setParameter("studyId", studyId)
                     .setParameter("startOfWeek", startOfWeek)
                     .setParameter("endOfWeek", endOfWeek)
                     .getResultList();
                     
-            List<com.stology.be.domain.node.entity.StudyNode> newNodes = activeNodesThisWeek.stream()
+            List<StudyNode> newNodes = activeNodesThisWeek.stream()
                     .filter(n -> n.getActivationWeek() == targetWeek)
                     .toList();
     
-            List<com.stology.be.domain.node.entity.StudyNode> coreNodes = activeNodesThisWeek.stream()
+            List<StudyNode> coreNodes = activeNodesThisWeek.stream()
                     .filter(n -> n.getActivationWeek() < targetWeek && n.getActiveLevel() > 0)
                     .toList();
                     
-            List<com.stology.be.domain.report.dto.WeeklyCoreNodeDto> coreNodeDtoList = new java.util.ArrayList<>();
-            for (com.stology.be.domain.node.entity.StudyNode node : newNodes) {
-                coreNodeDtoList.add(new com.stology.be.domain.report.dto.WeeklyCoreNodeDto(node.getTitle(), "신규 활성화", node.getActiveLevel()));
+            List<WeeklyCoreNodeDto> coreNodeDtoList = new ArrayList<>();
+            for (StudyNode node : newNodes) {
+                coreNodeDtoList.add(new WeeklyCoreNodeDto(node.getTitle(), "신규 활성화", node.getActiveLevel()));
             }
-            for (com.stology.be.domain.node.entity.StudyNode node : coreNodes) {
-                coreNodeDtoList.add(new com.stology.be.domain.report.dto.WeeklyCoreNodeDto(node.getTitle(), "활성", node.getActiveLevel()));
+            for (StudyNode node : coreNodes) {
+                coreNodeDtoList.add(new WeeklyCoreNodeDto(node.getTitle(), "활성", node.getActiveLevel()));
             }
 
             Report newReport = Report.builder()
