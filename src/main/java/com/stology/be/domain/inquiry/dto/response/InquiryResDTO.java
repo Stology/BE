@@ -1,14 +1,23 @@
 package com.stology.be.domain.inquiry.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class InquiryResDTO {
 
+    /**
+     * createdAt 직렬화 포맷. LocalDateTime을 그대로 내리면 나노초 뒤 0이 잘려 자릿수가 들쭉날쭉해진다
+     * (예: .71133 vs .089196). 밀리초 3자리로 고정해 클라이언트 파서 호환성을 확보한다.
+     */
+    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
     public record QuestionSummary(
             Long questionId,
             String title,
             String authorName,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_FORMAT)
             LocalDateTime createdAt,
             Integer answerCount,
             Boolean hasImage,
@@ -17,6 +26,7 @@ public class InquiryResDTO {
 
     public record QuestionList(
             List<QuestionSummary> questionList,
+            Integer currentPage,
             Integer listSize,
             Integer totalPage,
             Long totalElements,
@@ -26,18 +36,19 @@ public class InquiryResDTO {
     ) {}
 
     /**
-     * imageUrl: DB에 저장된 정규 S3 URL. 수정 요청 시 이 값을 그대로 되돌려주면 이미지가 유지된다.
-     * displayUrl: 화면 렌더링용 presigned URL(1시간 만료). 저장하거나 되돌려보내지 말 것.
+     * imageUrl: DB에 저장된 S3 공개 객체 URL. 화면 렌더링에도 이 URL을 그대로 쓰고,
+     * 수정 요청의 imageOrder에 이 값을 담으면 이미지가 유지된다.
+     * 프론트는 content의 [[img:N]]을 images[N].imageUrl로 치환해 인라인 렌더링한다.
      */
     public record ImageInfo(
             Long imageId,
-            String imageUrl,
-            String displayUrl
+            String imageUrl
     ) {}
 
     public record AnswerDetail(
             Long answerId,
             String authorName,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_FORMAT)
             LocalDateTime createdAt,
             String content,
             List<ImageInfo> images,
@@ -49,6 +60,7 @@ public class InquiryResDTO {
             String title,
             String content,
             String authorName,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_FORMAT)
             LocalDateTime createdAt,
             List<ImageInfo> images,
             List<AnswerDetail> answerList,
@@ -63,15 +75,4 @@ public class InquiryResDTO {
     public record WriteAnswerResult(Long answerId) {}
 
     public record UpdateAnswerResult(Long answerId) {}
-
-    public record UploadedImage(Long imageId, String imageUrl, String displayUrl) {}
-
-    public record UploadImageResult(List<UploadedImage> images) {}
-
-    /**
-     * 선업로드 결과. 아직 어떤 질문/답글에도 연결되지 않아 imageId가 없다.
-     */
-    public record StagedImage(String imageUrl, String displayUrl) {}
-
-    public record StageImageResult(List<StagedImage> images) {}
 }

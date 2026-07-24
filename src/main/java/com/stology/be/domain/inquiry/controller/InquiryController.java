@@ -3,22 +3,40 @@ package com.stology.be.domain.inquiry.controller;
 import com.stology.be.domain.inquiry.dto.request.InquiryReqDTO;
 import com.stology.be.domain.inquiry.dto.response.InquiryResDTO;
 import com.stology.be.domain.inquiry.exception.InquirySuccessCode;
-import com.stology.be.domain.inquiry.service.InquiryService;
+import com.stology.be.domain.inquiry.service.AnswerService;
+import com.stology.be.domain.inquiry.service.QuestionService;
 import com.stology.be.global.apiPayload.ApiResponse;
 import com.stology.be.global.security.entity.AuthMember;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.beans.PropertyEditorSupport;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/study/{studyId}/question")
 public class InquiryController {
 
-    private final InquiryService inquiryService;
+    private final QuestionService questionService;
+    private final AnswerService answerService;
+
+    /**
+     * 이미지 없이 보낼 때 Swagger가 images에 빈 문자열("")을 넣어 String→MultipartFile 변환이 실패(COMMON_400)한다.
+     * 파일 필드로 온 텍스트 값은 무시(null 처리)해 @ModelAttribute 바인딩이 깨지지 않게 한다. 실제 파일은 영향 없음.
+     */
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(MultipartFile.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                setValue(null);
+            }
+        });
+    }
 
     @GetMapping
     public ApiResponse<InquiryResDTO.QuestionList> getQuestions(
@@ -28,7 +46,7 @@ public class InquiryController {
             @AuthenticationPrincipal AuthMember authMember
     ) {
         return ApiResponse.onSuccess(InquirySuccessCode.GET_INQUIRIES,
-                inquiryService.getQuestions(studyId, page, size, authMember.getMemberId()));
+                questionService.getQuestions(studyId, page, size, authMember.getMemberId()));
     }
 
     @GetMapping("/{questionId}")
@@ -38,28 +56,37 @@ public class InquiryController {
             @AuthenticationPrincipal AuthMember authMember
     ) {
         return ApiResponse.onSuccess(InquirySuccessCode.GET_INQUIRY_DETAIL,
-                inquiryService.getQuestionDetail(studyId, questionId, authMember.getMemberId()));
+                questionService.getQuestionDetail(studyId, questionId, authMember.getMemberId()));
     }
 
-    @PostMapping
+    /**
+     * 텍스트(title/content)와 이미지(images)를 한 번의 multipart form-data 요청으로 받는다.
+     * content의 [[img:new:K]] 토큰 순서가 images 파일 순서와 대응해 인라인 순서가 보존된다.
+     * 이미지가 없으면 images를 생략하고 title/content만 보내면 된다.
+     */
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<InquiryResDTO.WriteQuestionResult> writeQuestion(
             @PathVariable Long studyId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody InquiryReqDTO.WriteQuestion request
+            @ModelAttribute InquiryReqDTO.WriteQuestion request
     ) {
         return ApiResponse.onSuccess(InquirySuccessCode.WRITE_INQUIRY,
-                inquiryService.writeQuestion(studyId, authMember.getMemberId(), request));
+                questionService.writeQuestion(studyId, authMember.getMemberId(), request, request.getImages()));
     }
 
-    @PostMapping("/{questionId}")
+    /**
+     * 질문 수정. content의 [[img:{imageId}]]는 기존 이미지 유지, [[img:new:K]]는 images의 K번째 새 파일이며,
+     * content에서 빠진 기존 이미지는 삭제된다.
+     */
+    @PatchMapping(value = "/{questionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<InquiryResDTO.UpdateQuestionResult> updateQuestion(
             @PathVariable Long studyId,
             @PathVariable Long questionId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody InquiryReqDTO.UpdateQuestion request
+            @ModelAttribute InquiryReqDTO.UpdateQuestion request
     ) {
         return ApiResponse.onSuccess(InquirySuccessCode.UPDATE_INQUIRY,
-                inquiryService.updateQuestion(studyId, questionId, authMember.getMemberId(), request));
+                questionService.updateQuestion(studyId, questionId, authMember.getMemberId(), request, request.getImages()));
     }
 
     @DeleteMapping("/{questionId}")
@@ -68,69 +95,37 @@ public class InquiryController {
             @PathVariable Long questionId,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        inquiryService.deleteQuestion(studyId, questionId, authMember.getMemberId());
+        questionService.deleteQuestion(studyId, questionId, authMember.getMemberId());
         return ApiResponse.onSuccess(InquirySuccessCode.DELETE_INQUIRY, null);
     }
 
     /**
-     * 질문 작성/수정 모달에서 questionId 없이 이미지를 먼저 올린다.
-     * 응답의 imageUrl을 질문 작성/수정 요청 body의 imageUrls에 담아 보내면 질문에 연결된다.
-     * 경로가 {questionId}와 겹쳐 보이지만 Spring은 리터럴 세그먼트를 우선 매칭한다.
+     * 답글 작성. 질문과 동일하게 텍스트(content)와 이미지(images)를 한 번의 multipart로 받는다.
      */
-    @PostMapping("/image")
-    public ApiResponse<InquiryResDTO.StageImageResult> stageQuestionImages(
-            @PathVariable Long studyId,
-            @AuthenticationPrincipal AuthMember authMember,
-            @RequestParam("images") List<MultipartFile> images
-    ) {
-        return ApiResponse.onSuccess(InquirySuccessCode.ATTACH_IMAGE,
-                inquiryService.stageQuestionImages(studyId, authMember.getMemberId(), images));
-    }
-
-    /** 답글 작성 시점에도 answerId가 없으므로 동일하게 선업로드를 제공한다. */
-    @PostMapping("/{questionId}/answer/image")
-    public ApiResponse<InquiryResDTO.StageImageResult> stageAnswerImages(
-            @PathVariable Long studyId,
-            @PathVariable Long questionId,
-            @AuthenticationPrincipal AuthMember authMember,
-            @RequestParam("images") List<MultipartFile> images
-    ) {
-        return ApiResponse.onSuccess(InquirySuccessCode.ATTACH_IMAGE,
-                inquiryService.stageAnswerImages(studyId, questionId, authMember.getMemberId(), images));
-    }
-
-    @PostMapping("/{questionId}/image")
-    public ApiResponse<InquiryResDTO.UploadImageResult> uploadQuestionImages(
-            @PathVariable Long studyId,
-            @PathVariable Long questionId,
-            @AuthenticationPrincipal AuthMember authMember,
-            @RequestParam("images") List<MultipartFile> images
-    ) {
-        return ApiResponse.onSuccess(InquirySuccessCode.ATTACH_IMAGE,
-                inquiryService.uploadQuestionImages(studyId, questionId, authMember.getMemberId(), images));
-    }
-
-    @PostMapping("/{questionId}/answer")
+    @PostMapping(value = "/{questionId}/answer", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<InquiryResDTO.WriteAnswerResult> writeAnswer(
             @PathVariable Long studyId,
             @PathVariable Long questionId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody InquiryReqDTO.WriteAnswer request
+            @ModelAttribute InquiryReqDTO.WriteAnswer request
     ) {
         return ApiResponse.onSuccess(InquirySuccessCode.WRITE_REPLY,
-                inquiryService.writeAnswer(studyId, questionId, authMember.getMemberId(), request));
+                answerService.writeAnswer(studyId, questionId, authMember.getMemberId(), request, request.getImages()));
     }
 
-    @PatchMapping("/{questionId}/answer/{answerId}")
+    /**
+     * 답글 수정. 토큰 규약은 질문 수정과 동일하다([[img:{imageId}]] 유지 / [[img:new:K]] 추가).
+     */
+    @PatchMapping(value = "/{questionId}/answer/{answerId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<InquiryResDTO.UpdateAnswerResult> updateAnswer(
             @PathVariable Long studyId,
             @PathVariable Long questionId,
             @PathVariable Long answerId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody InquiryReqDTO.UpdateAnswer request
+            @ModelAttribute InquiryReqDTO.UpdateAnswer request
     ) {
         return ApiResponse.onSuccess(InquirySuccessCode.UPDATE_REPLY,
-                inquiryService.updateAnswer(studyId, questionId, answerId, authMember.getMemberId(), request));
+                answerService.updateAnswer(studyId, questionId, answerId, authMember.getMemberId(), request, request.getImages()));
     }
 
     @DeleteMapping("/{questionId}/answer/{answerId}")
@@ -140,19 +135,7 @@ public class InquiryController {
             @PathVariable Long answerId,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        inquiryService.deleteAnswer(studyId, questionId, answerId, authMember.getMemberId());
+        answerService.deleteAnswer(studyId, questionId, answerId, authMember.getMemberId());
         return ApiResponse.onSuccess(InquirySuccessCode.DELETE_REPLY, null);
-    }
-
-    @PostMapping("/{questionId}/answer/{answerId}/image")
-    public ApiResponse<InquiryResDTO.UploadImageResult> uploadAnswerImages(
-            @PathVariable Long studyId,
-            @PathVariable Long questionId,
-            @PathVariable Long answerId,
-            @AuthenticationPrincipal AuthMember authMember,
-            @RequestParam("images") List<MultipartFile> images
-    ) {
-        return ApiResponse.onSuccess(InquirySuccessCode.ATTACH_IMAGE,
-                inquiryService.uploadAnswerImages(studyId, questionId, answerId, authMember.getMemberId(), images));
     }
 }

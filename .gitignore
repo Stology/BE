@@ -24,6 +24,7 @@ bin/
 
 ### IntelliJ IDEA ###
 .idea
+.run/
 *.iws
 *.iml
 *.ipr

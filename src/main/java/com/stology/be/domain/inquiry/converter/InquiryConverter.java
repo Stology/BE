@@ -15,12 +15,11 @@ import java.util.stream.Collectors;
 
 public class InquiryConverter {
 
-    public static Question toQuestion(InquiryReqDTO.WriteQuestion request, Study study, Member member) {
-        boolean hasImage = request.imageUrls() != null && !request.imageUrls().isEmpty();
+    public static Question toQuestion(InquiryReqDTO.WriteQuestion request, Study study, Member member, boolean hasImage) {
         return Question.builder()
                 .study(study)
-                .title(request.title())
-                .content(request.content())
+                .title(request.getTitle())
+                .content(request.getContent())
                 .memberName(member.getName())
                 .answerCount(0)
                 .isAttached(hasImage)
@@ -37,7 +36,7 @@ public class InquiryConverter {
     public static Answer toAnswer(InquiryReqDTO.WriteAnswer request, Question question, Member member) {
         return Answer.builder()
                 .question(question)
-                .content(request.content())
+                .content(request.getContent())
                 .memberName(member.getName())
                 .build();
     }
@@ -68,6 +67,7 @@ public class InquiryConverter {
 
         return new InquiryResDTO.QuestionList(
                 questionList,
+                questionPage.getNumber(),        // 현재 페이지 번호(0-based)
                 questionList.size(),
                 questionPage.getTotalPages(),
                 questionPage.getTotalElements(),
