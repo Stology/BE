@@ -23,11 +23,13 @@ class InquiryConverterTest {
 
     @Test
     void toQuestion_shouldMapRequestAndEntities() {
-        InquiryReqDTO.WriteQuestion request = new InquiryReqDTO.WriteQuestion("제목", "본문", null);
+        InquiryReqDTO.WriteQuestion request = new InquiryReqDTO.WriteQuestion();
+        request.setTitle("제목");
+        request.setContent("본문");
         Study study = TestFixtures.study(4L);
         Member member = TestFixtures.member(3L);
 
-        Question question = InquiryConverter.toQuestion(request, study, member);
+        Question question = InquiryConverter.toQuestion(request, study, member, false);
 
         assertNotNull(question);
         assertEquals(study, question.getStudy());
@@ -78,8 +80,8 @@ class InquiryConverterTest {
         InquiryResDTO.AnswerDetail detail = InquiryConverter.toAnswerDetail(
                 answer,
                 List.of(
-                        new InquiryResDTO.ImageInfo(1L, "img1.png", "display1.png"),
-                        new InquiryResDTO.ImageInfo(2L, "img2.png", "display2.png")
+                        new InquiryResDTO.ImageInfo(1L, "img1.png"),
+                        new InquiryResDTO.ImageInfo(2L, "img2.png")
                 ),
                 "writer"
         );
@@ -99,7 +101,7 @@ class InquiryConverterTest {
 
         InquiryResDTO.QuestionDetail detail = InquiryConverter.toQuestionDetail(
                 question,
-                List.of(new InquiryResDTO.ImageInfo(1L, "img.png", "display.png")),
+                List.of(new InquiryResDTO.ImageInfo(1L, "img.png")),
                 List.of(InquiryConverter.toAnswerDetail(answer, List.of(), "writer")),
                 false,
                 "writer"
