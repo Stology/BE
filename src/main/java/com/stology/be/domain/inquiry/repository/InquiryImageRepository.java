@@ -8,8 +8,8 @@ import java.util.List;
 public interface InquiryImageRepository extends JpaRepository<QuestionImage, Long> {
 
     /**
-     * 본문의 [[img:N]] 토큰이 이 목록의 인덱스를 가리키므로, 저장 순서(=id 순)를 반드시 보장해야 한다.
-     * ORDER BY가 없으면 DB가 임의 순서로 돌려줄 때 이미지 위치가 뒤바뀐다.
+     * 본문의 [[img:{imageId}]] 토큰이 이미지를 id로 참조하므로 순서 자체는 매핑에 영향을 주지 않지만,
+     * 응답 목록의 안정적인 순서를 위해 저장 순서(=id 순)로 정렬해 돌려준다.
      */
     List<QuestionImage> findByQuestionIdAndDeletedAtIsNullOrderByIdAsc(Long questionId);
 }
