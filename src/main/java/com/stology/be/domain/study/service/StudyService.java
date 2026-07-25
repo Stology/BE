@@ -1,24 +1,22 @@
 package com.stology.be.domain.study.service;
 
 import com.stology.be.domain.member.entity.Member;
-import com.stology.be.domain.member.repository.MemberRepository;
 import com.stology.be.domain.node.entity.Template;
 import com.stology.be.domain.study.converter.StudyConverter;
 import com.stology.be.domain.study.dto.StudyReqDTO;
 import com.stology.be.domain.study.dto.StudyResDTO;
 import com.stology.be.domain.study.entity.MemberStudy;
 import com.stology.be.domain.study.entity.Study;
+import com.stology.be.domain.study.event.StudyCreatedEvent;
 import com.stology.be.domain.study.exception.StudyException;
 import com.stology.be.domain.study.exception.code.StudyErrorCode;
 import com.stology.be.domain.study.repository.MemberStudyRepository;
 import com.stology.be.domain.study.repository.StudyRepository;
-import com.stology.be.domain.template.dto.TemplateActivateDto;
 import com.stology.be.domain.template.repository.TemplateRepository;
-import com.stology.be.domain.template.service.TemplateActivateService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -30,11 +28,9 @@ import java.util.stream.Stream;
 public class StudyService {
 
     private final StudyRepository studyRepository;
-    private final MemberRepository memberRepository;
     private final TemplateRepository templateRepository;
     private final MemberStudyRepository memberStudyRepository;
-
-    private final TemplateActivateService templateActivateService;
+    private final ApplicationEventPublisher publisher;
 
     private static final String STOLOGY_URL = "https://stology.com";
 
@@ -50,12 +46,14 @@ public class StudyService {
         // 스터디 방 생성
         Study study = StudyConverter.toCreateStudy(dto, template, member);
         studyRepository.save(study);
-        // 스터디 템플릿 복제 작업
-        templateActivateService.activateTemplate(study.getId(), template.getId());
 
         // MemberStudy 유저 생성
         MemberStudy memberStudy = StudyConverter.toCreateMemberStudy(study, member);
         memberStudyRepository.save(memberStudy);
+
+        // 스터디 템플릿 복제 작업(트랜잭션 이벤트 처리)
+        publisher.publishEvent(new StudyCreatedEvent(study.getId(),template.getId()));
+
         return study.getId();
     }
 
