@@ -2,6 +2,7 @@ package com.stology.be.domain.report.service;
 
 import com.stology.be.domain.node.repository.StudyNodeRepository;
 import com.stology.be.domain.report.dto.response.ReportResponseDto.*;
+import com.stology.be.global.external.ai.AiReportService;
 import com.stology.be.domain.report.entity.Report;
 import com.stology.be.domain.report.repository.ReportRepository;
 import com.stology.be.domain.report.repository.QuestionRepository;
@@ -18,7 +19,7 @@ import com.stology.be.domain.node.entity.StudyMaterial;
 import com.stology.be.domain.study.entity.Question;
 import com.stology.be.domain.study.entity.Study;
 import com.stology.be.global.external.ai.dto.AiReportOutputDto;
-import com.stology.be.global.external.ai.AiReportService;
+
 import com.stology.be.domain.report.dto.WeeklyCoreNodeDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
