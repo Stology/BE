@@ -1,4 +1,4 @@
-package com.stology.be.domain.report.dto;
+package com.stology.be.global.external.ai.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
