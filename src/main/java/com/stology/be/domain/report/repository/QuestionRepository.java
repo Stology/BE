@@ -1,4 +1,4 @@
-package com.stology.be.domain.study.repository;
+package com.stology.be.domain.report.repository;
 
 import com.stology.be.domain.study.entity.Question;
 import org.springframework.data.jpa.repository.JpaRepository;

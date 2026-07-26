@@ -1,34 +1,30 @@
-package com.stology.be.domain.study.scheduler;
+package com.stology.be.domain.report.scheduler;
 
 import com.stology.be.domain.report.service.ReportService;
-import com.stology.be.domain.study.entity.Study;
-import com.stology.be.domain.study.repository.StudyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StudyReportScheduler {
+public class ReportScheduler {
 
-    private final StudyRepository studyRepository;
     private final ReportService reportService;
 
     // 매 1시간마다 실행 (정각) - 0 0 * * * *
     @Scheduled(cron = "0 0 * * * *")
     public void generateWeeklyReports() {
         log.info("Starting weekly report generation scheduler...");
-        List<Study> activeStudies = studyRepository.findByIsActiveTrue();
+        List<Long> activeStudyIds = reportService.getActiveStudyIds();
 
-        for (Study study : activeStudies) {
+        for (Long studyId : activeStudyIds) {
             try {
-                reportService.checkAndGenerateMissingReports(study.getId());
+                reportService.checkAndGenerateMissingReports(studyId);
             } catch (Exception e) {
-                log.error("Failed to check or generate report for study {}: {}", study.getId(), e.getMessage());
+                log.error("Failed to generate report for study {}: {}", studyId, e.getMessage());
             }
         }
         log.info("Finished weekly report generation scheduler.");

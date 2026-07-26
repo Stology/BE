@@ -1,7 +1,7 @@
 package com.stology.be.domain.report.dto.response;
 
-import com.stology.be.domain.report.dto.MemberActivityStatisticsDto;
-import com.stology.be.domain.report.dto.RecommendedNodeDto;
+import com.stology.be.global.external.ai.dto.MemberActivityStatisticsDto;
+import com.stology.be.global.external.ai.dto.RecommendedNodeDto;
 import com.stology.be.domain.report.dto.WeeklyCoreNodeDto;
 import lombok.Builder;
 import lombok.Getter;
