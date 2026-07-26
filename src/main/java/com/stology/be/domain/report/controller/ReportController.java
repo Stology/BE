@@ -55,12 +55,19 @@ public class ReportController {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.getFullReport(studyId, week));
     }
 
-    @DeleteMapping("/{reportId}")
+    @DeleteMapping("/test/{reportId}")
     public ApiResponse<String> deleteReport(
             @PathVariable Long studyId,
             @PathVariable Long reportId) {
         reportService.deleteReport(reportId);
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, "리포트가 성공적으로 삭제되었습니다.");
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, "(테스트용) 리포트가 성공적으로 삭제되었습니다.");
+    }
+
+    @PostMapping("/test/update")
+    public ApiResponse<String> triggerReportUpdate(
+            @PathVariable Long studyId) {
+        reportService.checkAndGenerateMissingReports(studyId);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, "(테스트용) 리포트 수동 갱신이 완료되었습니다.");
     }
 }
 
