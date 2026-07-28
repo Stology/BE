@@ -10,7 +10,11 @@ import com.stology.be.domain.node.entity.NodeCandidateVoteInfo;
 import com.stology.be.domain.node.enums.CandidateState;
 import com.stology.be.domain.node.repository.NodeCandidateRepository;
 import com.stology.be.domain.node.repository.NodeCandidateVoteInfoRepository;
+import com.stology.be.domain.study.entity.Study;
+import com.stology.be.domain.study.exception.StudyException;
+import com.stology.be.domain.study.exception.code.StudyErrorCode;
 import com.stology.be.domain.study.repository.MemberStudyRepository;
+import com.stology.be.domain.study.repository.StudyRepository;
 import com.stology.be.global.security.entity.AuthMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,53 +34,35 @@ public class NodeVoteService {
     private final MemberStudyRepository memberStudyRepository;
     private final NodeCandidateRepository nodeCandidateRepository;
     private final NodeCandidateVoteInfoRepository nodeCandidateVoteInfoRepository;
+    private final StudyRepository studyRepository;
 
 
     @Transactional(readOnly = true)
-    public NodeExaminationInfoRes getExaminationInfo(Long studyId,Long memberId) {
-
-
+    public NodeExaminationInfoRes getExaminationInfo(
+            Long studyId,
+            Long memberId
+    ) {
+        //스터디에 속하는지 검증
+        validateStudyMember(studyId, memberId);
+        // 검토 인원수 찾기
         int numberOfStudyMembers =
-                Math.toIntExact(memberStudyRepository.countByStudyId(studyId));
+                getNumberOfStudyMembers(studyId);
 
+        //다음으로 검토 중인 후보와 투표 내역을 조회합니다.
         List<NodeVoteInfoDto> rows =
-                nodeCandidateRepository.findPendingVoteInfos(studyId, CandidateState.PENDING);
+                getPendingVoteInfos(studyId);
 
-        Map<Long, List<NodeVoteInfoDto>> grouped =
-                rows.stream()
-                        .collect(Collectors.groupingBy(
-                                NodeVoteInfoDto::nodeCandidateId,
-                                LinkedHashMap::new,
-                                Collectors.toList()
-                        ));
+        //조회 결과를 노드 후보 ID 기준으로 묶습니다.
+        Map<Long, List<NodeVoteInfoDto>> groupedRows =
+                groupByNodeCandidate(rows);
 
-        List<NodeExaminationInfoRes.NodeCandidateVoteInfo> nodeCandidates =
-                grouped.values()
-                        .stream()
-                        .map(candidateRows -> {
-
-                            NodeVoteInfoDto first = candidateRows.get(0);
-
-                            List<NodeExaminationInfoRes.MemberVoteInfo> memberVoteInfos =
-                                    candidateRows.stream()
-                                            .map(row ->
-                                                    NodeExaminationInfoRes.MemberVoteInfo.of(
-                                                            row.memberId(),
-                                                            row.memberName(),
-                                                            row.voteType()
-                                                    )
-                                            )
-                                            .toList();
-
-                            return NodeExaminationInfoRes.NodeCandidateVoteInfo.of(
-                                    first.nodeCandidateId(),
-                                    first.studyNodeId(),
-                                    numberOfStudyMembers,
-                                    first.acceptCount(),
-                                    memberVoteInfos
-                            );
-                        })
-                        .toList();
+        //후보별 응답 DTO로 변환합니다.
+        List<NodeExaminationInfoRes.NodeCandidateVoteInfo>
+                nodeCandidates =
+                toNodeCandidateVoteInfos(
+                        groupedRows,
+                        numberOfStudyMembers
+                );
 
         return NodeExaminationInfoRes.from(nodeCandidates);
     }
@@ -110,7 +96,106 @@ public class NodeVoteService {
     }
 
 
+    /**
+     *
+     *
+     * getExamination의 내부 함수
+     *
+     *
+     *
+     */
 
+    private int getNumberOfStudyMembers(Long studyId) {
+        Study study = studyRepository.findById(studyId)
+                .orElseThrow(() ->
+                        new StudyException(
+                                StudyErrorCode.STUDY_NOT_FOUND
+                        )
+                );
+
+        return study.getReviewerCount();
+    }
+
+    private List<NodeVoteInfoDto> getPendingVoteInfos(
+            Long studyId
+    ) {
+        return nodeCandidateRepository.findPendingVoteInfos(
+                studyId,
+                CandidateState.PENDING
+        );
+    }
+
+    private Map<Long, List<NodeVoteInfoDto>> groupByNodeCandidate(
+            List<NodeVoteInfoDto> rows
+    ) {
+        return rows.stream()
+                .collect(Collectors.groupingBy(
+                        NodeVoteInfoDto::nodeCandidateId,
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+    }
+
+    private List<NodeExaminationInfoRes.NodeCandidateVoteInfo>
+    toNodeCandidateVoteInfos(
+            Map<Long, List<NodeVoteInfoDto>> groupedRows,
+            int numberOfStudyMembers
+    ) {
+        return groupedRows.values()
+                .stream()
+                .map(candidateRows ->
+                        toNodeCandidateVoteInfo(
+                                candidateRows,
+                                numberOfStudyMembers
+                        )
+                )
+                .toList();
+    }
+
+    private NodeExaminationInfoRes.NodeCandidateVoteInfo
+    toNodeCandidateVoteInfo(
+            List<NodeVoteInfoDto> candidateRows,
+            int numberOfStudyMembers
+    ) {
+        NodeVoteInfoDto first = candidateRows.get(0);
+
+        List<NodeExaminationInfoRes.MemberVoteInfo>
+                memberVoteInfos =
+                toMemberVoteInfos(candidateRows);
+
+        return NodeExaminationInfoRes.NodeCandidateVoteInfo.of(
+                first.nodeCandidateId(),
+                first.studyNodeId(),
+                numberOfStudyMembers,
+                first.acceptCount(),
+                memberVoteInfos
+        );
+    }
+
+    private List<NodeExaminationInfoRes.MemberVoteInfo>
+    toMemberVoteInfos(
+            List<NodeVoteInfoDto> candidateRows
+    ) {
+        return candidateRows.stream()
+                .filter(row -> row.memberId() != null)
+                .map(row ->
+                        NodeExaminationInfoRes.MemberVoteInfo.of(
+                                row.memberId(),
+                                row.memberName(),
+                                row.voteType()
+                        )
+                )
+                .toList();
+    }
+
+    /**
+     *
+     *
+     * Vote의 내부 함수
+     *
+     *
+     *
+     */
 
 
 
