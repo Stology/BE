@@ -7,7 +7,8 @@ import com.stology.be.domain.node.enums.CandidateState;
 import com.stology.be.domain.node.repository.NodeCandidateRepository;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
 import com.stology.be.domain.node.repository.StudyNodeRepository;
-import com.stology.be.domain.upload.enums.DataState;
+import com.stology.be.domain.upload.exception.UploadException;
+import com.stology.be.domain.upload.exception.code.UploadErrorCode;
 import com.stology.be.global.external.ai.dto.AiSummaryResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,8 @@ public class SummarySaveService {
     private final StudyNodeRepository studyNodeRepository;
     private final NodeCandidateRepository nodeCandidateRepository;
 
+    private final String NORELATION= " [올리신 자료가 스터디의 어떠한 노드와도 연관이 없습니다.]";
+
     @Transactional
     public void saveResult(
             Long studyMaterialId,
@@ -36,17 +39,16 @@ public class SummarySaveService {
         StudyMaterial studyMaterial =
                 studyMaterialRepository.findById(studyMaterialId)
                         .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 스터디 자료입니다. "
-                                                + "studyMaterialId="
-                                                + studyMaterialId
-                                )
+                                new UploadException(UploadErrorCode.STUDY_MATERIAL_NOT_FOUND)
                         );
 
         // 2. AI 요약 저장
         studyMaterial.updateSummary(
                 result.summary().trim()
         );
+        if (result.keywords().isEmpty()) {
+            studyMaterial.updateSummary(studyMaterial.getSummary()+ NORELATION);
+        }
 
 
         // 4. 중복 노드 ID 제거
@@ -61,9 +63,8 @@ public class SummarySaveService {
 
         // 프롬프트 규칙상 최대 3개
         if (studyNodeIds.size() > 3) {
-            throw new IllegalArgumentException(
-                    "AI가 선택할 수 있는 노드는 최대 3개입니다."
-            );
+            throw new UploadException(UploadErrorCode.AI_SELECTED_NODE_LIMIT_EXCEEDED);
+
         }
 
         // 5. StudyNode 일괄 조회
@@ -96,16 +97,12 @@ public class SummarySaveService {
 
     private void validateResult(AiSummaryResult result) {
         if (result == null) {
-            throw new IllegalArgumentException(
-                    "AI 응답 결과가 없습니다."
-            );
+            throw new UploadException(UploadErrorCode.AI_RESULT_NOT_FOUND);
         }
 
         if (result.summary() == null
                 || result.summary().isBlank()) {
-            throw new IllegalArgumentException(
-                    "AI 요약 결과가 비어 있습니다."
-            );
+            throw new UploadException(UploadErrorCode.AI_SUMMARY_EMPTY);
         }
     }
 
@@ -125,10 +122,7 @@ public class SummarySaveService {
 
             missingIds.removeAll(foundIds);
 
-            throw new IllegalArgumentException(
-                    "존재하지 않는 스터디 노드가 포함되어 있습니다. "
-                            + "studyNodeIds=" + missingIds
-            );
+            throw new UploadException(UploadErrorCode.STUDY_NODE_NOT_FOUND);
         }
 
         Long materialStudyId =
@@ -145,10 +139,7 @@ public class SummarySaveService {
                         );
 
         if (hasDifferentStudyNode) {
-            throw new IllegalArgumentException(
-                    "업로드 자료와 다른 스터디의 노드를 "
-                            + "후보로 등록할 수 없습니다."
-            );
+            throw new UploadException(UploadErrorCode.STUDY_NODE_MISMATCH);
         }
     }
 

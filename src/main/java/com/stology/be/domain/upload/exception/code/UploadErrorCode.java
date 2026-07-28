@@ -49,6 +49,41 @@ public enum UploadErrorCode implements BaseErrorCode {
             HttpStatus.INTERNAL_SERVER_ERROR,
             "UPLOAD500_2",
             "파일 저장소에 파일을 업로드하는 중 오류가 발생했습니다."
+    ),
+    AI_RESULT_NOT_FOUND(
+            HttpStatus.BAD_REQUEST,
+            "SUMMARY_SAVE400_1",
+                    "AI 응답 결과가 없습니다."
+    ),
+
+    AI_SUMMARY_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "SUMMARY_SAVE400_2",
+                    "AI 요약 결과가 비어 있습니다."
+    ),
+
+    AI_SELECTED_NODE_LIMIT_EXCEEDED(
+            HttpStatus.BAD_REQUEST,
+            "SUMMARY_SAVE400_3",
+                    "AI가 선택할 수 있는 노드는 최대 3개입니다."
+    ),
+
+    STUDY_MATERIAL_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SUMMARY_SAVE404_1",
+                    "존재하지 않는 스터디 자료입니다."
+    ),
+
+    STUDY_NODE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "SUMMARY_SAVE404_2",
+                    "존재하지 않는 스터디 노드가 포함되어 있습니다."
+    ),
+
+    STUDY_NODE_MISMATCH(
+            HttpStatus.BAD_REQUEST,
+            "SUMMARY_SAVE400_4",
+                    "업로드 자료와 다른 스터디의 노드를 후보로 등록할 수 없습니다."
     );
 
     private final HttpStatus httpStatus;
