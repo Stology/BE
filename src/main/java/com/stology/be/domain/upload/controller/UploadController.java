@@ -2,6 +2,7 @@ package com.stology.be.domain.upload.controller;
 
 import com.stology.be.domain.upload.component.SseEmitterRepository;
 import com.stology.be.domain.upload.dto.req.UploadReq;
+import com.stology.be.domain.upload.dto.res.GetSummaryRes;
 import com.stology.be.domain.upload.dto.res.RecentFilesRes;
 import com.stology.be.domain.upload.dto.res.SseConnectRes;
 import com.stology.be.domain.upload.exception.code.UploadSuccessCode;
@@ -16,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/api/study/{studyId}")
@@ -30,16 +32,17 @@ public class UploadController {
      * 실시간 자료 업로드
      * POST /api/study/{studyId}/uploadSSE
      */
-    @GetMapping("/uploadSSE")
-    public ApiResponse<SseConnectRes> uploadSSE(
+    @GetMapping(
+            value = "/uploadSSE",
+            produces = MediaType.TEXT_EVENT_STREAM_VALUE
+    )
+    public SseEmitter uploadSSE(
             @PathVariable Long studyId,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        // TODO: SSE 연결 및 실시간 업로드 상태 전송
-        return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,
-                SseConnectRes.builder()
-                        .emitter(sseService.subscribe(studyId, authMember.getMemberId()))
-                        .build()
+        return sseService.subscribe(
+                studyId,
+                authMember.getMemberId()
         );
     }
 
@@ -78,16 +81,37 @@ public class UploadController {
         return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,result);
     }
 
+
+
     /**
      * 자료 AI 분석
      * GET /api/study/{studyId}/analyze
      */
-    @GetMapping("/analyze")
-    public ResponseEntity<Void> analyze(
-            @PathVariable Long studyId
+    @PostMapping("/studyMaterial/{studyMaterialId}/analyze")
+    public ApiResponse<Void> analyze(
+            @PathVariable Long studyId,
+            @PathVariable Long studyMaterialId,
+            @AuthenticationPrincipal AuthMember authMember
+
     ) {
         // TODO: 업로드된 자료 AI 분석
+        uploadService.reAnalyzeMaterial(studyId,studyMaterialId,authMember);
 
-        return ResponseEntity.ok().build();
+        return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,null);
+    }
+
+
+    @GetMapping("/studyMaterial/{studyMaterialId}/summary")
+    public ApiResponse<GetSummaryRes> getAiSummary (
+            @PathVariable Long studyId,
+            @PathVariable Long studyMaterialId,
+            @AuthenticationPrincipal AuthMember authMember
+    ) {
+
+
+        return ApiResponse.onSuccess(
+                UploadSuccessCode.UPLOAD_SUCCESS
+                ,uploadService.getMaterialSummary(studyId,studyMaterialId,authMember)
+                );
     }
 }

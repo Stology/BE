@@ -65,4 +65,18 @@ public class SseEmitterRepository {
             emitters.remove(studyId);
         }
     }
+
+    public Map<Long, Map<String, SseEmitter>> findAll() {
+        Map<Long, Map<String, SseEmitter>> snapshot =
+                new ConcurrentHashMap<>();
+
+        emitters.forEach((studyId, studyEmitters) ->
+                snapshot.put(
+                        studyId,
+                        Map.copyOf(studyEmitters)
+                )
+        );
+
+        return Map.copyOf(snapshot);
+    }
 }

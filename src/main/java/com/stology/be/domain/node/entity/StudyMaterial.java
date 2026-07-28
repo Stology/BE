@@ -46,7 +46,6 @@ public class StudyMaterial extends BaseEntity {
     private String dataTitle;
 
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     private MemberStudy memberStudy;
 

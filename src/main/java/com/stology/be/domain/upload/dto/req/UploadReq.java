@@ -32,10 +32,10 @@ public class UploadReq {
     /**
      * Markdown 파일
      */
+    @NotNull(message = "자료 파일은 필수입니다.")
     @Schema(
             type = "string",
             format = "binary"
     )
-    @NotNull(message = "파일은 필수입니다.")
     private MultipartFile file;
 }

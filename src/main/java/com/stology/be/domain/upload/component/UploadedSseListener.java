@@ -5,6 +5,7 @@ import com.stology.be.domain.upload.enums.DataState;
 import com.stology.be.domain.upload.event.UploadedEvent;
 import com.stology.be.domain.upload.service.SseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -12,6 +13,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
+@Order(1)
 public class UploadedSseListener {
 
     private final SseService sseService;
