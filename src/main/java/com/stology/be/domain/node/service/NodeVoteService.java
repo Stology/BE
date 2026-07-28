@@ -7,9 +7,12 @@ import com.stology.be.domain.node.dto.res.AcceptNodeRes;
 import com.stology.be.domain.node.dto.res.NodeExaminationInfoRes;
 import com.stology.be.domain.node.entity.NodeCandidate;
 import com.stology.be.domain.node.entity.NodeCandidateVoteInfo;
+import com.stology.be.domain.node.entity.StudyNode;
 import com.stology.be.domain.node.enums.CandidateState;
+import com.stology.be.domain.node.enums.VoteType;
 import com.stology.be.domain.node.repository.NodeCandidateRepository;
 import com.stology.be.domain.node.repository.NodeCandidateVoteInfoRepository;
+import com.stology.be.domain.node.repository.StudyNodeRepository;
 import com.stology.be.domain.study.entity.Study;
 import com.stology.be.domain.study.exception.StudyException;
 import com.stology.be.domain.study.exception.code.StudyErrorCode;
@@ -35,6 +38,7 @@ public class NodeVoteService {
     private final NodeCandidateRepository nodeCandidateRepository;
     private final NodeCandidateVoteInfoRepository nodeCandidateVoteInfoRepository;
     private final StudyRepository studyRepository;
+    private final StudyNodeRepository studyNodeRepository;
 
 
     @Transactional(readOnly = true)
@@ -67,13 +71,18 @@ public class NodeVoteService {
         return NodeExaminationInfoRes.from(nodeCandidates);
     }
 
+    //동일 스터디 안에 있는 노드 후보들
     @Transactional
     public AcceptNodeRes vote(
             Long studyId,
             AuthMember member,
             AcceptNodeReq request
     ) {
-        //
+
+        //노드 활성화 하기 위해 몇명이상 필요한지.
+        int numberOfNeedAcceptMember =
+                getNumberOfStudyMembers(studyId);
+        //검증
         validateStudyMember(studyId, member.getMemberId());
 
 
@@ -84,7 +93,8 @@ public class NodeVoteService {
                     processVote(
                             studyId,
                             member.getMember(),
-                            voteRequest
+                            voteRequest,
+                            numberOfNeedAcceptMember
                     )
             );
         }
@@ -197,17 +207,41 @@ public class NodeVoteService {
      *
      */
 
-
-
     private AcceptNodeRes.AcceptInfo processVote(
             Long studyId,
             Member member,
-            AcceptNodeReq.NodeVoteReq request
+            AcceptNodeReq.NodeVoteReq request,
+            int numberOfNeedAcceptMember
     ) {
-        //검증
-        NodeCandidate nodeCandidate = validateNodeCandidate(request,studyId);
+        NodeCandidate nodeCandidate =
+                validateNodeCandidate(request, studyId);
+
+        //투표 갱신
+        saveOrUpdateVote(
+                nodeCandidate,
+                member,
+                request.voteType()
+        );
+
+        // 투표 수 저장
+        updateCandidateApproval(
+                nodeCandidate,
+                request.studyNodeId(),
+                numberOfNeedAcceptMember
+        );
+
+        return AcceptNodeRes.AcceptInfo.of(
+                request.studyNodeId(),
+                request.nodeCandidateId()
+        );
+    }
 
 
+    private void saveOrUpdateVote(
+            NodeCandidate nodeCandidate,
+            Member member,
+            VoteType voteType
+    ) {
         NodeCandidateVoteInfo voteInfo =
                 nodeCandidateVoteInfoRepository
                         .findByNodeCandidate_IdAndMember_Id(
@@ -220,20 +254,61 @@ public class NodeVoteService {
             voteInfo = NodeCandidateVoteInfo.builder()
                     .nodeCandidate(nodeCandidate)
                     .member(member)
-                    .voteType(request.voteType())
+                    .voteType(voteType)
                     .build();
         } else {
-            voteInfo.updateVote(request.voteType());
+            voteInfo.updateVote(voteType);
         }
 
         nodeCandidateVoteInfoRepository.save(voteInfo);
-
-        return AcceptNodeRes.AcceptInfo.of(
-                request.studyNodeId(),
-                request.nodeCandidateId()
-        );
     }
 
+    private void updateCandidateApproval(
+            NodeCandidate nodeCandidate,
+            Long studyNodeId,
+            int requiredAcceptCount
+    ) {
+        int acceptCount = Math.toIntExact(
+                nodeCandidateVoteInfoRepository
+                        .countByNodeCandidate_IdAndVoteType(
+                                nodeCandidate.getId(),
+                                VoteType.ACCEPT
+                        )
+        );
+
+        nodeCandidate.updateAcceptCount(acceptCount);
+
+        if (acceptCount < requiredAcceptCount) {
+            return;
+        }
+
+        nodeCandidate.changeState(
+                CandidateState.ACCEPTED
+        );
+
+        increaseStudyNodeActiveLevel(studyNodeId);
+    }
+
+
+    private void increaseStudyNodeActiveLevel(
+            Long studyNodeId
+    ) {
+        StudyNode studyNode =
+                studyNodeRepository
+                        .findByIdForUpdate(studyNodeId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "스터디 노드를 찾을 수 없습니다."
+                                )
+                        );
+
+        studyNode.increaseActiveLevel();
+    }
+
+    /*
+    내부 공용 함수.
+
+     */
     private void validateStudyMember(
             Long studyId,
             Long memberId
@@ -253,7 +328,7 @@ public class NodeVoteService {
     }
     private NodeCandidate validateNodeCandidate(AcceptNodeReq.NodeVoteReq request, Long studyId)
     {
-        NodeCandidate nodeCandidate =
+        return
                 nodeCandidateRepository
                         .findByIdAndStudyNode_IdAndStudyNode_Study_IdAndState(
                                 request.nodeCandidateId(),
@@ -267,7 +342,6 @@ public class NodeVoteService {
                                                 "검토 중인 노드 후보가 아닙니다."
                                 )
                         );
-        return nodeCandidate;
     }
 
 }

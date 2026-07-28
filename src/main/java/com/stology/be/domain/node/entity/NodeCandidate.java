@@ -49,12 +49,10 @@ public class NodeCandidate extends BaseEntity {
     @Builder.Default
     private List<NodeCandidateVoteInfo> nodeCandidateVoteInfo = new ArrayList<>();
 
-
-
-
-    public void increaseAcceptCount() {
-        this.acceptCount++;
+    public void updateAcceptCount(int acceptCount) {
+        this.acceptCount = acceptCount;
     }
+
 
     public void changeState(CandidateState state) {
         this.state = state;

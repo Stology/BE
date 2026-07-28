@@ -32,7 +32,7 @@ public class Study extends BaseEntity {
     private String invitationToken;
 
     @Builder.Default
-    private Integer reviewerCount=0;
+    private Integer reviewerCount=1;
 
     @Builder.Default
     private Boolean isActive = true;

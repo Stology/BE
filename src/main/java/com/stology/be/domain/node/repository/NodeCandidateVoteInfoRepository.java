@@ -3,6 +3,7 @@ package com.stology.be.domain.node.repository;
 import com.stology.be.domain.node.dto.NodeVoteInfoDto;
 import com.stology.be.domain.node.entity.NodeCandidateVoteInfo;
 import com.stology.be.domain.node.enums.CandidateState;
+import com.stology.be.domain.node.enums.VoteType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,6 +43,12 @@ public interface NodeCandidateVoteInfoRepository extends JpaRepository<NodeCandi
     findByNodeCandidate_IdAndMember_Id(
             Long nodeCandidateId,
             Long memberId
+    );
+
+    //찬성표 집계
+    long countByNodeCandidate_IdAndVoteType(
+            Long nodeCandidateId,
+            VoteType voteType
     );
 
 }
