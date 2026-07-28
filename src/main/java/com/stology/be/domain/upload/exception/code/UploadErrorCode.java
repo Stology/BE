@@ -23,7 +23,7 @@ public enum UploadErrorCode implements BaseErrorCode {
     UPLOAD_FILE_EXTENSION_INVALID(
             HttpStatus.BAD_REQUEST,
             "UPLOAD400_2",
-            "Markdown(.md) 파일만 업로드할 수 있습니다."
+            "Markdown(.md), txt(.txt) 파일만 업로드할 수 있습니다."
     ),
 
     UPLOAD_FILE_ENCODING_INVALID(

@@ -63,26 +63,13 @@ public class UploadService {
         MultipartFile file = request.getFile();
         String content = request.getDescription();
 
-        boolean hasFile = file != null && !file.isEmpty();
-        boolean hasContent = content != null && !content.isBlank();
-
-        //파일과 컨텐츠가 아무것도 없을떄.
-        if (!hasFile && !hasContent) {
-            throw new UploadException(
-                    UploadErrorCode.UPLOAD_CONTENT_EMPTY
-            );
-        }
-        S3InfoDto s3Info = null;
-        //파일이 있을때 저장
-        if (hasFile) {
-            validateMarkdownExtension(file);
-            validateUtf8Encoding(file);
-
-            s3Info = uploadToS3(file,studyId);
-        }
+        //파일 검증
+        validateMarkdownTxtFile(file);
+        //S3 저장
+        S3InfoDto s3Info = uploadToS3(file, studyId);
 
         //설명이 없을 떄
-        if (!hasContent) {
+        if (content == null) {
             content = "";
         }
 
@@ -94,8 +81,8 @@ public class UploadService {
                 .memberStudy(memberStudy)
                 .dataTitle(request.getTitle())
                 .content(content)
-                .fileUrl(s3Info != null ? s3Info.url() : null)
-                .objectKey(s3Info != null ? s3Info.objectKey() : null)
+                .fileUrl(s3Info.url())
+                .objectKey(s3Info.objectKey())
                 .build();
 
         studyMaterialRepository.save(studyMaterial);
@@ -201,11 +188,11 @@ public class UploadService {
     내부 함수
      */
 
-    private void validateMarkdownFile(
+    private void validateMarkdownTxtFile(
             MultipartFile file
     ) {
         validateFileExists(file);
-        validateMarkdownExtension(file);
+        validateMarkdownTxtExtension(file);
         validateUtf8Encoding(file);
     }
 
@@ -219,20 +206,24 @@ public class UploadService {
         }
     }
 
-    private void validateMarkdownExtension(
+    private void validateMarkdownTxtExtension(
             MultipartFile file
     ) {
-        String originalFilename =
-                file.getOriginalFilename();
+        String originalFilename = file.getOriginalFilename();
 
-        if (originalFilename == null ||
-                !originalFilename
-                        .toLowerCase(Locale.ROOT)
-                        .endsWith(".md")) {
-
+        if (originalFilename == null) {
             throw new UploadException(
-                    UploadErrorCode
-                            .UPLOAD_FILE_EXTENSION_INVALID
+                    UploadErrorCode.UPLOAD_FILE_EXTENSION_INVALID
+            );
+        }
+
+        String lowerFilename =
+                originalFilename.toLowerCase(Locale.ROOT);
+
+        if (!lowerFilename.endsWith(".md")
+                && !lowerFilename.endsWith(".txt")) {
+            throw new UploadException(
+                    UploadErrorCode.UPLOAD_FILE_EXTENSION_INVALID
             );
         }
     }

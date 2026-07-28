@@ -116,7 +116,7 @@ public class UploadFilePromptBuilder {
     private String buildPrompt(
             String title,
             String description,
-            String filecontent
+            String fileContent
     ) {
         return """
                 다음 학습 자료를 분석하고 요약하세요.
@@ -124,15 +124,15 @@ public class UploadFilePromptBuilder {
                 [자료 제목]
                 %s
                 
-                [자료 내용]
+                [자료 설명]
                 %s
 
-                [자료 내용 파일]
+                [자료 내용]
                 %s
                 """.formatted(
                 title,
                 description,
-                filecontent
+                fileContent
         );
     }
     private StudyMaterial getStudyMaterial(Long studyMaterialId) {
