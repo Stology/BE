@@ -1,22 +1,25 @@
 package com.stology.be.domain.upload.service;
 
 import com.stology.be.domain.member.entity.Member;
+import com.stology.be.domain.member.exception.MemberException;
+import com.stology.be.domain.member.exception.code.MemberErrorCode;
 import com.stology.be.domain.member.repository.MemberRepository;
 import com.stology.be.domain.node.entity.StudyMaterial;
-import com.stology.be.domain.node.repository.NodeCandidateRepository;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
-import com.stology.be.domain.node.repository.StudyNodeRepository;
 import com.stology.be.domain.study.entity.MemberStudy;
 import com.stology.be.domain.study.repository.MemberStudyRepository;
 import com.stology.be.domain.upload.dto.req.UploadReq;
+import com.stology.be.domain.upload.dto.res.GetSummaryRes;
 import com.stology.be.domain.upload.dto.res.RecentFileRes;
 import com.stology.be.domain.upload.dto.res.RecentFilesRes;
+import com.stology.be.domain.upload.event.ReTaskEvent;
 import com.stology.be.domain.upload.event.UploadedEvent;
 import com.stology.be.domain.upload.enums.DataState;
 import com.stology.be.domain.upload.exception.UploadException;
 import com.stology.be.domain.upload.exception.code.UploadErrorCode;
 import com.stology.be.global.external.s3.S3Uploader;
 import com.stology.be.global.external.s3.dto.S3InfoDto;
+import com.stology.be.global.security.entity.AuthMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
@@ -56,31 +59,43 @@ public class UploadService {
     ) {
         //1. 검증 업로더가 스터디 안에 맴버인지 검증  2. 파일이(비었는지, md인지)
         MemberStudy memberStudy = getMemberStudy(studyId, memberId);
-        validateMarkdownFile(request.getFile());
 
-
-        //1. S3에 파일 저장
-        S3InfoDto s3Info = s3Uploader.uploadByFile(
-                request.getFile(),
-                "study-material/" + studyId
-        );
-
-        //변환
+        MultipartFile file = request.getFile();
         String content = request.getDescription();
-        if (content == null) {
+
+        boolean hasFile = file != null && !file.isEmpty();
+        boolean hasContent = content != null && !content.isBlank();
+
+        //파일과 컨텐츠가 아무것도 없을떄.
+        if (!hasFile && !hasContent) {
+            throw new UploadException(
+                    UploadErrorCode.UPLOAD_CONTENT_EMPTY
+            );
+        }
+        S3InfoDto s3Info = null;
+        //파일이 있을때 저장
+        if (hasFile) {
+            validateMarkdownExtension(file);
+            validateUtf8Encoding(file);
+
+            s3Info = uploadToS3(file,studyId);
+        }
+
+        //설명이 없을 떄
+        if (!hasContent) {
             content = "";
         }
 
         //2. DB에 개인자료 저장 N저장
-        Member member = memberRepository.findById(memberId).orElse(null);
+        Member member = getMember(memberId);
 
         StudyMaterial studyMaterial = StudyMaterial.builder()
                 .dataState(DataState.READY)
                 .memberStudy(memberStudy)
                 .dataTitle(request.getTitle())
                 .content(content)
-                .fileUrl(s3Info.url())
-                .objectKey(s3Info.objectKey())
+                .fileUrl(s3Info != null ? s3Info.url() : null)
+                .objectKey(s3Info != null ? s3Info.objectKey() : null)
                 .build();
 
         studyMaterialRepository.save(studyMaterial);
@@ -107,7 +122,8 @@ public class UploadService {
             Long memberId
     ) {
 
-        MemberStudy memberStudy = getMemberStudy(studyId, memberId);
+        //검증
+        getMemberStudy(studyId, memberId);
 
 
         List<RecentFileRes> files =
@@ -119,6 +135,66 @@ public class UploadService {
         return new RecentFilesRes(files);
 
     }
+    public GetSummaryRes getMaterialSummary(
+            Long studyId,
+            Long studyMaterialId,
+            AuthMember authMember
+    ){
+        // 1. 검증
+        getMemberStudy(studyId, authMember.getMemberId());
+
+        // 2 스터디 메터리얼 찾기 + 검증
+        StudyMaterial studyMaterial = getStudyMaterial(studyMaterialId);
+        //
+        if (studyMaterial.getSummary() == null || studyMaterial.getSummary().isEmpty()) {
+            throw new UploadException(UploadErrorCode.AI_SUMMARY_NOT_COMPLETE);
+        }
+        return new GetSummaryRes(studyMaterial.getSummary());
+    }
+
+    @Transactional
+    public void reAnalyzeMaterial(
+            Long studyId,
+            Long studyMaterialId,
+            AuthMember authMember
+    ){
+        // 1. 검증
+        MemberStudy memberStudy = getMemberStudy(studyId, authMember.getMemberId());
+
+        // 2. 스터디 메터리얼 찾기 + 검증
+        StudyMaterial studyMaterial = getStudyMaterial(studyMaterialId);
+
+
+
+        // 3. 본인의 자료가 맞는지.
+        if (!memberStudy.getId().equals(
+                studyMaterial.getMemberStudy().getId()
+        )) {
+            throw new UploadException(
+                    UploadErrorCode.NO_GRANDTED_FOR_STUDY_MATERIAL
+            );
+        }
+
+        // 4. 추출 중이면 이중 추출 방지를 위함 코드 + 실패한 경우에만 재추출 허락하는 것.
+        if (studyMaterial.getDataState() != DataState.EXTRACTIONFAILED) {
+            throw new UploadException(
+                    UploadErrorCode.AI_SUMMARY_NOT_COMPLETE
+            );
+        }
+        studyMaterial.changeDataState(DataState.EXTRACTING);
+
+
+        eventPublisher.publishEvent(
+                ReTaskEvent.builder()
+                        .studyId(studyId)
+                        .studyMaterialId(studyMaterialId)
+                        .uploaderMemberId(authMember.getMemberId())
+                        .build()
+        );
+    }
+
+
+
 
 
     /*
@@ -229,14 +305,9 @@ public class UploadService {
     private Member getMember(
             Long memberId
     ) {
-        return memberRepository
-                .findById(memberId)
-                .orElseThrow(
-                        () -> new UploadException(
-                                UploadErrorCode
-                                        .UPLOAD_MEMBER_NOT_FOUND
-                        )
-                );
+        return memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
     private MemberStudy getMemberStudy(
@@ -254,6 +325,14 @@ public class UploadService {
                                         .UPLOAD_MEMBER_NOT_IN_STUDY
                         )
                 );
+    }
+    private StudyMaterial getStudyMaterial(Long studyMaterialId) {
+
+        return studyMaterialRepository
+                .findById(studyMaterialId).orElseThrow(
+                        () -> new UploadException(
+                                UploadErrorCode
+                                        .STUDY_MATERIAL_NOT_FOUND));
     }
 }
 

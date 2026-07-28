@@ -14,6 +14,11 @@ public enum UploadErrorCode implements BaseErrorCode {
             "UPLOAD400_1",
             "업로드할 파일이 존재하지 않습니다."
     ),
+    UPLOAD_CONTENT_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "UPLOAD400_1",
+            "업로드할 내용이 존재하지 않습니다."
+    ),
 
     UPLOAD_FILE_EXTENSION_INVALID(
             HttpStatus.BAD_REQUEST,
@@ -62,6 +67,12 @@ public enum UploadErrorCode implements BaseErrorCode {
                     "AI 요약 결과가 비어 있습니다."
     ),
 
+    AI_SUMMARY_NOT_COMPLETE(
+            HttpStatus.BAD_REQUEST,
+            "SUMMARY_SAVE400_2",
+            "AI 요약 결과를 만드는 중입니다."
+    ),
+
     AI_SELECTED_NODE_LIMIT_EXCEEDED(
             HttpStatus.BAD_REQUEST,
             "SUMMARY_SAVE400_3",
@@ -78,6 +89,11 @@ public enum UploadErrorCode implements BaseErrorCode {
             HttpStatus.NOT_FOUND,
             "SUMMARY_SAVE404_2",
                     "존재하지 않는 스터디 노드가 포함되어 있습니다."
+    ),
+    NO_GRANDTED_FOR_STUDY_MATERIAL(
+            HttpStatus.NOT_FOUND,
+            "SUMMARY_SAVE404_2",
+            "당신의 스터디 자료가 아닙니다"
     ),
 
     STUDY_NODE_MISMATCH(

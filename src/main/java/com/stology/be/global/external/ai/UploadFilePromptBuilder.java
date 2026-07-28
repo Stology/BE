@@ -2,20 +2,18 @@ package com.stology.be.global.external.ai;
 
 import com.stology.be.domain.node.dto.StudyNodePromptDto;
 import com.stology.be.domain.node.entity.StudyMaterial;
-import com.stology.be.domain.node.entity.TemplateNode;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
 import com.stology.be.domain.node.repository.neo4j.copy.TemplateStudyGraphRepository;
 import com.stology.be.domain.study.entity.Study;
+import com.stology.be.domain.study.exception.StudyException;
+import com.stology.be.domain.study.exception.code.StudyErrorCode;
 import com.stology.be.domain.study.repository.StudyRepository;
-import com.stology.be.domain.template.repository.TemplateRepository;
+import com.stology.be.domain.upload.exception.UploadException;
+import com.stology.be.domain.upload.exception.code.UploadErrorCode;
 import com.stology.be.global.external.s3.S3Reader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,20 +54,26 @@ public class UploadFilePromptBuilder {
 
         StudyMaterial studyMaterial = getStudyMaterial(studyMaterialId);
 
-        String fileContent =
-                s3Reader.readString(
-                        studyMaterial.getObjectKey()
-                );
-
-
-        if (fileContent.isBlank()) {
-            throw new IllegalStateException(
-                    "업로드된 파일의 내용이 비어 있습니다."
-            );
+        String description = "";
+        // 안에 저장된 설명이 있다면
+        if(studyMaterial.getContent() != null) {
+            description = studyMaterial.getContent();
         }
+
+        String fileContent= "";
+        // 안에 저장된 파일이 있다면
+        if(studyMaterial.getObjectKey()!=null){
+            fileContent =
+                    s3Reader.readString(
+                            studyMaterial.getObjectKey()
+                    );
+
+        }
+
 
         return buildPrompt(
                 studyMaterial.getDataTitle(),
+                description,
                 fileContent
         );
     }
@@ -77,7 +81,10 @@ public class UploadFilePromptBuilder {
 
     public String makeSystemPrompt(Long studyId) {
 
-        Study study = studyRepository.findById(studyId).orElse(null);
+        Study study = studyRepository.findById(studyId)
+                .orElseThrow(() ->
+                        new StudyException(StudyErrorCode.STUDY_NOT_FOUND));
+
         //null 불가능, 자료를 올리려면 템플릿이 등록된 스터디가 있어야함.
         Long templateId = study.getTemplate().getId();
 
@@ -106,43 +113,33 @@ public class UploadFilePromptBuilder {
 
 
 
-
-
-
     private String buildPrompt(
             String title,
-            String content
+            String description,
+            String filecontent
     ) {
         return """
                 다음 학습 자료를 분석하고 요약하세요.
 
                 [자료 제목]
                 %s
-
+                
                 [자료 내용]
+                %s
+
+                [자료 내용 파일]
                 %s
                 """.formatted(
                 title,
-                content
+                description,
+                filecontent
         );
     }
     private StudyMaterial getStudyMaterial(Long studyMaterialId) {
 
-        StudyMaterial studyMaterial =
-                studyMaterialRepository.findById(studyMaterialId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 업로드 자료입니다."
-                                )
+        return studyMaterialRepository.findById(studyMaterialId).orElseThrow(() ->
+                                new UploadException(UploadErrorCode.STUDY_MATERIAL_NOT_FOUND)
                         );
 
-        String fileUrl = studyMaterial.getFileUrl();
-
-        if (fileUrl == null || fileUrl.isBlank()) {
-            throw new IllegalStateException(
-                    "업로드 자료의 파일 URL이 존재하지 않습니다."
-            );
-        }
-        return studyMaterial;
     }
 }

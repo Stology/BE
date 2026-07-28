@@ -2,6 +2,7 @@ package com.stology.be.domain.upload.controller;
 
 import com.stology.be.domain.upload.component.SseEmitterRepository;
 import com.stology.be.domain.upload.dto.req.UploadReq;
+import com.stology.be.domain.upload.dto.res.GetSummaryRes;
 import com.stology.be.domain.upload.dto.res.RecentFilesRes;
 import com.stology.be.domain.upload.dto.res.SseConnectRes;
 import com.stology.be.domain.upload.exception.code.UploadSuccessCode;
@@ -80,16 +81,37 @@ public class UploadController {
         return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,result);
     }
 
+
+
     /**
      * 자료 AI 분석
      * GET /api/study/{studyId}/analyze
      */
-    @GetMapping("/analyze")
-    public ResponseEntity<Void> analyze(
-            @PathVariable Long studyId
+    @PostMapping("/studyMaterial/{studyMaterialId}/analyze")
+    public ApiResponse<Void> analyze(
+            @PathVariable Long studyId,
+            @PathVariable Long studyMaterialId,
+            @AuthenticationPrincipal AuthMember authMember
+
     ) {
         // TODO: 업로드된 자료 AI 분석
+        uploadService.reAnalyzeMaterial(studyId,studyMaterialId,authMember);
 
-        return ResponseEntity.ok().build();
+        return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,null);
+    }
+
+
+    @GetMapping("/studyMaterial/{studyMaterialId}/summary")
+    public ApiResponse<GetSummaryRes> getAiSummary (
+            @PathVariable Long studyId,
+            @PathVariable Long studyMaterialId,
+            @AuthenticationPrincipal AuthMember authMember
+    ) {
+
+
+        return ApiResponse.onSuccess(
+                UploadSuccessCode.UPLOAD_SUCCESS
+                ,uploadService.getMaterialSummary(studyId,studyMaterialId,authMember)
+                );
     }
 }
