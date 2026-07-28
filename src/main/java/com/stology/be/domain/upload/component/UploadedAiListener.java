@@ -9,15 +9,19 @@ import com.stology.be.global.external.ai.AiSummarizeService;
 import com.stology.be.domain.upload.service.SseService;
 import com.stology.be.global.external.ai.UploadFilePromptBuilder;
 import com.stology.be.global.external.ai.dto.AiSummaryResult;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
+@Order(2)
 public class UploadedAiListener {
 
     private final AiSummarizeService aiSummarizeService;
@@ -67,6 +71,11 @@ public class UploadedAiListener {
             );
 
         } catch (Exception exception) {
+            log.error(
+                    "업로드 자료 AI 추출 실패. studyMaterialId={}",
+                    event.studyMaterialId(),
+                    exception
+            );
             handleFailure(event);
         }
     }

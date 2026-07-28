@@ -4,18 +4,19 @@ import com.stology.be.domain.upload.dto.res.ReTaskSseRes;
 import com.stology.be.domain.upload.dto.res.UploadSseRes;
 import com.stology.be.domain.upload.enums.DataState;
 import com.stology.be.domain.upload.event.ReTaskEvent;
-import com.stology.be.domain.upload.event.UploadedEvent;
 import com.stology.be.domain.upload.service.SseService;
 import com.stology.be.domain.upload.service.SummarySaveService;
 import com.stology.be.global.external.ai.AiSummarizeService;
 import com.stology.be.global.external.ai.UploadFilePromptBuilder;
 import com.stology.be.global.external.ai.dto.AiSummaryResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ReAnalyzeAiListener {
@@ -63,6 +64,11 @@ public class ReAnalyzeAiListener {
             );
 
         } catch (Exception exception) {
+            log.error(
+                    "업로드 자료 AI 재추출 실패. studyMaterialId={}",
+                    event.studyMaterialId(),
+                    exception
+            );
             handleFailure(event);
         }
     }
