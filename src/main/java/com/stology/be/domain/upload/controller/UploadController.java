@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/api/study/{studyId}")
@@ -30,16 +31,17 @@ public class UploadController {
      * 실시간 자료 업로드
      * POST /api/study/{studyId}/uploadSSE
      */
-    @GetMapping("/uploadSSE")
-    public ApiResponse<SseConnectRes> uploadSSE(
+    @GetMapping(
+            value = "/uploadSSE",
+            produces = MediaType.TEXT_EVENT_STREAM_VALUE
+    )
+    public SseEmitter uploadSSE(
             @PathVariable Long studyId,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        // TODO: SSE 연결 및 실시간 업로드 상태 전송
-        return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,
-                SseConnectRes.builder()
-                        .emitter(sseService.subscribe(studyId, authMember.getMemberId()))
-                        .build()
+        return sseService.subscribe(
+                studyId,
+                authMember.getMemberId()
         );
     }
 

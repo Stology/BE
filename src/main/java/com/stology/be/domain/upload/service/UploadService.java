@@ -49,7 +49,7 @@ public class UploadService {
             Long memberId,
             UploadReq request
     ) {
-        //검증
+        //1. 검증 업로더가 스터디 안에 맴버인지 검증  2. 파일이(비었는지, md인지)
         MemberStudy memberStudy = getMemberStudy(studyId, memberId);
         validateMarkdownFile(request.getFile());
 
@@ -61,7 +61,10 @@ public class UploadService {
         );
 
         //변환
-        String content = readMarkdown(request.getFile());
+        String content = request.getDescription();
+        if (content == null) {
+            content = "";
+        }
 
         //2. DB에 개인자료 저장 N저장
         Member member = memberRepository.findById(memberId).orElse(null);

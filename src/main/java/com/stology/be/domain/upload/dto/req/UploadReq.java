@@ -36,6 +36,5 @@ public class UploadReq {
             type = "string",
             format = "binary"
     )
-    @NotNull(message = "파일은 필수입니다.")
     private MultipartFile file;
 }

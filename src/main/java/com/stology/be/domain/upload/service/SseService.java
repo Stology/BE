@@ -2,6 +2,7 @@ package com.stology.be.domain.upload.service;
 
 import com.stology.be.domain.upload.component.SseEmitterRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
@@ -55,6 +56,24 @@ public class SseService {
                         emitter.completeWithError(exception);
                     }
                 });
+    }
+    @Scheduled(fixedRate = 25_000)
+    public void sendHeartbeat() {
+        repository.findAll()
+                .forEach((studyId, studyEmitters) ->
+                        studyEmitters.forEach((emitterId, emitter) -> {
+                            try {
+                                emitter.send(
+                                        SseEmitter.event()
+                                                .name("heartbeat")
+                                                .data("ping")
+                                );
+                            } catch (IOException | IllegalStateException e) {
+                                repository.delete(studyId, emitterId);
+                                emitter.complete();
+                            }
+                        })
+                );
     }
 
 

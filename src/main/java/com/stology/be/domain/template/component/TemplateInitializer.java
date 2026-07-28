@@ -41,7 +41,7 @@ public class TemplateInitializer
                 );
 
 
-         importService.importTemplate(dto);
+         //importService.importTemplate(dto);
 
 
 
