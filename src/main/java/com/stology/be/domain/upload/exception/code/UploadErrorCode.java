@@ -8,22 +8,48 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum UploadErrorCode implements BaseErrorCode {
-    MEMBER_BAD_REQUEST(HttpStatus.BAD_REQUEST,
-            "MEMBER400_1",
-            "잘못된 정보입니다."),
-    MEMBER_NOT_SUPPORTED_SOCIAL_PROVIDER(HttpStatus.BAD_REQUEST,
-            "MEMBER400_2",
-            "지원되지 않는 소셜 로그인 유형입니다."),
-    MEMBER_UNAUTHORIZED(HttpStatus.UNAUTHORIZED,
-            "MEMBER401_1",
-            "이메일 또는 비밀번호가 올바르지 않습니다."),
-    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,
-            "MEMBER404_1",
-            "유저를 찾을 수 없습니다."),
-    MEMBER_ALREADY_EXISTS(HttpStatus.CONFLICT,
-            "MEMBER409_1",
-            "이미 존재하는 유저입니다.")
-    ;
+
+    UPLOAD_FILE_EMPTY(
+            HttpStatus.BAD_REQUEST,
+            "UPLOAD400_1",
+            "업로드할 파일이 존재하지 않습니다."
+    ),
+
+    UPLOAD_FILE_EXTENSION_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "UPLOAD400_2",
+            "Markdown(.md) 파일만 업로드할 수 있습니다."
+    ),
+
+    UPLOAD_FILE_ENCODING_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "UPLOAD400_3",
+            "올바른 UTF-8 형식의 Markdown 파일이 아닙니다."
+    ),
+
+    UPLOAD_FILE_READ_FAILED(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "UPLOAD500_1",
+            "Markdown 파일을 읽는 중 오류가 발생했습니다."
+    ),
+
+    UPLOAD_MEMBER_NOT_IN_STUDY(
+            HttpStatus.FORBIDDEN,
+            "UPLOAD403_1",
+            "해당 스터디에 참여한 회원만 자료를 업로드할 수 있습니다."
+    ),
+
+    UPLOAD_MEMBER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "UPLOAD404_1",
+            "업로드 회원 정보를 찾을 수 없습니다."
+    ),
+
+    UPLOAD_S3_FAILED(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "UPLOAD500_2",
+            "파일 저장소에 파일을 업로드하는 중 오류가 발생했습니다."
+    );
 
     private final HttpStatus httpStatus;
     private final String code;

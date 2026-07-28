@@ -13,6 +13,8 @@ import com.stology.be.domain.upload.dto.res.RecentFileRes;
 import com.stology.be.domain.upload.dto.res.RecentFilesRes;
 import com.stology.be.domain.upload.event.UploadedEvent;
 import com.stology.be.domain.upload.enums.DataState;
+import com.stology.be.domain.upload.exception.UploadException;
+import com.stology.be.domain.upload.exception.code.UploadErrorCode;
 import com.stology.be.global.external.s3.S3Uploader;
 import com.stology.be.global.external.s3.dto.S3InfoDto;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
@@ -122,59 +127,138 @@ public class UploadService {
     내부 함수
      */
 
-    private void validateMarkdownFile(MultipartFile file) {
+    private void validateMarkdownFile(
+            MultipartFile file
+    ) {
+        validateFileExists(file);
+        validateMarkdownExtension(file);
+        validateUtf8Encoding(file);
+    }
+
+    private void validateFileExists(
+            MultipartFile file
+    ) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "업로드할 파일이 존재하지 않습니다."
-            );
-        }
-
-        String originalFilename = file.getOriginalFilename();
-
-        if (originalFilename == null ||
-                !originalFilename.toLowerCase(Locale.ROOT).endsWith(".md")) {
-            throw new IllegalArgumentException(
-                    "Markdown(.md) 파일만 업로드할 수 있습니다."
-            );
-        }
-
-        try {
-            new String(
-                    file.getBytes(),
-                    java.nio.charset.StandardCharsets.UTF_8
-            );
-        } catch (Exception e) {
-            throw new IllegalArgumentException(
-                    "올바른 Markdown 텍스트 파일이 아닙니다."
+            throw new UploadException(
+                    UploadErrorCode.UPLOAD_FILE_EMPTY
             );
         }
     }
 
-    private String readMarkdown(MultipartFile file) {
+    private void validateMarkdownExtension(
+            MultipartFile file
+    ) {
+        String originalFilename =
+                file.getOriginalFilename();
+
+        if (originalFilename == null ||
+                !originalFilename
+                        .toLowerCase(Locale.ROOT)
+                        .endsWith(".md")) {
+
+            throw new UploadException(
+                    UploadErrorCode
+                            .UPLOAD_FILE_EXTENSION_INVALID
+            );
+        }
+    }
+
+    private void validateUtf8Encoding(
+            MultipartFile file
+    ) {
+        try {
+            StandardCharsets.UTF_8
+                    .newDecoder()
+                    .onMalformedInput(
+                            CodingErrorAction.REPORT
+                    )
+                    .onUnmappableCharacter(
+                            CodingErrorAction.REPORT
+                    )
+                    .decode(
+                            ByteBuffer.wrap(
+                                    file.getBytes()
+                            )
+                    );
+
+        } catch (CharacterCodingException e) {
+            throw new UploadException(
+                    UploadErrorCode
+                            .UPLOAD_FILE_ENCODING_INVALID
+            );
+
+        } catch (IOException e) {
+            throw new UploadException(
+                    UploadErrorCode
+                            .UPLOAD_FILE_READ_FAILED
+            );
+        }
+    }
+
+    private String readMarkdown(
+            MultipartFile file
+    ) {
         try {
             return new String(
                     file.getBytes(),
                     StandardCharsets.UTF_8
             );
+
         } catch (IOException e) {
-            throw new IllegalArgumentException(
-                    "Markdown 파일을 읽을 수 없습니다.",
-                    e
+            throw new UploadException(
+                    UploadErrorCode.UPLOAD_FILE_READ_FAILED
             );
         }
     }
-    private MemberStudy getMemberStudy(Long studyId, Long memberId) {
-        MemberStudy memberStudy = memberStudyRepository
-                .findByStudyIdAndMemberId(studyId, memberId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "해당 스터디에 참여한 회원이 아닙니다."
-                        )
-                );
-        return memberStudy;
+
+    private S3InfoDto uploadToS3(
+            MultipartFile file,
+            Long studyId
+    ) {
+        try {
+            return s3Uploader.uploadByFile(
+                    file,
+                    "study-material/" + studyId
+            );
+
+        } catch (Exception e) {
+            throw new UploadException(
+                    UploadErrorCode.UPLOAD_S3_FAILED
+            );
+        }
     }
 
+    private Member getMember(
+            Long memberId
+    ) {
+        return memberRepository
+                .findById(memberId)
+                .orElseThrow(
+                        () -> new UploadException(
+                                UploadErrorCode
+                                        .UPLOAD_MEMBER_NOT_FOUND
+                        )
+                );
+    }
 
-
-
+    private MemberStudy getMemberStudy(
+            Long studyId,
+            Long memberId
+    ) {
+        return memberStudyRepository
+                .findByStudyIdAndMemberId(
+                        studyId,
+                        memberId
+                )
+                .orElseThrow(
+                        () -> new UploadException(
+                                UploadErrorCode
+                                        .UPLOAD_MEMBER_NOT_IN_STUDY
+                        )
+                );
+    }
 }
+
+
+
+
