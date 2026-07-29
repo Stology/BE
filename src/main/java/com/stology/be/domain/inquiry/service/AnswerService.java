@@ -69,8 +69,7 @@ public class AnswerService {
 
         List<MultipartFile> files = imageService.nonEmptyImages(images);
         Answer answer = finder.getAnswerInQuestion(studyId, questionId, answerId);
-        Member member = finder.getMember(memberId);
-        finder.requireAnswerOwner(answer, member);
+        finder.requireAnswerOwner(answer, memberId);
         finder.requireStudyActive(finder.getStudy(studyId));   // 연관 탐색 대신 studyId로 직접 조회
         imageService.validateUpdateTokens(request.getContent(), imageService.count(files), imageService.answerImageIds(answerId));
 
@@ -88,8 +87,7 @@ public class AnswerService {
     @Transactional
     public void deleteAnswer(Long studyId, Long questionId, Long answerId, Long memberId) {
         Answer answer = finder.getAnswerInQuestion(studyId, questionId, answerId);
-        Member member = finder.getMember(memberId);
-        finder.requireAnswerOwner(answer, member);
+        finder.requireAnswerOwner(answer, memberId);
         Question question = answer.getQuestion();
         finder.requireStudyActive(question.getStudy());
 

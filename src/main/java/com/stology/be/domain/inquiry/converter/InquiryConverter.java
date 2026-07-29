@@ -18,6 +18,7 @@ public class InquiryConverter {
     public static Question toQuestion(InquiryReqDTO.WriteQuestion request, Study study, Member member, boolean hasImage) {
         return Question.builder()
                 .study(study)
+                .member(member)
                 .title(request.getTitle())
                 .content(request.getContent())
                 .memberName(member.getName())
@@ -36,6 +37,7 @@ public class InquiryConverter {
     public static Answer toAnswer(InquiryReqDTO.WriteAnswer request, Question question, Member member) {
         return Answer.builder()
                 .question(question)
+                .member(member)
                 .content(request.getContent())
                 .memberName(member.getName())
                 .build();
@@ -48,7 +50,11 @@ public class InquiryConverter {
                 .build();
     }
 
-    public static InquiryResDTO.QuestionSummary toQuestionSummary(Question question, String currentMemberName) {
+    /**
+     * isMine은 작성자 FK(member_id) 기준이다. authorName으로 내려가는 memberName은 작성 시점 스냅샷이라
+     * 동명이인이면 남의 글이 내 글로 보일 수 있어 판별에 쓰지 않는다.
+     */
+    public static InquiryResDTO.QuestionSummary toQuestionSummary(Question question, Long currentMemberId) {
         return new InquiryResDTO.QuestionSummary(
                 question.getId(),
                 question.getTitle(),
@@ -56,13 +62,13 @@ public class InquiryConverter {
                 question.getCreatedAt(),
                 question.getAnswerCount(),
                 question.getIsAttached(),
-                question.getMemberName().equals(currentMemberName)
+                isMine(question.getMember(), currentMemberId)
         );
     }
 
-    public static InquiryResDTO.QuestionList toQuestionList(Page<Question> questionPage, boolean studyEnded, String currentMemberName) {
+    public static InquiryResDTO.QuestionList toQuestionList(Page<Question> questionPage, boolean studyEnded, Long currentMemberId) {
         List<InquiryResDTO.QuestionSummary> questionList = questionPage.stream()
-                .map(question -> toQuestionSummary(question, currentMemberName))
+                .map(question -> toQuestionSummary(question, currentMemberId))
                 .collect(Collectors.toList());
 
         return new InquiryResDTO.QuestionList(
@@ -77,14 +83,14 @@ public class InquiryConverter {
         );
     }
 
-    public static InquiryResDTO.AnswerDetail toAnswerDetail(Answer answer, List<InquiryResDTO.ImageInfo> images, String currentMemberName) {
+    public static InquiryResDTO.AnswerDetail toAnswerDetail(Answer answer, List<InquiryResDTO.ImageInfo> images, Long currentMemberId) {
         return new InquiryResDTO.AnswerDetail(
                 answer.getId(),
                 answer.getMemberName(),
                 answer.getCreatedAt(),
                 answer.getContent(),
                 images,
-                answer.getMemberName().equals(currentMemberName)
+                isMine(answer.getMember(), currentMemberId)
         );
     }
 
@@ -93,7 +99,7 @@ public class InquiryConverter {
             List<InquiryResDTO.ImageInfo> images,
             List<InquiryResDTO.AnswerDetail> answerList,
             boolean studyEnded,
-            String currentMemberName
+            Long currentMemberId
     ) {
         return new InquiryResDTO.QuestionDetail(
                 question.getId(),
@@ -104,7 +110,12 @@ public class InquiryConverter {
                 images,
                 answerList,
                 studyEnded,
-                question.getMemberName().equals(currentMemberName)
+                isMine(question.getMember(), currentMemberId)
         );
+    }
+
+    /** member_id가 비어 있는 행(FK 도입 이전 데이터)은 소유자를 특정할 수 없어 남의 글로 취급한다. */
+    private static boolean isMine(Member author, Long currentMemberId) {
+        return author != null && author.getId().equals(currentMemberId);
     }
 }
