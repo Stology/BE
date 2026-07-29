@@ -1,6 +1,7 @@
 package com.stology.be.domain.study.service;
 
 import com.stology.be.domain.member.entity.Member;
+import com.stology.be.domain.member.repository.MemberRepository;
 import com.stology.be.domain.node.entity.Template;
 import com.stology.be.domain.study.converter.StudyConverter;
 import com.stology.be.domain.study.dto.StudyReqDTO;
@@ -30,6 +31,7 @@ public class StudyService {
     private final StudyRepository studyRepository;
     private final TemplateRepository templateRepository;
     private final MemberStudyRepository memberStudyRepository;
+    private final MemberRepository memberRepository;
     private final ApplicationEventPublisher publisher;
 
     private static final String STOLOGY_URL = "https://stology.com";
@@ -180,9 +182,9 @@ public class StudyService {
         study.validateLeader(member);
         // 스터디 유효성 검사
         validateStudy(study);
-        // 이미 초대 토큰이 존재할 경우 예외 처리
+        // 이미 초대 토큰이 존재하는 경우 그 초대 토큰 반환
         if(study.getInvitationToken()!=null){
-            throw new StudyException(StudyErrorCode.INVITATION_TOKEN_ALREADY_EXISTS);
+            return STOLOGY_URL + "/invite/" + study.getInvitationToken();
         }
         // 초대 토큰 생성
         String token = UUID.randomUUID().toString();
@@ -192,17 +194,22 @@ public class StudyService {
     }
 
     // 초대 토큰 조회
-    public String getInvitationToken(Long studyId, Member member) {
-        // 스터디 조회
-        Study study = findStudy(studyId);
-        // 스터디장 권한
-        study.validateLeader(member);
+    public StudyResDTO.GetInvitationToken getInvitationToken(String token) {
+        // 스터디 토큰 유효성 검사
+        Study study = studyRepository.findByInvitationToken(token)
+                .orElseThrow(() -> new StudyException(StudyErrorCode.STUDY_NOT_FOUND));
         // 스터디 토큰 유효성 검사
         validateStudy(study);
         if(study.getInvitationToken().isEmpty()){
             throw new StudyException(StudyErrorCode.INVITATION_TOKEN_NOT_FOUND);
         }
-        return STOLOGY_URL + "/invite/" + study.getInvitationToken();
+        // 스터디 인원
+        Integer memberCount = memberStudyRepository.countByStudyId(study.getId());
+        // 스터디장 조회
+        Member leader = memberRepository.findById(study.getLeaderMemberId())
+                .orElseThrow(()-> new StudyException(StudyErrorCode.LEADER_NOT_FOUND));
+
+        return StudyConverter.toGetInvitationToken(memberCount, study, leader);
     }
 
     // 초대 토큰 수락
@@ -227,10 +234,10 @@ public class StudyService {
 
     // 스터디 유효성 검사
     private void validateStudy(Study study){
-        if(study.getDeletedAt()!=null){
-            throw new StudyException(StudyErrorCode.STUDY_ALREADY_DELETED);
-        } else if(!study.getIsActive()){
+        if(!study.getIsActive()){
             throw new StudyException(StudyErrorCode.STUDY_ALREADY_CLOSED);
+        } else if(study.getDeletedAt()!=null){
+            throw new StudyException(StudyErrorCode.STUDY_ALREADY_DELETED);
         }
     }
 }

@@ -43,4 +43,14 @@ public class StudyConverter {
                 .study(study)
                 .build();
     }
+
+    // 초대 토큰 조회
+    public static StudyResDTO.GetInvitationToken toGetInvitationToken(Integer memberCount, Study study, Member leader) {
+        return StudyResDTO.GetInvitationToken.builder()
+                .studyId(study.getId())
+                .name(study.getName())
+                .leader(leader.getName())
+                .memberCount(memberCount)
+                .build();
+    }
 }

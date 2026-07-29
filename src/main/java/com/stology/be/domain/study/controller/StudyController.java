@@ -100,8 +100,8 @@ public class StudyController {
         return ApiResponse.onSuccess(code, studyService.updateReviewerCount(studyId, dto, authMember.getMember()));
     }
 
-    // 초대 토큰 생성
-    @PostMapping("/study/{studyId}/invitation-token")
+    // 초대 토큰 생성 -> 이미 생성된 토큰이면 있는 토큰 반환
+    @PostMapping("/study/{studyId}/invitation")
     public ApiResponse<String> createInvitationToken(
             @PathVariable Long studyId,
             @AuthenticationPrincipal AuthMember authMember
@@ -110,18 +110,17 @@ public class StudyController {
         return ApiResponse.onSuccess(code, studyService.createInvitationToken(studyId, authMember.getMember()));
     }
 
-    // 초대 토큰 조회
-    @GetMapping("/study/{studyId}/invitation-token")
-    public ApiResponse<String> getInvitationToken(
-            @PathVariable Long studyId,
-            @AuthenticationPrincipal AuthMember authMember
+    // 초대 토큰 조회 -> 스터디방 정보 반환
+    @GetMapping("/invitation/{token}")
+    public ApiResponse<StudyResDTO.GetInvitationToken> getInvitationToken(
+            @RequestParam String token
     ){
         BaseSuccessCode code = StudySuccessCode.INVITATION_TOKEN_GET_SUCCESS;
-        return ApiResponse.onSuccess(code, studyService.getInvitationToken(studyId, authMember.getMember()));
+        return ApiResponse.onSuccess(code, studyService.getInvitationToken(token));
     }
 
     // 초대 토큰 수락
-    @PostMapping("/study/invitation-token/accept")
+    @PostMapping("/invitation/{token}/accept")
     public ApiResponse<Void> acceptInvitationToken(
             @RequestParam String token,
             @AuthenticationPrincipal AuthMember authMember

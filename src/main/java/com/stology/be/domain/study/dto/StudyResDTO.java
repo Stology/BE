@@ -35,5 +35,14 @@ public class StudyResDTO {
             Integer reviewerCount,
             Integer maxReviewerCount
     ){}
+
+    // 초대 토큰 조회 -> 스터디방 정보 반환
+    @Builder
+    public record  GetInvitationToken(
+            Long studyId,
+            String name,
+            String leader,
+            Integer memberCount
+    ){}
 }
 
