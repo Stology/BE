@@ -1,6 +1,7 @@
 package com.stology.be.domain.upload.controller;
 
 import com.stology.be.domain.upload.component.SseEmitterRepository;
+import com.stology.be.domain.upload.dto.req.UpdateDataReq;
 import com.stology.be.domain.upload.dto.req.UploadReq;
 import com.stology.be.domain.upload.dto.res.GetSummaryRes;
 import com.stology.be.domain.upload.dto.res.RecentFilesRes;
@@ -82,9 +83,34 @@ public class UploadController {
     }
 
 
+    /*
+    자료 제목, 설명 업데이트
+     */
+    @PatchMapping(
+            "/studyMaterial/{studyMaterialId}/upload"
+    )
+    public ApiResponse<Void> updateMaterial(
+            @PathVariable Long studyId,
+            @PathVariable Long studyMaterialId,
+            @AuthenticationPrincipal AuthMember authMember,
+            @Valid @RequestBody UpdateDataReq request
+    ) {
+        uploadService.updateMaterial(
+                studyId,
+                studyMaterialId,
+                authMember.getMemberId(),
+                request
+        );
+
+        return ApiResponse.onSuccess(
+                UploadSuccessCode.UPDATE_SUCCESS,
+                null
+        );
+    }
+
 
     /**
-     * 자료 AI 분석
+     * 자료 AI 재분석
      * GET /api/study/{studyId}/analyze
      */
     @PostMapping("/studyMaterial/{studyMaterialId}/analyze")

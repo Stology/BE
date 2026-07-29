@@ -8,6 +8,7 @@ import com.stology.be.domain.node.entity.StudyMaterial;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
 import com.stology.be.domain.study.entity.MemberStudy;
 import com.stology.be.domain.study.repository.MemberStudyRepository;
+import com.stology.be.domain.upload.dto.req.UpdateDataReq;
 import com.stology.be.domain.upload.dto.req.UploadReq;
 import com.stology.be.domain.upload.dto.res.GetSummaryRes;
 import com.stology.be.domain.upload.dto.res.RecentFileRes;
@@ -179,6 +180,32 @@ public class UploadService {
                         .build()
         );
     }
+    @Transactional
+    public void updateMaterial(
+            Long studyId,
+            Long studyMaterialId,
+            Long memberId,
+            UpdateDataReq request
+    ) {
+        MemberStudy memberStudy =
+                getMemberStudy(studyId, memberId);
+
+        StudyMaterial studyMaterial =
+                getStudyMaterial(studyMaterialId);
+
+        validateMaterialOwner(
+                memberStudy,
+                studyMaterial
+        );
+
+        validateMaterialUpdatable(studyMaterial);
+
+        studyMaterial.updateInformation(
+                request.dataTitle(),
+                request.content()
+        );
+    }
+
 
 
 
@@ -324,6 +351,31 @@ public class UploadService {
                         () -> new UploadException(
                                 UploadErrorCode
                                         .STUDY_MATERIAL_NOT_FOUND));
+    }
+
+    private void validateMaterialOwner(
+            MemberStudy memberStudy,
+            StudyMaterial studyMaterial
+    ) {
+        if (!memberStudy.getId().equals(
+                studyMaterial.getMemberStudy().getId()
+        )) {
+            throw new UploadException(
+                    UploadErrorCode.NO_GRANDTED_FOR_STUDY_MATERIAL
+            );
+        }
+    }
+
+    private void validateMaterialUpdatable(
+            StudyMaterial studyMaterial
+    ) {
+        if (studyMaterial.getDataState()
+                == DataState.EXTRACTING) {
+            throw new UploadException(
+                    UploadErrorCode.MATERIAL_UPDATE_NOT_ALLOWED
+            );
+        }
+
     }
 }
 
