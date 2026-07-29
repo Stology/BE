@@ -13,7 +13,6 @@ public class StudyResDTO {
     public record Study(
             Long studyId,
             String name,
-            LocalDate startDate,
             String description,
             Boolean isActive
     ){}

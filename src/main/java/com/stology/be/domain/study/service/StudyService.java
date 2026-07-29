@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -45,8 +46,10 @@ public class StudyService {
         if(studyRepository.existsByName(dto.name())) {
             throw new StudyException(StudyErrorCode.STUDY_NAME_DUPLICATE);
         }
+        // 00시 00분으로 시간 설정
+        LocalDateTime startDateTime = dto.startDate().atStartOfDay();
         // 스터디 방 생성
-        Study study = StudyConverter.toCreateStudy(dto, template, member);
+        Study study = StudyConverter.toCreateStudy(dto, template, member, startDateTime);
         studyRepository.save(study);
 
         // MemberStudy 유저 생성
@@ -67,13 +70,15 @@ public class StudyService {
         validateStudy(study);
         // 스터디장 확인
         study.validateLeader(member);
+        // 날짜만 수정
+        LocalDateTime updatedStartDate = dto.startDate().atTime(study.getStartDate().toLocalTime());
         // 스터디방 정보 수정
         if(dto.name()!=null&&!study.getName().equals(dto.name())){
             if(studyRepository.existsByName(dto.name())) {
                 throw new StudyException(StudyErrorCode.STUDY_NAME_DUPLICATE);
             }
         }
-        study.update(dto);
+        study.update(dto, updatedStartDate);
         return null;
     }
 
@@ -122,7 +127,6 @@ public class StudyService {
                 .map(study -> new StudyResDTO.Study(
                         study.getId(),
                         study.getName(),
-                        study.getStartDate(),
                         study.getDescription(),
                         study.getIsActive()))
                 .toList();
