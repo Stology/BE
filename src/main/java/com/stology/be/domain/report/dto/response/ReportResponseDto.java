@@ -48,6 +48,8 @@ public class ReportResponseDto {
     @Builder
     public static class FullReportResponse {
         private Long reportId;
+        private Integer totalWeeks;    // 전체 생성된 리포트 주차 수 (탭 렌더링용)
+        private Integer currentWeek;   // 현재 조회 중인 주차 번호
         private Integer totalNodeCount;
         private Integer newActiveNodeCount;
         private Integer newActiveNodePercentage;

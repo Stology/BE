@@ -5,7 +5,7 @@ import com.stology.be.domain.report.dto.response.ReportResponseDto.*;
 import com.stology.be.global.external.ai.AiReportService;
 import com.stology.be.domain.report.entity.Report;
 import com.stology.be.domain.report.repository.ReportRepository;
-import com.stology.be.domain.report.repository.QuestionRepository;
+
 import com.stology.be.domain.report.exception.ReportErrorCode;
 import com.stology.be.global.apiPayload.code.GeneralErrorCode;
 import com.stology.be.domain.report.exception.ReportException;
@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 public class ReportService {
 
     private final ReportRepository reportRepository;
-    private final QuestionRepository questionRepository;
     private final StudyNodeRepository studyNodeRepository;
     private final com.stology.be.domain.study.repository.StudyRepository studyRepository;
     private final AiReportService aiReportService;
@@ -119,7 +118,24 @@ public class ReportService {
     }
 
     public FullReportResponse getFullReport(Long studyId, Integer week) {
-        Report report = getReportByWeek(studyId, week);
+        List<Report> reports = reportRepository.findAllByStudyIdOrderByCreatedAtAsc(studyId);
+
+        if (reports.isEmpty()) {
+            throw new ReportException(ReportErrorCode.REPORT_NOT_FOUND);
+        }
+
+        int resolvedWeek;
+        Report report;
+        if (week == null) {
+            resolvedWeek = reports.size();
+            report = reports.get(reports.size() - 1);
+        } else {
+            if (week < 1 || week > reports.size()) {
+                throw new ReportException(ReportErrorCode.REPORT_NOT_FOUND);
+            }
+            resolvedWeek = week;
+            report = reports.get(week - 1);
+        }
 
         int totalNewAndReinforced = report.getNewActiveNodeCount() + report.getReinforcedNodeCount();
         int newPercentage = 0;
@@ -132,6 +148,8 @@ public class ReportService {
 
         return FullReportResponse.builder()
                 .reportId(report.getId())
+                .totalWeeks(reports.size())   // 전체 생성된 주차 수 (탭 렌더링용)
+                .currentWeek(resolvedWeek)    // 현재 조회 중인 주차
                 .totalNodeCount(report.getTotalNodeCount())
                 .newActiveNodeCount(report.getNewActiveNodeCount())
                 .newActiveNodePercentage(newPercentage)
@@ -169,29 +187,38 @@ public class ReportService {
 
             AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId, startOfWeek, endOfWeek));
             
-            List<StudyNode> activeNodesThisWeek = getActiveNodesBetween(studyId, startOfWeek, endOfWeek);
-                    
-            List<StudyNode> newNodes = activeNodesThisWeek.stream()
+            List<StudyNode> weekNodes = entityManager.createQuery(
+                    "SELECT n FROM StudyNode n WHERE n.study.id = :studyId AND n.recommendWeek = :recommendWeek", StudyNode.class)
+                    .setParameter("studyId", studyId)
+                    .setParameter("recommendWeek", targetWeek)
+                    .getResultList();
+
+            List<StudyNode> newNodes = weekNodes.stream()
                     .filter(n -> n.getActivationWeek() == targetWeek)
                     .toList();
-    
-            List<StudyNode> coreNodes = activeNodesThisWeek.stream()
-                    .filter(n -> n.getActivationWeek() < targetWeek && n.getActiveLevel() > 0)
+
+            List<StudyNode> reinforcedNodes = weekNodes.stream()
+                    .filter(n -> n.getActivationWeek() > 0 && n.getActivationWeek() < targetWeek)
                     .toList();
-                    
+
             List<WeeklyCoreNodeDto> coreNodeDtoList = new ArrayList<>();
-            for (StudyNode node : newNodes) {
-                coreNodeDtoList.add(new WeeklyCoreNodeDto(node.getTitle(), "신규 활성화", node.getActiveLevel()));
-            }
-            for (StudyNode node : coreNodes) {
-                coreNodeDtoList.add(new WeeklyCoreNodeDto(node.getTitle(), "활성", node.getActiveLevel()));
+            for (StudyNode node : weekNodes) {
+                String state;
+                if (node.getActivationWeek() == targetWeek) {
+                    state = "신규 활성화";
+                } else if (node.getActivationWeek() > 0) {
+                    state = "활성";
+                } else {
+                    state = "비활성";
+                }
+                coreNodeDtoList.add(new WeeklyCoreNodeDto(node.getTitle(), state, node.getActiveLevel()));
             }
 
             Report newReport = Report.builder()
                     .study(study)
                     .totalNodeCount(studyNodeRepository.countByStudy_Id(studyId).intValue())
                     .newActiveNodeCount(newNodes.size())
-                    .reinforcedNodeCount(coreNodes.size())
+                    .reinforcedNodeCount(reinforcedNodes.size())
                     .weeklyCoreNodeList(coreNodeDtoList)
                     .aiReviewContent(output.getAiReviewContent())
                     .recommendedNodeList(output.getRecommendedNodeList())
