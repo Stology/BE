@@ -96,7 +96,7 @@ public enum UploadErrorCode implements BaseErrorCode {
             "당신의 스터디 자료가 아닙니다"
     ),
     MATERIAL_UPDATE_NOT_ALLOWED(
-            HttpStatus.NOT_FOUND,
+            HttpStatus.CONFLICT,
             "DATA_UPDATE_409_1",
             "AI 추출중임으로 업데이트 불가합니다."
     ),
