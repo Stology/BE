@@ -34,4 +34,6 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
 
 
     Long countByStudy_Id(Long studyId);
+
+    List<StudyNode> findByStudy_IdAndRecommendWeek(Long studyId, Integer recommendWeek);
 }
