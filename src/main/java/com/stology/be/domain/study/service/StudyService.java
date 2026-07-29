@@ -35,7 +35,7 @@ public class StudyService {
     private final MemberRepository memberRepository;
     private final ApplicationEventPublisher publisher;
 
-    private static final String STOLOGY_URL = "https://stology.com";
+    private static final String STOLOGY_URL = "https://stology.vercel.app";
 
     // 스터디 방 생성
     public Long createStudy(StudyReqDTO.CreateStudy dto, Member member) {
@@ -201,7 +201,7 @@ public class StudyService {
     public StudyResDTO.GetInvitationToken getInvitationToken(String token) {
         // 스터디 토큰 유효성 검사
         Study study = studyRepository.findByInvitationToken(token)
-                .orElseThrow(() -> new StudyException(StudyErrorCode.STUDY_NOT_FOUND));
+                .orElseThrow(() -> new StudyException(StudyErrorCode.INVITATION_TOKEN_NOT_FOUND));
         // 스터디 토큰 유효성 검사
         validateStudy(study);
         if(study.getInvitationToken().isEmpty()){

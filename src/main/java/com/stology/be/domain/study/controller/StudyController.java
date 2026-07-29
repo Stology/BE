@@ -111,18 +111,18 @@ public class StudyController {
     }
 
     // 초대 토큰 조회 -> 스터디방 정보 반환
-    @GetMapping("/invitation/{token}")
+    @GetMapping("/study/invitation/{token}")
     public ApiResponse<StudyResDTO.GetInvitationToken> getInvitationToken(
-            @RequestParam String token
+            @PathVariable String token
     ){
         BaseSuccessCode code = StudySuccessCode.INVITATION_TOKEN_GET_SUCCESS;
         return ApiResponse.onSuccess(code, studyService.getInvitationToken(token));
     }
 
     // 초대 토큰 수락
-    @PostMapping("/invitation/{token}/accept")
+    @PostMapping("/study/invitation/{token}/accept")
     public ApiResponse<Void> acceptInvitationToken(
-            @RequestParam String token,
+            @PathVariable String token,
             @AuthenticationPrincipal AuthMember authMember
     ){
         BaseSuccessCode code = StudySuccessCode.INVITATION_TOKEN_ACCEPT_SUCCESS;
