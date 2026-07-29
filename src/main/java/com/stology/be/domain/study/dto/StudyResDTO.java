@@ -13,7 +13,6 @@ public class StudyResDTO {
     public record Study(
             Long studyId,
             String name,
-            LocalDate startDate,
             String description,
             Boolean isActive
     ){}
@@ -34,6 +33,15 @@ public class StudyResDTO {
     public record GetReviewerCount(
             Integer reviewerCount,
             Integer maxReviewerCount
+    ){}
+
+    // 초대 토큰 조회 -> 스터디방 정보 반환
+    @Builder
+    public record  GetInvitationToken(
+            Long studyId,
+            String name,
+            String leader,
+            Integer memberCount
     ){}
 }
 

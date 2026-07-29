@@ -7,17 +7,21 @@ import com.stology.be.domain.study.dto.StudyResDTO;
 import com.stology.be.domain.study.entity.MemberStudy;
 import com.stology.be.domain.study.entity.Study;
 
+import java.time.LocalDateTime;
+
 public class StudyConverter {
     // 스터디 방 생성
     public static Study toCreateStudy(
             StudyReqDTO.CreateStudy dto,
-            Template template, Member member
+            Template template,
+            Member member,
+            LocalDateTime startDateTime
     ){
         return Study.builder()
                 .name(dto.name())
                 .description(dto.description())
                 .leaderMemberId(member.getId())
-                .startDate(dto.startDate())
+                .startDate(startDateTime)
                 .template(template)
                 .build();
     }
@@ -41,6 +45,16 @@ public class StudyConverter {
         return MemberStudy.builder()
                 .member(member)
                 .study(study)
+                .build();
+    }
+
+    // 초대 토큰 조회
+    public static StudyResDTO.GetInvitationToken toGetInvitationToken(Integer memberCount, Study study, Member leader) {
+        return StudyResDTO.GetInvitationToken.builder()
+                .studyId(study.getId())
+                .name(study.getName())
+                .leader(leader.getName())
+                .memberCount(memberCount)
                 .build();
     }
 }

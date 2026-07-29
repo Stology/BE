@@ -8,7 +8,7 @@ import com.stology.be.domain.study.exception.code.StudyErrorCode;
 import com.stology.be.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -40,7 +40,7 @@ public class Study extends BaseEntity {
     @Column(name = "leader_member_id")
     private Long leaderMemberId;
 
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     // 스터디장 확인
     public void validateLeader(Member member){
@@ -49,10 +49,10 @@ public class Study extends BaseEntity {
         }
     }
     // 스터디 수정
-    public void update(StudyReqDTO.UpdateStudy dto) {
+    public void update(StudyReqDTO.UpdateStudy dto, LocalDateTime updatedStartDate) {
         this.name = dto.name();
         this.description = dto.description();
-        this.startDate = dto.startDate();
+        this.startDate = updatedStartDate;
     }
     // 스터디 종료
     public void close(){

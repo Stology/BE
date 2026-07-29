@@ -180,9 +180,10 @@ public class ReportService {
         int missingCount = currentWeek - reports.size();
         
         for (int i = 0; i < missingCount; i++) {
-            int targetWeek = reports.size() + 1; 
-            
-            LocalDateTime startOfWeek = study.getStartDate().plusWeeks(targetWeek - 1).atStartOfDay();
+            int targetWeek = reports.size() + 1;
+
+//            LocalDateTime startOfWeek = study.getStartDate().plusWeeks(targetWeek - 1).atStartOfDay();
+            LocalDateTime startOfWeek = study.getStartDate().plusWeeks(targetWeek - 1).withHour(0).withMinute(0).withSecond(0);
             LocalDateTime endOfWeek = startOfWeek.plusDays(7);
 
             AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId, startOfWeek, endOfWeek));
@@ -244,8 +245,9 @@ public class ReportService {
                 .getResultList();
 
         List<StudyNode> activeNodesThisWeek = getActiveNodesBetween(studyId, startOfWeek, endOfWeek);
-        
-        int targetWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate().atStartOfDay(), startOfWeek) + 1;
+
+//        int targetWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate().atStartOfDay(), startOfWeek) + 1;
+        int targetWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), startOfWeek) + 1;
 
         List<StudyNode> newNodes = activeNodesThisWeek.stream()
                 .filter(n -> n.getActivationWeek() == targetWeek)

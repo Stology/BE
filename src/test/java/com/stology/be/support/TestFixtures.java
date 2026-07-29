@@ -7,7 +7,7 @@ import com.stology.be.domain.study.entity.Answer;
 import com.stology.be.domain.study.entity.Question;
 import com.stology.be.domain.study.entity.Study;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public final class TestFixtures {
 
@@ -38,7 +38,7 @@ public final class TestFixtures {
                 .name("study" + id)
                 .description("study description")
                 .leaderMemberId(1L)
-                .startDate(LocalDate.of(2026, 7, 1))
+                .startDate(LocalDateTime.of(2026, 7, 1,00,00,00))
                 .build();
     }
 
