@@ -187,23 +187,20 @@ public class ReportService {
 
             AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId, startOfWeek, endOfWeek));
             
-            // 기획: 해당 주차(recommendWeek)에 배정된 모든 노드를 자료 여부와 무관하게 표시
-            List<StudyNode> weekNodes = studyNodeRepository.findByStudy_IdAndRecommendWeek(studyId, targetWeek);
+            List<StudyNode> weekNodes = entityManager.createQuery(
+                    "SELECT n FROM StudyNode n WHERE n.study.id = :studyId AND n.recommendWeek = :recommendWeek", StudyNode.class)
+                    .setParameter("studyId", studyId)
+                    .setParameter("recommendWeek", targetWeek)
+                    .getResultList();
 
-            // 이번 주 새로 활성화된 노드 (activationWeek == targetWeek)
             List<StudyNode> newNodes = weekNodes.stream()
                     .filter(n -> n.getActivationWeek() == targetWeek)
                     .toList();
 
-            // 이전에 활성화되어 현재도 활성 상태인 노드 (activationWeek > 0 && activationWeek < targetWeek)
             List<StudyNode> reinforcedNodes = weekNodes.stream()
                     .filter(n -> n.getActivationWeek() > 0 && n.getActivationWeek() < targetWeek)
                     .toList();
 
-            // state 매핑:
-            // - activationWeek == targetWeek  : 이번 주에 처음 자료가 올라온 노드 → "신규 활성화"
-            // - activationWeek > 0 && < targetWeek : 이전 주에 이미 활성화된 노드 → "활성"
-            // - activationWeek == 0           : 아직 자료가 없는 노드 → "비활성"
             List<WeeklyCoreNodeDto> coreNodeDtoList = new ArrayList<>();
             for (StudyNode node : weekNodes) {
                 String state;
