@@ -74,7 +74,7 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "https://your-vercel-app.vercel.app",
+                "https://stology.vercel.app",
                 "https://stology.sublumen.xyz",
                 "https://dev.stology.sublumen.xyz"
         ));
