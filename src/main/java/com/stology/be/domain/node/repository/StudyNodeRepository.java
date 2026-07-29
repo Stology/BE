@@ -26,12 +26,12 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
 
 
     List<StudyNode>
-    findByStudy_IdAndActivationWeekAndActiveLevelBetweenOrderByActiveLevelAsc(
+    findByStudy_IdAndActivationWeekAndActiveLevelGreaterThanEqualOrderByActiveLevelAsc(
             Long studyId,
             Integer activationWeek,
-            Integer minActiveLevel,
-            Integer maxActiveLevel
+            Integer minActiveLevel
     );
+
     long deleteByIdIn(
             Collection<Long> studyNodeIds
     );

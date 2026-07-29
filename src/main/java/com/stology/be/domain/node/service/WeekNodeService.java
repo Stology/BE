@@ -3,7 +3,6 @@ package com.stology.be.domain.node.service;
 import com.stology.be.domain.node.dto.res.NodeInfoRes;
 import com.stology.be.domain.node.dto.res.WeekNodeRes;
 import com.stology.be.domain.node.entity.NodeCandidate;
-import com.stology.be.domain.node.entity.StudyMaterial;
 import com.stology.be.domain.node.entity.StudyNode;
 import com.stology.be.domain.node.enums.CandidateState;
 import com.stology.be.domain.node.repository.NodeCandidateRepository;
@@ -11,10 +10,9 @@ import com.stology.be.domain.node.repository.StudyNodeRepository;
 import com.stology.be.domain.study.repository.MemberStudyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -26,18 +24,20 @@ public class WeekNodeService {
 
 
     private static final int MIN_ACTIVE_LEVEL = 1;
-    private static final int MAX_ACTIVE_LEVEL = 10;
 
-
+    @Transactional(readOnly = true)
     public WeekNodeRes getWeekNodes(Long studyId, int week, Long authMemberId) {
+
+        //검증
+        validateStudyMember(studyId, authMemberId);
+        validateWeek(week);
 
         List<WeekNodeRes.WeekNodeInfo> nodes =
                 studyNodeRepository
-                        .findByStudy_IdAndActivationWeekAndActiveLevelBetweenOrderByActiveLevelAsc(
+                        .findByStudy_IdAndActivationWeekAndActiveLevelGreaterThanEqualOrderByActiveLevelAsc(
                                 studyId,
                                 week,
-                                1,
-                                10
+                                MIN_ACTIVE_LEVEL
                         )
                         .stream()
                         .map(WeekNodeRes.WeekNodeInfo::from)
@@ -46,6 +46,8 @@ public class WeekNodeService {
         return new WeekNodeRes(nodes);
     }
 
+
+    @Transactional(readOnly = true)
     public NodeInfoRes getNodeInfo(
             Long studyId,
             Long nodeId,
@@ -61,7 +63,8 @@ public class WeekNodeService {
 
         // 3. 해당 스터디 노드에 연결된 ACCEPTED 상태의 후보 조회
         List<NodeCandidate> acceptedCandidates =
-                nodeCandidateRepository.findByStudyNode_IdAndState(
+                nodeCandidateRepository.findAcceptedCandidatesWithMaterial(
+                        studyId,
                         nodeId,
                         CandidateState.ACCEPTED
                 );
