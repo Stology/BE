@@ -45,7 +45,7 @@ class InquiryConverterTest {
         Question question = TestFixtures.question(1L, TestFixtures.study(5L));
         question.updateAttached(true);
 
-        InquiryResDTO.QuestionSummary summary = InquiryConverter.toQuestionSummary(question, "writer");
+        InquiryResDTO.QuestionSummary summary = InquiryConverter.toQuestionSummary(question, TestFixtures.AUTHOR_ID);
 
         assertNotNull(summary);
         assertEquals(question.getId(), summary.questionId());
@@ -55,12 +55,34 @@ class InquiryConverterTest {
         assertTrue(summary.hasImage());
     }
 
+    /** isMine은 작성자 FK 기준이다. 이름이 같아도 다른 회원이면 내 글이 아니다(동명이인 오탐 방지). */
+    @Test
+    void toQuestionSummary_shouldNotMarkOtherMembersQuestion() {
+        Question question = TestFixtures.question(1L, TestFixtures.study(5L));
+
+        InquiryResDTO.QuestionSummary summary =
+                InquiryConverter.toQuestionSummary(question, TestFixtures.AUTHOR_ID + 1);
+
+        assertFalse(summary.isMine());
+    }
+
+    /** 작성자 FK가 비어 있는 행(FK 도입 이전 데이터)은 소유자를 특정할 수 없으므로 내 글로 보지 않는다. */
+    @Test
+    void toQuestionSummary_shouldNotMarkQuestionWithoutAuthor() {
+        Question question = TestFixtures.question(1L, TestFixtures.study(5L), null);
+
+        InquiryResDTO.QuestionSummary summary =
+                InquiryConverter.toQuestionSummary(question, TestFixtures.AUTHOR_ID);
+
+        assertFalse(summary.isMine());
+    }
+
     @Test
     void toQuestionList_shouldBuildPaginationResponse() {
         Question question = TestFixtures.question(10L, TestFixtures.study(6L));
         Page<Question> page = new PageImpl<>(List.of(question), org.springframework.data.domain.Pageable.unpaged(), 1);
 
-        InquiryResDTO.QuestionList response = InquiryConverter.toQuestionList(page, true, "writer");
+        InquiryResDTO.QuestionList response = InquiryConverter.toQuestionList(page, true, TestFixtures.AUTHOR_ID);
 
         assertNotNull(response);
         assertEquals(1, response.questionList().size());
@@ -83,7 +105,7 @@ class InquiryConverterTest {
                         new InquiryResDTO.ImageInfo(1L, "img1.png"),
                         new InquiryResDTO.ImageInfo(2L, "img2.png")
                 ),
-                "writer"
+                TestFixtures.AUTHOR_ID
         );
 
         assertNotNull(detail);
@@ -102,9 +124,9 @@ class InquiryConverterTest {
         InquiryResDTO.QuestionDetail detail = InquiryConverter.toQuestionDetail(
                 question,
                 List.of(new InquiryResDTO.ImageInfo(1L, "img.png")),
-                List.of(InquiryConverter.toAnswerDetail(answer, List.of(), "writer")),
+                List.of(InquiryConverter.toAnswerDetail(answer, List.of(), TestFixtures.AUTHOR_ID)),
                 false,
-                "writer"
+                TestFixtures.AUTHOR_ID
         );
 
         assertNotNull(detail);

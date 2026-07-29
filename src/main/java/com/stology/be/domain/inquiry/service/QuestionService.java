@@ -5,6 +5,7 @@ import com.stology.be.domain.inquiry.dto.request.InquiryReqDTO;
 import com.stology.be.domain.inquiry.dto.response.InquiryResDTO;
 import com.stology.be.domain.inquiry.exception.InquiryErrorCode;
 import com.stology.be.domain.inquiry.exception.InquiryException;
+import com.stology.be.domain.inquiry.repository.InquiryReadRepository;
 import com.stology.be.domain.inquiry.repository.InquiryReplyRepository;
 import com.stology.be.domain.inquiry.repository.InquiryRepository;
 import com.stology.be.domain.member.entity.Member;
@@ -12,6 +13,8 @@ import com.stology.be.domain.study.entity.Answer;
 import com.stology.be.domain.study.entity.Question;
 import com.stology.be.domain.study.entity.Study;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,15 +33,18 @@ import java.util.stream.Collectors;
  * <p>작성/수정은 S3 업로드(느린 I/O)를 트랜잭션 밖에서 먼저 끝내고, DB 쓰기만 짧은 트랜잭션
  * ({@link WriteTxService})으로 처리한다. 업로드 경로가 부모 id(studyId)만 쓰므로 insert 전에 업로드가 가능하다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
 
     private final InquiryRepository inquiryRepository;
     private final InquiryReplyRepository inquiryReplyRepository;
+    private final InquiryReadRepository inquiryReadRepository;
     private final FinderService finder;
     private final ImageService imageService;
     private final WriteTxService writeTx;
+    private final ReadService readService;
 
     /** 페이지 크기 상한. 클라이언트가 과도한 size를 넘겨 대량 조회하는 것을 막는다. */
     private static final int MAX_PAGE_SIZE = 50;
@@ -47,21 +53,25 @@ public class QuestionService {
     public InquiryResDTO.QuestionList getQuestions(Long studyId, Integer page, Integer size, Long memberId) {
         Study study = finder.getStudy(studyId);
         finder.requireStudyMember(studyId, memberId);
-        Member member = finder.getMember(memberId);
 
         int safePage = (page == null || page < 0) ? 0 : page;
         int safeSize = (size == null || size < 1) ? 10 : Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(safePage, safeSize);
         Page<Question> questionPage = inquiryRepository.findByStudyIdAndDeletedAtIsNullOrderByCreatedAtDesc(studyId, pageable);
 
-        return InquiryConverter.toQuestionList(questionPage, !study.getIsActive(), member.getName());
+        return InquiryConverter.toQuestionList(questionPage, !study.getIsActive(), memberId);
     }
 
+    /**
+     * 질문 상세 조회. 조회에 성공하면 이 질문과 여기에 달린 답글의 알림을 읽음 처리한다
+     * (알림함의 "질문 보기"/"답글 보기"가 모두 이 API로 들어오므로 두 경로가 한 번에 처리된다).
+     *
+     * <p>읽음 처리는 부가 작업이라 실패해도 조회 응답을 막지 않는다({@link #markReadQuietly}).
+     */
     @Transactional(readOnly = true)
     public InquiryResDTO.QuestionDetail getQuestionDetail(Long studyId, Long questionId, Long memberId) {
         Study study = finder.getStudy(studyId);
         finder.requireStudyMember(studyId, memberId);
-        Member member = finder.getMember(memberId);
 
         Question question = finder.getQuestionInStudy(studyId, questionId);
         List<InquiryResDTO.ImageInfo> images = imageService.getQuestionImages(questionId);
@@ -72,10 +82,38 @@ public class QuestionService {
 
         List<InquiryResDTO.AnswerDetail> answerList = answers.stream()
                 .map(answer -> InquiryConverter.toAnswerDetail(
-                        answer, imagesByAnswer.getOrDefault(answer.getId(), List.of()), member.getName()))
+                        answer, imagesByAnswer.getOrDefault(answer.getId(), List.of()), memberId))
                 .collect(Collectors.toList());
 
-        return InquiryConverter.toQuestionDetail(question, images, answerList, !study.getIsActive(), member.getName());
+        InquiryResDTO.QuestionDetail detail =
+                InquiryConverter.toQuestionDetail(question, images, answerList, !study.getIsActive(), memberId);
+
+        markReadQuietly(questionId, memberId, Boolean.TRUE.equals(detail.isMine()), answers);
+
+        return detail;
+    }
+
+    /**
+     * 읽음 처리는 조회의 부가 작업이므로 실패해도 응답을 막지 않는다.
+     * 쓰기 트랜잭션을 따로 여는 비용(커넥션 추가 점유)이 있어, 실제로 바꿀 게 있을 때만 호출한다.
+     * 판단은 이미 로드한 답글 목록과 exists 조회로 현재 readOnly 트랜잭션 안에서 끝낸다.
+     */
+    private void markReadQuietly(Long questionId, Long memberId, boolean viewerIsAuthor, List<Answer> answers) {
+        boolean markAnswers = viewerIsAuthor && answers.stream()
+                .anyMatch(answer -> answer.getReadAtByAsker() == null);
+        boolean markQuestion = !inquiryReadRepository.existsByMemberIdAndQuestionId(memberId, questionId);
+        if (!markQuestion && !markAnswers) {
+            return;   // 이미 다 읽은 질문 — 쓰기 트랜잭션을 열지 않는다
+        }
+
+        try {
+            readService.markRead(questionId, memberId, markQuestion, markAnswers);
+        } catch (DataIntegrityViolationException e) {
+            // 동시 요청이 먼저 읽음 처리함(유니크 제약) — 최종 상태가 같으므로 조용히 넘어간다
+        } catch (RuntimeException e) {
+            // 락 타임아웃·커넥션 실패 등. 알림 숫자가 잠시 안 줄어들 뿐이라 조회를 실패시키지 않는다
+            log.warn("질문 읽음 처리 실패 — questionId={}, memberId={}: {}", questionId, memberId, e.getMessage());
+        }
     }
 
     /**
@@ -116,8 +154,7 @@ public class QuestionService {
 
         List<MultipartFile> files = imageService.nonEmptyImages(images);
         Question question = finder.getQuestionInStudy(studyId, questionId);
-        Member member = finder.getMember(memberId);
-        finder.requireQuestionOwner(question, member);
+        finder.requireQuestionOwner(question, memberId);
         finder.requireStudyActive(finder.getStudy(studyId));   // 연관 탐색 대신 studyId로 직접 조회
         imageService.validateUpdateTokens(request.getContent(), imageService.count(files), imageService.questionImageIds(questionId));
 
@@ -139,8 +176,7 @@ public class QuestionService {
     @Transactional
     public void deleteQuestion(Long studyId, Long questionId, Long memberId) {
         Question question = finder.getQuestionInStudy(studyId, questionId);
-        Member member = finder.getMember(memberId);
-        finder.requireQuestionOwner(question, member);
+        finder.requireQuestionOwner(question, memberId);
         finder.requireStudyActive(question.getStudy());
 
         List<Answer> answers = inquiryReplyRepository.findByQuestionIdAndDeletedAtIsNullOrderByCreatedAtAsc(questionId);
@@ -149,6 +185,7 @@ public class QuestionService {
         inquiryReplyRepository.deleteAll(answers);
 
         imageService.deleteQuestionImages(questionId);
+        inquiryReadRepository.deleteByQuestionId(questionId);   // FK 때문에 읽음 기록도 질문보다 먼저
         inquiryRepository.delete(question);
     }
 

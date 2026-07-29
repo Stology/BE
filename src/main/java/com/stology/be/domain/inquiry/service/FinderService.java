@@ -75,18 +75,25 @@ public class FinderService {
     }
 
     /**
-     * ERD상 question/answer는 작성자를 member FK가 아닌 memberName 문자열로만 저장하므로,
-     * 본인 여부는 로그인한 회원의 이름과 memberName 문자열 일치로 판별한다(동명이인 시 오탐 가능).
+     * 본인 여부는 작성자 FK(member_id)로 판별한다. memberName은 작성 시점 스냅샷(표시용)이라
+     * 동명이인이면 오탐이 나므로 권한 판단에 쓰지 않는다.
+     *
+     * <p>member_id가 비어 있는 행(FK 도입 이전 데이터)은 소유자를 특정할 수 없으므로 거부한다.
      */
-    public void requireQuestionOwner(Question question, Member member) {
-        if (!question.getMemberName().equals(member.getName())) {
+    public void requireQuestionOwner(Question question, Long memberId) {
+        if (!isOwnedBy(question.getMember(), memberId)) {
             throw new InquiryException(InquiryErrorCode.INQUIRY_FORBIDDEN);
         }
     }
 
-    public void requireAnswerOwner(Answer answer, Member member) {
-        if (!answer.getMemberName().equals(member.getName())) {
+    public void requireAnswerOwner(Answer answer, Long memberId) {
+        if (!isOwnedBy(answer.getMember(), memberId)) {
             throw new InquiryException(InquiryErrorCode.REPLY_FORBIDDEN);
         }
+    }
+
+    /** LAZY 프록시라도 식별자 getter는 초기화 없이 값을 돌려주므로 추가 조회가 발생하지 않는다. */
+    private boolean isOwnedBy(Member author, Long memberId) {
+        return author != null && author.getId().equals(memberId);
     }
 }
