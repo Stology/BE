@@ -24,7 +24,7 @@ public class StudyNodeFlowController {
      * 노드 승인/반려
      */
 
-    @PatchMapping("/acceptnode")
+    @PatchMapping("/accept-node")
     public ApiResponse<AcceptNodeRes> acceptNode(
             @PathVariable Long studyId,
             @AuthenticationPrincipal AuthMember authMember,
