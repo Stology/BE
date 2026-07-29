@@ -10,6 +10,7 @@ import com.stology.be.support.TestFixtures;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,14 +28,15 @@ class StudyConverterTest {
         );
         Template template = TestFixtures.template(7L);
         Member member = TestFixtures.member(1L);
+        LocalDateTime startDateTime = dto.startDate().atStartOfDay();
 
-        Study study = StudyConverter.toCreateStudy(dto, template, member);
+        Study study = StudyConverter.toCreateStudy(dto, template, member, startDateTime);
 
         assertNotNull(study);
         assertEquals("스터디A", study.getName());
         assertEquals("설명", study.getDescription());
         assertEquals(member.getId(), study.getLeaderMemberId());
-        assertEquals(dto.startDate(), study.getStartDate());
+        assertEquals(startDateTime, study.getStartDate());
         assertSame(template, study.getTemplate());
     }
 
