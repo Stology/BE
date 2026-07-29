@@ -2,7 +2,11 @@ package com.stology.be.domain.node.repository;
 
 import com.stology.be.domain.node.entity.StudyNode;
 import com.stology.be.domain.study.entity.MemberStudy;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -22,16 +26,28 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
 
 
     List<StudyNode>
-    findByStudy_IdAndActivationWeekAndActiveLevelBetweenOrderByActiveLevelAsc(
+    findByStudy_IdAndActivationWeekAndActiveLevelGreaterThanEqualOrderByActiveLevelAsc(
             Long studyId,
             Integer activationWeek,
-            Integer minActiveLevel,
-            Integer maxActiveLevel
+            Integer minActiveLevel
     );
+
     long deleteByIdIn(
             Collection<Long> studyNodeIds
     );
 
 
     Long countByStudy_Id(Long studyId);
+
+    //투표 락
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT sn
+        FROM StudyNode sn
+        WHERE sn.id = :studyNodeId
+    """)
+    Optional<StudyNode> findByIdForUpdate(
+            @Param("studyNodeId") Long studyNodeId
+    );
+
 }

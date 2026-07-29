@@ -66,6 +66,14 @@ public class StudyMaterial extends BaseEntity {
         this.summary = summary;
     }
 
+    //자료 수정
+    public void updateInformation(String dataTitle, String content) {
+        this.dataTitle = dataTitle;
+        this.content = content == null
+                ? ""
+                : content;
+    }
+
 
 
 }

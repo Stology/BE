@@ -46,5 +46,11 @@ public class StudyNode extends BaseEntity {
                 .build();
 
     }
+    public void increaseActiveLevel() {
+        this.activeLevel++;
+    }
+    public void decreaseActiveLevel() {
+        this.activeLevel--;
+    }
 }
 

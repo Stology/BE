@@ -13,7 +13,10 @@ public enum UploadSuccessCode implements BaseSuccessCode {
             "성공적으로 업로드 완료."),
     MEMBER_CREATED(HttpStatus.CREATED,
             "MEMBER201_1",
-            "성공적으로 유저를 생성했습니다.")
+            "성공적으로 유저를 생성했습니다."),
+    UPDATE_SUCCESS(HttpStatus.OK,
+            "Upload200_1",
+                    "성공적으로 업데이트 완료.")
     ;
 
     private final HttpStatus httpStatus;

@@ -6,6 +6,7 @@ import com.stology.be.domain.node.exception.code.NodeSuccessCode;
 import com.stology.be.domain.node.service.WeekNodeService;
 import com.stology.be.global.apiPayload.ApiResponse;
 import com.stology.be.global.security.entity.AuthMember;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class ActiveNodeController {
 
     private final WeekNodeService weekNodeService;
 
-    @GetMapping("/activenode")
+    @GetMapping("/active-nodes")
     public ApiResponse<WeekNodeRes> getActiveNode(
             @PathVariable Long studyId,
             @RequestParam int week,
@@ -28,7 +29,7 @@ public class ActiveNodeController {
         );
     }
 
-    @GetMapping("/nodeinfo/{nodeId}")
+    @GetMapping("/node/{nodeId}/info")
     public ApiResponse<NodeInfoRes> getNodeInfo(
             @PathVariable Long studyId,
             @PathVariable Long nodeId,

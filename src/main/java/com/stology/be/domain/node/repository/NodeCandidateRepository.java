@@ -3,7 +3,9 @@ package com.stology.be.domain.node.repository;
 import com.stology.be.domain.node.dto.NodeVoteInfoDto;
 import com.stology.be.domain.node.entity.NodeCandidate;
 import com.stology.be.domain.node.enums.CandidateState;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,6 +21,8 @@ public interface NodeCandidateRepository extends JpaRepository<NodeCandidate, Lo
     );
 
 
+    //노드 후보에 접근 동시에 하지 못하게 락 걸기
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<NodeCandidate>
     findByIdAndStudyNode_IdAndStudyNode_Study_IdAndState(
             Long nodeCandidateId,
