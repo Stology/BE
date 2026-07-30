@@ -43,5 +43,13 @@ public class StudyResDTO {
             String leader,
             Integer memberCount
     ){}
+
+    // 스터디 종료
+    @Builder
+    public record CloseStudy(
+            Integer activeNodeCount,
+            Integer uploadedMaterialCount,
+            Integer questionCount
+    ){}
 }
 

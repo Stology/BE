@@ -4,6 +4,8 @@ import com.stology.be.domain.member.entity.Member;
 import com.stology.be.domain.member.repository.MemberRepository;
 import com.stology.be.domain.node.entity.Template;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
+import com.stology.be.domain.node.repository.StudyNodeRepository;
+import com.stology.be.domain.report.repository.QuestionRepository;
 import com.stology.be.domain.study.converter.StudyConverter;
 import com.stology.be.domain.study.dto.StudyReqDTO;
 import com.stology.be.domain.study.dto.StudyResDTO;
@@ -34,6 +36,8 @@ public class StudyService {
     private final MemberRepository memberRepository;
     private final ApplicationEventPublisher publisher;
     private final StudyMaterialRepository studyMaterialRepository;
+    private final QuestionRepository questionRepository;
+    private final StudyNodeRepository studyNodeRepository;
 
     private static final String STOLOGY_URL = "https://stology.vercel.app";
 
@@ -96,7 +100,7 @@ public class StudyService {
     }
 
     // 스터디 종료
-    public Void closeStudy(Long studyId, Member member) {
+    public StudyResDTO.CloseStudy closeStudy(Long studyId, Member member) {
         // 스터디 조회
         Study study = findStudy(studyId);
         // 스터디장 권한
@@ -105,7 +109,13 @@ public class StudyService {
         validateStudy(study);
         // 스터디 종료
         study.close();
-        return null;
+        // 총 활성 노드의 수
+        Integer activeNodeCount = studyNodeRepository.countByStudy_IdAndActiveLevelGreaterThan(studyId, 0);
+        // 업로드된 자료의 수
+        Integer uploadedMaterialCount = studyMaterialRepository.countReadyByStudyId(studyId);
+        // 작성된 질문의 수
+        Integer questionCount = questionRepository.countByStudyId(studyId);
+        return StudyConverter.toCloseStudy(activeNodeCount, uploadedMaterialCount, questionCount);
     }
 
     // 참여한 스터디 방 목록 조회

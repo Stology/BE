@@ -57,4 +57,12 @@ public class StudyConverter {
                 .memberCount(memberCount)
                 .build();
     }
+
+    public static StudyResDTO.CloseStudy toCloseStudy(Integer activeNodeCount, Integer uploadedMaterialCount, Integer questionCount) {
+        return StudyResDTO.CloseStudy.builder()
+                .activeNodeCount(activeNodeCount)
+                .questionCount(questionCount)
+                .uploadedMaterialCount(uploadedMaterialCount)
+                .build();
+    }
 }

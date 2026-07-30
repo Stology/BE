@@ -50,4 +50,6 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
             @Param("studyNodeId") Long studyNodeId
     );
 
+    Integer countByStudy_IdAndActiveLevelGreaterThan(Long studyId, Integer activeLevel);
+
 }

@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
     Optional<Question> findTopByStudyIdOrderByUpdatedAtDesc(Long studyId);
+
+    Integer countByStudyId(Long studyId);
 }

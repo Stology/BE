@@ -43,4 +43,12 @@ public interface StudyMaterialRepository extends CrudRepository<StudyMaterial, L
             @Param("studyIds") List<Long> studyIds,
             @Param("dateTime") LocalDateTime dateTime
     );
+
+    @Query("""
+    SELECT COUNT(sm)
+    FROM StudyMaterial sm
+    WHERE sm.memberStudy.study.id = :studyId
+    AND sm.dataState = com.stology.be.domain.upload.enums.DataState.READY
+""")
+    Integer countReadyByStudyId(@Param("studyId") Long studyId);
 }
