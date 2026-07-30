@@ -46,10 +46,6 @@ public class StudyService {
         // 템플릿 조회
         Template template = templateRepository.findById(dto.templateId())
                 .orElseThrow(() -> new StudyException(StudyErrorCode.TEMPLATE_NOT_FOUND));
-        // 스터디 이름 중복 확인
-        if(studyRepository.existsByName(dto.name())) {
-            throw new StudyException(StudyErrorCode.STUDY_NAME_DUPLICATE);
-        }
         // 00시 00분으로 시간 설정
         LocalDateTime startDateTime = dto.startDate().atStartOfDay();
         // 스터디 방 생성
@@ -77,11 +73,6 @@ public class StudyService {
         // 날짜만 수정
         LocalDateTime updatedStartDate = dto.startDate().atTime(study.getStartDate().toLocalTime());
         // 스터디방 정보 수정
-        if(dto.name()!=null&&!study.getName().equals(dto.name())){
-            if(studyRepository.existsByName(dto.name())) {
-                throw new StudyException(StudyErrorCode.STUDY_NAME_DUPLICATE);
-            }
-        }
         study.update(dto, updatedStartDate);
         return null;
     }
