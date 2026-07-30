@@ -4,6 +4,8 @@ import com.stology.be.domain.member.entity.Member;
 import com.stology.be.domain.member.repository.MemberRepository;
 import com.stology.be.domain.node.entity.Template;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
+import com.stology.be.domain.node.repository.StudyNodeRepository;
+import com.stology.be.domain.report.repository.QuestionRepository;
 import com.stology.be.domain.study.converter.StudyConverter;
 import com.stology.be.domain.study.dto.StudyReqDTO;
 import com.stology.be.domain.study.dto.StudyResDTO;
@@ -34,6 +36,8 @@ public class StudyService {
     private final MemberRepository memberRepository;
     private final ApplicationEventPublisher publisher;
     private final StudyMaterialRepository studyMaterialRepository;
+    private final QuestionRepository questionRepository;
+    private final StudyNodeRepository studyNodeRepository;
 
     private static final String STOLOGY_URL = "https://stology.vercel.app";
 
@@ -42,10 +46,6 @@ public class StudyService {
         // 템플릿 조회
         Template template = templateRepository.findById(dto.templateId())
                 .orElseThrow(() -> new StudyException(StudyErrorCode.TEMPLATE_NOT_FOUND));
-        // 스터디 이름 중복 확인
-        if(studyRepository.existsByName(dto.name())) {
-            throw new StudyException(StudyErrorCode.STUDY_NAME_DUPLICATE);
-        }
         // 00시 00분으로 시간 설정
         LocalDateTime startDateTime = dto.startDate().atStartOfDay();
         // 스터디 방 생성
@@ -73,11 +73,6 @@ public class StudyService {
         // 날짜만 수정
         LocalDateTime updatedStartDate = dto.startDate().atTime(study.getStartDate().toLocalTime());
         // 스터디방 정보 수정
-        if(dto.name()!=null&&!study.getName().equals(dto.name())){
-            if(studyRepository.existsByName(dto.name())) {
-                throw new StudyException(StudyErrorCode.STUDY_NAME_DUPLICATE);
-            }
-        }
         study.update(dto, updatedStartDate);
         return null;
     }
@@ -96,7 +91,7 @@ public class StudyService {
     }
 
     // 스터디 종료
-    public Void closeStudy(Long studyId, Member member) {
+    public StudyResDTO.CloseStudy closeStudy(Long studyId, Member member) {
         // 스터디 조회
         Study study = findStudy(studyId);
         // 스터디장 권한
@@ -105,7 +100,13 @@ public class StudyService {
         validateStudy(study);
         // 스터디 종료
         study.close();
-        return null;
+        // 총 활성 노드의 수
+        Integer activeNodeCount = studyNodeRepository.countByStudy_IdAndActiveLevelGreaterThan(studyId, 0);
+        // 업로드된 자료의 수
+        Integer uploadedMaterialCount = studyMaterialRepository.countReadyByStudyId(studyId);
+        // 작성된 질문의 수
+        Integer questionCount = questionRepository.countByStudyId(studyId);
+        return StudyConverter.toCloseStudy(activeNodeCount, uploadedMaterialCount, questionCount);
     }
 
     // 참여한 스터디 방 목록 조회

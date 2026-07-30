@@ -52,7 +52,7 @@ public class StudyController {
 
     // 스터디 종료
     @PatchMapping("/study/{studyId}/close")
-    public ApiResponse<Void> closeStudy(
+    public ApiResponse<StudyResDTO.CloseStudy> closeStudy(
             @PathVariable Long studyId,
             @AuthenticationPrincipal AuthMember authMember
     ){
