@@ -3,6 +3,7 @@ package com.stology.be.domain.study.service;
 import com.stology.be.domain.member.entity.Member;
 import com.stology.be.domain.member.repository.MemberRepository;
 import com.stology.be.domain.node.entity.Template;
+import com.stology.be.domain.node.repository.StudyMaterialRepository;
 import com.stology.be.domain.study.converter.StudyConverter;
 import com.stology.be.domain.study.dto.StudyReqDTO;
 import com.stology.be.domain.study.dto.StudyResDTO;
@@ -19,9 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Service
@@ -34,6 +33,7 @@ public class StudyService {
     private final MemberStudyRepository memberStudyRepository;
     private final MemberRepository memberRepository;
     private final ApplicationEventPublisher publisher;
+    private final StudyMaterialRepository studyMaterialRepository;
 
     private static final String STOLOGY_URL = "https://stology.vercel.app";
 
@@ -110,25 +110,39 @@ public class StudyService {
 
     // 참여한 스터디 방 목록 조회
     public StudyResDTO.GetStudy getStudy(String status, Member member) {
-        // 유저가 참여한 스터디
+        // 유저 스터디 조회
         List<Study> studies = memberStudyRepository.findByMember(member).stream()
                 .map(MemberStudy::getStudy)
+                .filter(study -> study.getDeletedAt() == null)
                 .toList();
-        Stream<Study> stream = studies.stream()
-                .filter(study -> study.getDeletedAt() == null);
-        // status 필터링
+        // 상태 필터링
         if ("active".equals(status)) {
-            stream = stream.filter(Study::getIsActive);
+            studies = studies.stream()
+                    .filter(Study::getIsActive)
+                    .toList();
         } else if ("closed".equals(status)) {
-            stream = stream.filter(study -> !study.getIsActive());
+            studies = studies.stream()
+                    .filter(study -> !study.getIsActive())
+                    .toList();
         }
-        List<StudyResDTO.Study> studyList = stream
+        // 최근 1일 기준
+        LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
+        // 최근 자료가 있는 studyId 조회
+        List<Long> studyIds = studies.stream()
+                .map(Study::getId)
+                .toList();
+        List<Long> newStudyIds = studyIds.isEmpty()
+                ? List.of()
+                : studyMaterialRepository.findNewStudyIds(studyIds, oneDayAgo);
+        Set<Long> newStudyIdSet = new HashSet<>(newStudyIds);
+        List<StudyResDTO.Study> studyList = studies.stream()
                 .sorted(Comparator.comparingLong(Study::getId))
                 .map(study -> new StudyResDTO.Study(
                         study.getId(),
                         study.getName(),
-                        study.getDescription(),
-                        study.getIsActive()))
+                        study.getStartDate(),
+                        newStudyIdSet.contains(study.getId())
+                ))
                 .toList();
         return new StudyResDTO.GetStudy(studyList);
     }

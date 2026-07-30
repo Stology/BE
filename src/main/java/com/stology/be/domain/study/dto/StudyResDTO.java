@@ -1,7 +1,7 @@
 package com.stology.be.domain.study.dto;
 
 import lombok.Builder;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class StudyResDTO {
@@ -13,8 +13,8 @@ public class StudyResDTO {
     public record Study(
             Long studyId,
             String name,
-            String description,
-            Boolean isActive
+            LocalDateTime startDate,
+            Boolean isNew
     ){}
 
     // 온톨로지 템플릿 검색

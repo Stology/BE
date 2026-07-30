@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface StudyMaterialRepository extends CrudRepository<StudyMaterial, Long> {
@@ -32,4 +33,14 @@ public interface StudyMaterialRepository extends CrudRepository<StudyMaterial, L
             Pageable pageable
     );
 
+    @Query("""
+        SELECT DISTINCT sm.memberStudy.study.id
+        FROM StudyMaterial sm
+        WHERE sm.memberStudy.study.id IN :studyIds
+        AND sm.createdAt >= :dateTime
+    """)
+    List<Long> findNewStudyIds(
+            @Param("studyIds") List<Long> studyIds,
+            @Param("dateTime") LocalDateTime dateTime
+    );
 }
