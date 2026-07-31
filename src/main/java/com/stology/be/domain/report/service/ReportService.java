@@ -45,12 +45,13 @@ public class ReportService {
     private final com.stology.be.domain.study.repository.StudyRepository studyRepository;
     private final AiReportService aiReportService;
     private final com.stology.be.domain.report.repository.ReportReadHistoryRepository reportReadHistoryRepository;
-    
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final com.stology.be.domain.node.repository.StudyMaterialRepository studyMaterialRepository;
+    private final com.stology.be.domain.study.repository.QuestionRepository questionRepository;
+    private final com.stology.be.domain.study.repository.MemberStudyRepository memberStudyRepository;
 
     public Report getReportByWeek(Long studyId, Integer week) {
         List<Report> reports = reportRepository.findAllByStudyIdOrderByCreatedAtAsc(studyId);
+
         
         if (reports.isEmpty()) {
             throw new ReportException(ReportErrorCode.REPORT_NOT_FOUND);
@@ -192,17 +193,14 @@ public class ReportService {
 
             AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId, startOfWeek, endOfWeek));
             
-            List<StudyNode> weekNodes = entityManager.createQuery(
-                    "SELECT n FROM StudyNode n WHERE n.study.id = :studyId AND n.recommendWeek = :recommendWeek", StudyNode.class)
-                    .setParameter("studyId", studyId)
-                    .setParameter("recommendWeek", targetWeek)
-                    .getResultList();
+            List<StudyNode> weekNodes = studyNodeRepository.findByStudy_IdAndRecommendWeek(studyId, targetWeek);
+            List<StudyNode> activeNodesThisWeek = studyNodeRepository.findActiveNodesBetween(studyId, startOfWeek, endOfWeek);
 
-            List<StudyNode> newNodes = weekNodes.stream()
+            List<StudyNode> newNodes = activeNodesThisWeek.stream()
                     .filter(n -> n.getActivationWeek() == targetWeek)
                     .toList();
 
-            List<StudyNode> reinforcedNodes = weekNodes.stream()
+            List<StudyNode> reinforcedNodes = activeNodesThisWeek.stream()
                     .filter(n -> n.getActivationWeek() > 0 && n.getActivationWeek() < targetWeek)
                     .toList();
 
@@ -236,21 +234,12 @@ public class ReportService {
     }
 
     private String generateDbStatsContent(Study study, Long studyId, LocalDateTime startOfWeek, LocalDateTime endOfWeek) {
-        long totalNodeCount = entityManager.createQuery("SELECT COUNT(n) FROM StudyNode n WHERE n.study.id = :studyId", Long.class)
-                .setParameter("studyId", studyId)
-                .getSingleResult();
+        long totalNodeCount = studyNodeRepository.countByStudy_Id(studyId);
 
-        List<StudyMaterial> recentMaterials = entityManager.createQuery(
-                "SELECT m FROM StudyMaterial m JOIN FETCH m.memberStudy ms JOIN FETCH ms.member WHERE ms.study.id = :studyId AND m.createdAt >= :startOfWeek AND m.createdAt < :endOfWeek", 
-                StudyMaterial.class)
-                .setParameter("studyId", studyId)
-                .setParameter("startOfWeek", startOfWeek)
-                .setParameter("endOfWeek", endOfWeek)
-                .getResultList();
+        List<StudyMaterial> recentMaterials = studyMaterialRepository.findRecentMaterialsWithMember(studyId, startOfWeek, endOfWeek);
 
-        List<StudyNode> activeNodesThisWeek = getActiveNodesBetween(studyId, startOfWeek, endOfWeek);
+        List<StudyNode> activeNodesThisWeek = studyNodeRepository.findActiveNodesBetween(studyId, startOfWeek, endOfWeek);
 
-//        int targetWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), startOfWeek) + 1;
         int targetWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), startOfWeek) + 1;
 
         List<StudyNode> newNodes = activeNodesThisWeek.stream()
@@ -261,28 +250,9 @@ public class ReportService {
                 .filter(n -> n.getActivationWeek() < targetWeek && n.getActiveLevel() > 0)
                 .toList();
 
-        List<Question> recentQuestions = entityManager.createQuery(
-                "SELECT q FROM Question q WHERE q.study.id = :studyId AND q.createdAt >= :startOfWeek AND q.createdAt < :endOfWeek", 
-                Question.class)
-                .setParameter("studyId", studyId)
-                .setParameter("startOfWeek", startOfWeek)
-                .setParameter("endOfWeek", endOfWeek)
-                .getResultList();
+        List<Question> recentQuestions = questionRepository.findByStudyIdAndCreatedAtBetween(studyId, startOfWeek, endOfWeek);
 
         return buildStatsString(studyId, totalNodeCount, newNodes, coreNodes, recentMaterials, recentQuestions);
-    }
-    
-    private List<StudyNode> getActiveNodesBetween(Long studyId, LocalDateTime startOfWeek, LocalDateTime endOfWeek) {
-        return entityManager.createQuery(
-                "SELECT DISTINCT n FROM StudyNode n " +
-                "JOIN NodeCandidate nc ON nc.studyNode.id = n.id " +
-                "JOIN nc.studyMaterial m " +
-                "WHERE m.createdAt >= :startOfWeek AND m.createdAt < :endOfWeek AND n.study.id = :studyId",
-                StudyNode.class)
-                .setParameter("studyId", studyId)
-                .setParameter("startOfWeek", startOfWeek)
-                .setParameter("endOfWeek", endOfWeek)
-                .getResultList();
     }
     
     private String buildStatsString(Long studyId, long totalNodeCount, List<StudyNode> newNodes, List<StudyNode> coreNodes, List<StudyMaterial> recentMaterials, List<Question> recentQuestions) {
@@ -301,10 +271,7 @@ public class ReportService {
         Map<String, Long> questionCountByMember = recentQuestions.stream()
                 .collect(Collectors.groupingBy(q -> q.getMemberName() != null ? q.getMemberName() : "알 수 없음", Collectors.counting()));
         
-        List<String> allStudyMembers = entityManager.createQuery(
-                "SELECT ms.member.name FROM MemberStudy ms WHERE ms.study.id = :studyId", String.class)
-                .setParameter("studyId", studyId)
-                .getResultList();
+        List<String> allStudyMembers = memberStudyRepository.findMemberNamesByStudyId(studyId);
 
         Set<String> allMembers = new HashSet<>(allStudyMembers);
         allMembers.addAll(materialCountByMember.keySet());
@@ -339,8 +306,7 @@ public class ReportService {
     }
 
     public List<Long> getActiveStudyIds() {
-        return entityManager.createQuery("SELECT s.id FROM Study s WHERE s.isActive = true", Long.class)
-                .getResultList();
+        return studyRepository.findIdsByIsActiveTrue();
     }
 
     @Transactional

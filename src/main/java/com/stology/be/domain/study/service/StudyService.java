@@ -5,7 +5,7 @@ import com.stology.be.domain.member.repository.MemberRepository;
 import com.stology.be.domain.node.entity.Template;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
 import com.stology.be.domain.node.repository.StudyNodeRepository;
-import com.stology.be.domain.report.repository.QuestionRepository;
+import com.stology.be.domain.study.repository.QuestionRepository;
 import com.stology.be.domain.study.converter.StudyConverter;
 import com.stology.be.domain.study.dto.StudyReqDTO;
 import com.stology.be.domain.study.dto.StudyResDTO;
