@@ -14,8 +14,8 @@ public class ReportScheduler {
 
     private final ReportService reportService;
 
-    // 매 1시간마다 실행 (정각) - 0 0 * * * *
-    @Scheduled(cron = "0 0 * * * *")
+    // 매 10분마다 실행 - 0 0/10 * * * *
+    @Scheduled(cron = "0 0/10 * * * *")
     public void generateWeeklyReports() {
         log.info("Starting weekly report generation scheduler...");
         List<Long> activeStudyIds = reportService.getActiveStudyIds();

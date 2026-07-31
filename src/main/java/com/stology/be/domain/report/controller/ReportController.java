@@ -6,6 +6,7 @@ import com.stology.be.global.apiPayload.ApiResponse;
 import com.stology.be.global.apiPayload.code.GeneralSuccessCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequestMapping("/api/study/{studyId}/report")
@@ -51,8 +52,9 @@ public class ReportController {
     @GetMapping("/all")
     public ApiResponse<FullReportResponse> getFullReport(
             @PathVariable Long studyId,
-            @RequestParam(required = false) Integer week) {
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.getFullReport(studyId, week));
+            @RequestParam(required = false) Integer week,
+            @AuthenticationPrincipal com.stology.be.global.security.entity.AuthMember authMember) {
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.getFullReport(studyId, week, authMember.getMember().getId()));
     }
 
     @DeleteMapping("/test/{reportId}")
@@ -68,6 +70,13 @@ public class ReportController {
             @PathVariable Long studyId) {
         reportService.checkAndGenerateMissingReports(studyId);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, "(테스트용) 리포트 수동 갱신이 완료되었습니다.");
+    }
+
+    @GetMapping("/unread")
+    public ApiResponse<UnreadReportResponse> getUnreadReport(
+            @PathVariable Long studyId,
+            @AuthenticationPrincipal com.stology.be.global.security.entity.AuthMember authMember) {
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, reportService.checkUnreadReport(studyId, authMember.getMember().getId()));
     }
 }
 

@@ -44,6 +44,7 @@ public class ReportService {
     private final StudyNodeRepository studyNodeRepository;
     private final com.stology.be.domain.study.repository.StudyRepository studyRepository;
     private final AiReportService aiReportService;
+    private final com.stology.be.domain.report.repository.ReportReadHistoryRepository reportReadHistoryRepository;
     
     @PersistenceContext
     private EntityManager entityManager;
@@ -117,7 +118,8 @@ public class ReportService {
                 .build();
     }
 
-    public FullReportResponse getFullReport(Long studyId, Integer week) {
+    @Transactional
+    public FullReportResponse getFullReport(Long studyId, Integer week, Long memberId) {
         List<Report> reports = reportRepository.findAllByStudyIdOrderByCreatedAtAsc(studyId);
 
         if (reports.isEmpty()) {
@@ -136,6 +138,9 @@ public class ReportService {
             resolvedWeek = week;
             report = reports.get(week - 1);
         }
+
+        // 리포트를 조회할 때 자동으로 읽음 처리
+        markReportAsRead(studyId, report.getId(), memberId);
 
         int totalNewAndReinforced = report.getNewActiveNodeCount() + report.getReinforcedNodeCount();
         int newPercentage = 0;
@@ -174,7 +179,7 @@ public class ReportService {
 
         if (study.getStartDate() == null) return;
         
-        int currentWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), LocalDate.now()) + 1;
+        int currentWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), LocalDateTime.now()) + 1;
         List<Report> reports = reportRepository.findAllByStudyIdOrderByCreatedAtAsc(studyId);
         
         int missingCount = currentWeek - reports.size();
@@ -182,8 +187,7 @@ public class ReportService {
         for (int i = 0; i < missingCount; i++) {
             int targetWeek = reports.size() + 1;
 
-//            LocalDateTime startOfWeek = study.getStartDate().plusWeeks(targetWeek - 1).atStartOfDay();
-            LocalDateTime startOfWeek = study.getStartDate().plusWeeks(targetWeek - 1).withHour(0).withMinute(0).withSecond(0);
+            LocalDateTime startOfWeek = study.getStartDate().plusWeeks(targetWeek - 1);
             LocalDateTime endOfWeek = startOfWeek.plusDays(7);
 
             AiReportOutputDto output = aiReportService.generateNewReport(study, generateDbStatsContent(study, studyId, startOfWeek, endOfWeek));
@@ -237,7 +241,7 @@ public class ReportService {
                 .getSingleResult();
 
         List<StudyMaterial> recentMaterials = entityManager.createQuery(
-                "SELECT m FROM StudyMaterial m JOIN m.memberStudy ms JOIN ms.study s WHERE s.id = :studyId AND m.createdAt >= :startOfWeek AND m.createdAt < :endOfWeek", 
+                "SELECT m FROM StudyMaterial m JOIN FETCH m.memberStudy ms JOIN FETCH ms.member WHERE ms.study.id = :studyId AND m.createdAt >= :startOfWeek AND m.createdAt < :endOfWeek", 
                 StudyMaterial.class)
                 .setParameter("studyId", studyId)
                 .setParameter("startOfWeek", startOfWeek)
@@ -246,7 +250,7 @@ public class ReportService {
 
         List<StudyNode> activeNodesThisWeek = getActiveNodesBetween(studyId, startOfWeek, endOfWeek);
 
-//        int targetWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate().atStartOfDay(), startOfWeek) + 1;
+//        int targetWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), startOfWeek) + 1;
         int targetWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), startOfWeek) + 1;
 
         List<StudyNode> newNodes = activeNodesThisWeek.stream()
@@ -339,5 +343,37 @@ public class ReportService {
                 .getResultList();
     }
 
+    @Transactional
+    public void markReportAsRead(Long studyId, Long reportId, Long memberId) {
+        com.stology.be.domain.report.entity.ReportReadHistory history = reportReadHistoryRepository.findByMemberIdAndStudyId(memberId, studyId)
+                .orElseGet(() -> com.stology.be.domain.report.entity.ReportReadHistory.builder()
+                        .memberId(memberId)
+                        .studyId(studyId)
+                        .lastReadReportId(0L)
+                        .build());
+        
+        // Only update if the new report ID is greater (to prevent older reports from marking newer as unread)
+        if (history.getLastReadReportId() < reportId) {
+            history.updateLastReadReportId(reportId);
+            reportReadHistoryRepository.save(history);
+        }
+    }
 
+    public UnreadReportResponse checkUnreadReport(Long studyId, Long memberId) {
+        List<Report> reports = reportRepository.findAllByStudyIdOrderByCreatedAtAsc(studyId);
+        if (reports.isEmpty()) {
+            return new UnreadReportResponse(false, null);
+        }
+        
+        Report latestReport = reports.get(reports.size() - 1);
+        
+        com.stology.be.domain.report.entity.ReportReadHistory history = reportReadHistoryRepository.findByMemberIdAndStudyId(memberId, studyId)
+                .orElse(null);
+                
+        if (history == null || history.getLastReadReportId() < latestReport.getId()) {
+            return new UnreadReportResponse(true, latestReport.getId());
+        }
+        
+        return new UnreadReportResponse(false, null);
+    }
 }
