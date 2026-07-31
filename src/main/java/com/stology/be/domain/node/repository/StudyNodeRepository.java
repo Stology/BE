@@ -52,4 +52,17 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
 
     Integer countByStudy_IdAndActiveLevelGreaterThan(Long studyId, Integer activeLevel);
 
+    List<StudyNode> findByStudy_IdAndRecommendWeek(Long studyId, Integer recommendWeek);
+
+    @Query("""
+        SELECT DISTINCT n FROM StudyNode n
+        JOIN NodeCandidate nc ON nc.studyNode.id = n.id
+        JOIN nc.studyMaterial m
+        WHERE m.createdAt >= :startOfWeek AND m.createdAt < :endOfWeek AND n.study.id = :studyId
+    """)
+    List<StudyNode> findActiveNodesBetween(
+            @Param("studyId") Long studyId,
+            @Param("startOfWeek") java.time.LocalDateTime startOfWeek,
+            @Param("endOfWeek") java.time.LocalDateTime endOfWeek
+    );
 }

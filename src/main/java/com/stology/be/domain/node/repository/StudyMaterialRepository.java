@@ -51,4 +51,18 @@ public interface StudyMaterialRepository extends CrudRepository<StudyMaterial, L
     AND sm.dataState = com.stology.be.domain.upload.enums.DataState.READY
 """)
     Integer countReadyByStudyId(@Param("studyId") Long studyId);
+
+    @Query("""
+        SELECT m FROM StudyMaterial m 
+        JOIN FETCH m.memberStudy ms 
+        JOIN FETCH ms.member 
+        WHERE ms.study.id = :studyId 
+        AND m.createdAt >= :startOfWeek 
+        AND m.createdAt < :endOfWeek
+    """)
+    List<StudyMaterial> findRecentMaterialsWithMember(
+            @Param("studyId") Long studyId,
+            @Param("startOfWeek") LocalDateTime startOfWeek,
+            @Param("endOfWeek") LocalDateTime endOfWeek
+    );
 }

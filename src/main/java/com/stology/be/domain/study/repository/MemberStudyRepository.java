@@ -26,5 +26,6 @@ public interface MemberStudyRepository extends JpaRepository<MemberStudy, Long> 
 
     Optional<MemberStudy> findByStudyIdAndMemberId(Long studyId, Long memberId);
 
-
+    @org.springframework.data.jpa.repository.Query("SELECT ms.member.name FROM MemberStudy ms WHERE ms.study.id = :studyId")
+    List<String> findMemberNamesByStudyId(@org.springframework.data.repository.query.Param("studyId") Long studyId);
 }
