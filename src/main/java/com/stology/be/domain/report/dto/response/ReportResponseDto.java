@@ -60,4 +60,16 @@ public class ReportResponseDto {
         private List<RecommendedNodeDto> recommendedNodeList;
         private List<MemberActivityStatisticsDto> memberActivityStatisticsList;
     }
+
+    @Getter
+    @Builder
+    public static class UnreadReportResponse {
+        private boolean hasUnread;
+        private Long latestUnreadReportId;
+
+        public UnreadReportResponse(boolean hasUnread, Long latestUnreadReportId) {
+            this.hasUnread = hasUnread;
+            this.latestUnreadReportId = latestUnreadReportId;
+        }
+    }
 }
