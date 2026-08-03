@@ -7,7 +7,9 @@ public record TemplateNodeActivateDto(
 
         String title,
 
-        int week
+        int week,
+
+        String description
 
 ) {
 }

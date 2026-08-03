@@ -24,6 +24,10 @@ public class StudyNode extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
+    //설명
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Builder.Default
     @Column(nullable = false)
     private int activationWeek = 0;
@@ -37,12 +41,14 @@ public class StudyNode extends BaseEntity {
     public static StudyNode createFromTemplate(
             Study study,
             String title,
-            int recommendWeek
+            int recommendWeek,
+            String description
     ) {
         return StudyNode.builder()
                 .study(study)
                 .title(title)
                 .recommendWeek(recommendWeek)
+                .description(description)
                 .build();
 
     }

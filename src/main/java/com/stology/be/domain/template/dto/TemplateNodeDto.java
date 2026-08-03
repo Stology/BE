@@ -4,6 +4,8 @@ public record TemplateNodeDto(
 
         String title,
 
+        String description,
+
         int week
 
 
