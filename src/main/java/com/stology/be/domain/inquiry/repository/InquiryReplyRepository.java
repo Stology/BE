@@ -1,11 +1,14 @@
 package com.stology.be.domain.inquiry.repository;
 
 import com.stology.be.domain.study.entity.Answer;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +34,68 @@ public interface InquiryReplyRepository extends JpaRepository<Answer, Long> {
 
 
     //답글 갯수.
-    long countByQuestionIdInAndDeletedAtIsNull(
-            List<Long> questionIds
+    @Query("""
+    SELECT COUNT(a)
+    FROM Answer a
+    WHERE a.question.member.id = :memberId
+      AND a.member.id <> :memberId
+      AND a.deletedAt IS NULL
+      AND a.question.deletedAt IS NULL
+      AND (
+          a.readAtByAsker IS NULL
+          OR (
+              a.readAtByAsker >= :startOfDay
+              AND a.readAtByAsker < :endOfDay
+          )
+      )
+""")
+    long countTodoAnswersForMember(
+            @Param("memberId") Long memberId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
+
+
+    //답글 정보
+    @Query("""
+    SELECT a
+    FROM Answer a
+    JOIN FETCH a.question q
+    JOIN FETCH q.study s
+    WHERE q.member.id = :memberId
+      AND a.member.id <> :memberId
+      AND q.deletedAt IS NULL
+      AND a.deletedAt IS NULL
+      AND (
+          a.readAtByAsker IS NULL
+          OR (
+              a.readAtByAsker >= :startOfDay
+              AND a.readAtByAsker < :endOfDay
+          )
+      )
+      AND (
+          :cursorTime IS NULL
+          OR a.createdAt < :cursorTime
+          OR (
+              a.createdAt = :cursorTime
+              AND (
+                  0 < :cursorTypeRank
+                  OR (
+                      0 = :cursorTypeRank
+                      AND a.id < :cursorId
+                  )
+              )
+          )
+      )
+    ORDER BY a.createdAt DESC, a.id DESC
+""")
+    Slice<Answer> findAnswerActivities(
+            @Param("memberId") Long memberId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay,
+            @Param("cursorTime") LocalDateTime cursorTime,
+            @Param("cursorTypeRank") Integer cursorTypeRank,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
     );
 }

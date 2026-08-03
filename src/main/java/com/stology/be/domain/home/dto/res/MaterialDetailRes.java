@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 public class MaterialDetailRes {
 
-    private PageInfo pageInfo;
+    private PageInfo<Long> pageInfo;
 
     private List<MaterialInfo> materials;
 

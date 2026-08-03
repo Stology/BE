@@ -2,6 +2,8 @@ package com.stology.be.domain.inquiry.repository;
 
 import com.stology.be.domain.inquiry.enums.InquiryStatus;
 import com.stology.be.domain.study.entity.QuestionRead;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -54,4 +56,48 @@ public interface InquiryReadRepository extends JpaRepository<QuestionRead, Long>
             @Param("startOfDay") LocalDateTime startOfDay,
             @Param("endOfDay") LocalDateTime endOfDay
     );
+
+    @Query("""
+    SELECT qr
+    FROM QuestionRead qr
+    JOIN FETCH qr.question q
+    JOIN FETCH q.study s
+    WHERE qr.member.id = :memberId
+      AND q.deletedAt IS NULL
+      AND (
+          qr.inquiryStatus =
+              com.stology.be.domain.inquiry.enums.InquiryStatus.UNCHECKED
+          OR (
+              qr.inquiryStatus =
+                  com.stology.be.domain.inquiry.enums.InquiryStatus.CHECKED
+              AND qr.updatedAt >= :startOfDay
+              AND qr.updatedAt < :endOfDay
+          )
+      )
+      AND (
+          :cursorTime IS NULL
+          OR q.createdAt < :cursorTime
+          OR (
+              q.createdAt = :cursorTime
+              AND (
+                  1 < :cursorTypeRank
+                  OR (
+                      1 = :cursorTypeRank
+                      AND q.id < :cursorId
+                  )
+              )
+          )
+      )
+    ORDER BY q.createdAt DESC, q.id DESC
+""")
+    Slice<QuestionRead> findQuestionActivities(
+            @Param("memberId") Long memberId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay,
+            @Param("cursorTime") LocalDateTime cursorTime,
+            @Param("cursorTypeRank") Integer cursorTypeRank,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
 }

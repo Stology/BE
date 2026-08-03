@@ -2,6 +2,7 @@ package com.stology.be.domain.home.controller;
 
 import com.stology.be.domain.home.dto.res.MaterialDetailRes;
 import com.stology.be.domain.home.dto.res.MyTodoRes;
+import com.stology.be.domain.home.dto.res.QuestionDetailRes;
 import com.stology.be.domain.home.service.HomeInfoService;
 import com.stology.be.domain.home.service.HomeSpecificInfoService;
 import com.stology.be.global.apiPayload.ApiResponse;
@@ -84,24 +85,20 @@ public class HomeController {
     /**
      * 질문함 상세 조회
      */
-    @GetMapping(
-            "/questions"
-    )
-    public ApiResponse<Void> getQuestionDetail(
-            @PathVariable Long studyId,
-            @PathVariable Long questionId,
+    @GetMapping("/questions")
+    public ApiResponse<QuestionDetailRes> getQuestionDetail(
+            @RequestParam(required = false) String cursor,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        // TODO:
-        // homeService.getQuestionDetail(
-        //         studyId,
-        //         questionId,
-        //         authMember.getMemberId()
-        // );
+        QuestionDetailRes response =
+                homeSpecificInfoService.getQuestionDetail(
+                        authMember.getMemberId(),
+                        cursor
+                );
 
         return ApiResponse.onSuccess(
                 GeneralSuccessCode.OK,
-                null
+                response
         );
     }
 

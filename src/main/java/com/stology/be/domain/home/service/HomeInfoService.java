@@ -99,12 +99,14 @@ public class HomeInfoService {
                         endOfDay
                 );
 
-        long answerCount = questionIds.isEmpty()
-                ? 0L
-                : inquiryReplyRepository
-                .countByQuestionIdInAndDeletedAtIsNull(
-                        questionIds
-                );
+        long answerCount =
+                inquiryReplyRepository
+                        .countTodoAnswersForMember(
+                                memberId,
+                                startOfDay,
+                                endOfDay
+                        );
+
 
         response
                 .questionCount(questionIds.size())
