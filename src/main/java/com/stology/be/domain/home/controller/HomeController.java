@@ -1,27 +1,27 @@
 package com.stology.be.domain.home.controller;
 
+import com.stology.be.domain.home.dto.res.MaterialDetailRes;
 import com.stology.be.domain.home.dto.res.MyTodoRes;
 import com.stology.be.domain.home.service.HomeInfoService;
+import com.stology.be.domain.home.service.HomeSpecificInfoService;
 import com.stology.be.global.apiPayload.ApiResponse;
 import com.stology.be.global.apiPayload.code.GeneralSuccessCode;
 import com.stology.be.global.security.entity.AuthMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/home")
 public class HomeController {
 
+    private final HomeInfoService homeInfoService;
+    private final HomeSpecificInfoService homeSpecificInfoService;
+
     /**
      * 내 할 일 조회
      */
-    private final HomeInfoService homeInfoService;
-
     @GetMapping("/todo/me")
     public ApiResponse<MyTodoRes> getMyTodos(
             @AuthenticationPrincipal AuthMember authMember
@@ -62,22 +62,22 @@ public class HomeController {
     /**
      * 자료 관련 상세 조회
      */
-    @GetMapping(
-            "/materials"
-    )
-    public ApiResponse<Void> getMaterialDetail(
+    @GetMapping("/materials")
+    public ApiResponse<MaterialDetailRes> getMaterialDetail(
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        // TODO:
-        // homeService.getMaterialDetail(
-        //         studyId,
-        //         studyMaterialId,
-        //         authMember.getMemberId()
-        // );
+        MaterialDetailRes response =
+                homeSpecificInfoService.getMaterialDetail(
+                        authMember.getMemberId(),
+                        cursor,
+                        size
+                );
 
         return ApiResponse.onSuccess(
                 GeneralSuccessCode.OK,
-                null
+                response
         );
     }
 
