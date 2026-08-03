@@ -3,6 +3,7 @@ package com.stology.be.domain.inquiry.service;
 import com.stology.be.domain.inquiry.converter.InquiryConverter;
 import com.stology.be.domain.inquiry.dto.request.InquiryReqDTO;
 import com.stology.be.domain.inquiry.dto.response.InquiryResDTO;
+import com.stology.be.domain.inquiry.enums.InquiryStatus;
 import com.stology.be.domain.inquiry.exception.InquiryErrorCode;
 import com.stology.be.domain.inquiry.exception.InquiryException;
 import com.stology.be.domain.inquiry.repository.InquiryReadRepository;
@@ -11,7 +12,9 @@ import com.stology.be.domain.inquiry.repository.InquiryRepository;
 import com.stology.be.domain.member.entity.Member;
 import com.stology.be.domain.study.entity.Answer;
 import com.stology.be.domain.study.entity.Question;
+import com.stology.be.domain.study.entity.QuestionRead;
 import com.stology.be.domain.study.entity.Study;
+import com.stology.be.domain.study.repository.MemberStudyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -41,6 +44,8 @@ public class QuestionService {
     private final InquiryRepository inquiryRepository;
     private final InquiryReplyRepository inquiryReplyRepository;
     private final InquiryReadRepository inquiryReadRepository;
+    private final MemberStudyRepository memberStudyRepository;
+
     private final FinderService finder;
     private final ImageService imageService;
     private final WriteTxService writeTx;
@@ -101,7 +106,13 @@ public class QuestionService {
     private void markReadQuietly(Long questionId, Long memberId, boolean viewerIsAuthor, List<Answer> answers) {
         boolean markAnswers = viewerIsAuthor && answers.stream()
                 .anyMatch(answer -> answer.getReadAtByAsker() == null);
-        boolean markQuestion = !inquiryReadRepository.existsByMemberIdAndQuestionId(memberId, questionId);
+        boolean markQuestion =
+                !inquiryReadRepository
+                        .existsByMemberIdAndQuestionIdAndInquiryStatus(
+                                memberId,
+                                questionId,
+                                InquiryStatus.CHECKED
+                        );
         if (!markQuestion && !markAnswers) {
             return;   // 이미 다 읽은 질문 — 쓰기 트랜잭션을 열지 않는다
         }
@@ -130,11 +141,20 @@ public class QuestionService {
 
         List<String> urls = imageService.uploadImages("question/" + studyId, files);   // 트랜잭션 밖
 
+
+
+
+
         return writeTx.commitOrCompensate(urls, status -> {
             Study study = finder.getStudy(studyId);
             Member member = finder.getMember(memberId);
             Question question = InquiryConverter.toQuestion(request, study, member, !urls.isEmpty());
             inquiryRepository.save(question);
+            createQuestionReads(
+                    studyId,
+                    memberId,
+                    question
+            );
             String finalContent = imageService.persistNewQuestionImages(question, request.getContent(), urls);
             if (!finalContent.equals(request.getContent())) {
                 question.update(request.getTitle(), finalContent);
@@ -204,5 +224,28 @@ public class QuestionService {
         if (content == null || content.isBlank() || imageService.textLength(content) > 1000) {
             throw new InquiryException(InquiryErrorCode.INQUIRY_BODY_INVALID);
         }
+    }
+
+    private void createQuestionReads(
+            Long studyId,
+            Long writerId,
+            Question question
+    ) {
+        List<Member> studyMembers =
+                memberStudyRepository.findMembersByStudyId(studyId);
+
+        List<QuestionRead> questionReads = studyMembers.stream()
+                .map(member -> QuestionRead.builder()
+                        .member(member)
+                        .question(question)
+                        .inquiryStatus(
+                                member.getId().equals(writerId)
+                                        ? InquiryStatus.CHECKED
+                                        : InquiryStatus.UNCHECKED
+                        )
+                        .build())
+                .toList();
+
+        inquiryReadRepository.saveAll(questionReads);
     }
 }

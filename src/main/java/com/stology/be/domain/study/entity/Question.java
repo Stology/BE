@@ -1,9 +1,13 @@
 package com.stology.be.domain.study.entity;
 
 import com.stology.be.domain.member.entity.Member;
+import com.stology.be.domain.node.entity.NodeCandidateVoteInfo;
 import com.stology.be.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -24,6 +28,16 @@ public class Question extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+
+
+
+    @OneToMany(
+            mappedBy = "question",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<QuestionRead> questionReads = new ArrayList<>();
 
     private String title;
     

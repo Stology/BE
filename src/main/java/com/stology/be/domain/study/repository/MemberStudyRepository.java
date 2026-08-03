@@ -5,6 +5,8 @@ import com.stology.be.domain.study.entity.MemberStudy;
 import com.stology.be.domain.study.entity.Study;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +25,17 @@ public interface MemberStudyRepository extends JpaRepository<MemberStudy, Long> 
             Long studyId,
             Long memberId
     );
+
+    // 스터디 안 모든 맴버들의 id를 가져옵니다.
+    @Query("""
+    SELECT ms.member
+    FROM MemberStudy ms
+    WHERE ms.study.id = :studyId
+""")
+    List<Member> findMembersByStudyId(
+            @Param("studyId") Long studyId
+    );
+
 
     Optional<MemberStudy> findByStudyIdAndMemberId(Long studyId, Long memberId);
 
