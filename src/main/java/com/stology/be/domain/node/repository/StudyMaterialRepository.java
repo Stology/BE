@@ -2,6 +2,7 @@ package com.stology.be.domain.node.repository;
 
 import com.stology.be.domain.node.entity.StudyMaterial;
 import com.stology.be.domain.upload.dto.res.RecentFileRes;
+import com.stology.be.domain.upload.enums.DataState;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -64,5 +65,11 @@ public interface StudyMaterialRepository extends CrudRepository<StudyMaterial, L
             @Param("studyId") Long studyId,
             @Param("startOfWeek") LocalDateTime startOfWeek,
             @Param("endOfWeek") LocalDateTime endOfWeek
+    );
+
+    // 자료 집계
+    long countByMemberStudyMemberIdAndDataState(
+            Long memberId,
+            DataState dataState
     );
 }

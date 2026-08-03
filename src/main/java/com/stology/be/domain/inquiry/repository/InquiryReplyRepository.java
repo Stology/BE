@@ -28,4 +28,10 @@ public interface InquiryReplyRepository extends JpaRepository<Answer, Long> {
     @Query("update Answer a set a.readAtByAsker = CURRENT_TIMESTAMP "
             + "where a.question.id = :questionId and a.readAtByAsker is null and a.deletedAt is null")
     int markAllReadByAsker(@Param("questionId") Long questionId);
+
+
+    //답글 갯수.
+    long countByQuestionIdInAndDeletedAtIsNull(
+            List<Long> questionIds
+    );
 }

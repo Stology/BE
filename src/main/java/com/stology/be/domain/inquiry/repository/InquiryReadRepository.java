@@ -3,7 +3,11 @@ package com.stology.be.domain.inquiry.repository;
 import com.stology.be.domain.inquiry.enums.InquiryStatus;
 import com.stology.be.domain.study.entity.QuestionRead;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface InquiryReadRepository extends JpaRepository<QuestionRead, Long> {
@@ -26,5 +30,28 @@ public interface InquiryReadRepository extends JpaRepository<QuestionRead, Long>
             Long memberId,
             Long questionId,
             InquiryStatus inquiryStatus
+    );
+
+    @Query("""
+    SELECT qr.question.id
+    FROM QuestionRead qr
+    WHERE qr.member.id = :memberId
+      AND qr.question.deletedAt IS NULL
+      AND (
+          qr.inquiryStatus = :unchecked
+          OR (
+              qr.inquiryStatus = :checked
+              AND qr.updatedAt >= :startOfDay
+              AND qr.updatedAt < :endOfDay
+          )
+      )
+""")
+    //홈화면에서 띄울 질문(미확인 or 확인 and 당일 전) 갯수 찾기
+    List<Long> findTodoQuestionIds(
+            @Param("memberId") Long memberId,
+            @Param("unchecked") InquiryStatus unchecked,
+            @Param("checked") InquiryStatus checked,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
     );
 }

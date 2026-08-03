@@ -1,8 +1,11 @@
 package com.stology.be.domain.home.controller;
 
+import com.stology.be.domain.home.dto.res.MyTodoRes;
+import com.stology.be.domain.home.service.HomeInfoService;
 import com.stology.be.global.apiPayload.ApiResponse;
 import com.stology.be.global.apiPayload.code.GeneralSuccessCode;
 import com.stology.be.global.security.entity.AuthMember;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,24 +13,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/home")
 public class HomeController {
 
     /**
      * 내 할 일 조회
      */
+    private final HomeInfoService homeInfoService;
+
     @GetMapping("/todo/me")
-    public ApiResponse<Void> getMyTodos(
+    public ApiResponse<MyTodoRes> getMyTodos(
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        // TODO:
-        // homeService.getMyTodos(
-        //         authMember.getMemberId()
-        // );
+        MyTodoRes response =
+                homeInfoService.getMyTodos(
+                        authMember.getMemberId()
+                );
 
         return ApiResponse.onSuccess(
                 GeneralSuccessCode.OK,
-                null
+                response
         );
     }
 

@@ -1,6 +1,7 @@
 package com.stology.be.domain.study.repository;
 
 import com.stology.be.domain.study.entity.Study;
+import com.stology.be.domain.upload.enums.DataState;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
@@ -13,4 +14,6 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
     
     @org.springframework.data.jpa.repository.Query("SELECT s.id FROM Study s WHERE s.isActive = true")
     java.util.List<Long> findIdsByIsActiveTrue();
+
+    
 }

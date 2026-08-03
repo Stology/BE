@@ -36,6 +36,9 @@ public interface MemberStudyRepository extends JpaRepository<MemberStudy, Long> 
             @Param("studyId") Long studyId
     );
 
+    //맴버가 속한 스터디 갯수
+    long countByMemberId(Long memberId);
+
 
     Optional<MemberStudy> findByStudyIdAndMemberId(Long studyId, Long memberId);
 
