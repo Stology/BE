@@ -3,12 +3,18 @@ package com.stology.be.domain.home.service;
 import com.stology.be.domain.home.dto.res.AnswerDetailRes;
 import com.stology.be.domain.home.dto.res.MaterialDetailRes;
 import com.stology.be.domain.home.dto.res.QuestionDetailRes;
+import com.stology.be.domain.home.dto.res.ReportDetailRes;
 import com.stology.be.domain.inquiry.enums.InquiryStatus;
 import com.stology.be.domain.inquiry.repository.InquiryReadRepository;
 import com.stology.be.domain.inquiry.repository.InquiryReplyRepository;
 import com.stology.be.domain.node.entity.StudyMaterial;
 import com.stology.be.domain.node.repository.StudyMaterialRepository;
+import com.stology.be.domain.report.entity.Report;
+import com.stology.be.domain.report.repository.ReportRepository;
 import com.stology.be.domain.study.entity.*;
+import com.stology.be.domain.study.exception.StudyException;
+import com.stology.be.domain.study.exception.code.StudyErrorCode;
+import com.stology.be.domain.study.repository.MemberStudyRepository;
 import com.stology.be.domain.upload.enums.DataState;
 import com.stology.be.global.PageInfo;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +45,8 @@ public class HomeSpecificInfoService {
     private final StudyMaterialRepository studyMaterialRepository;
     private final InquiryReadRepository inquiryReadRepository;
     private final InquiryReplyRepository inquiryReplyRepository;
+    private final MemberStudyRepository memberStudyRepository;
+    private final ReportRepository reportRepository;
 
     public MaterialDetailRes getMaterialDetail(
             Long memberId,
@@ -116,6 +125,39 @@ public class HomeSpecificInfoService {
         );
     }
 
+    public ReportDetailRes getReportDetail(
+            Long memberId
+    ) {
+
+        List<Study> studies =
+                memberStudyRepository
+                        .findStudiesByMemberId(memberId);
+
+        if (studies.isEmpty()) {
+            throw new StudyException(
+                    StudyErrorCode.STUDY_NOT_FOUND
+            );
+        }
+
+
+        Map<Long, Report> latestReportMap =
+                getLatestReportMap(studies);
+
+        List<ReportDetailRes.ReportInfo> reportInfos =
+                studies.stream()
+                        .map(study -> toReportInfo(
+                                study,
+                                latestReportMap.get(study.getId())
+                        ))
+                        .toList();
+
+        return ReportDetailRes.builder()
+                .reports(reportInfos)
+                .build();
+    }
+
+
+
 
 
     /*
@@ -178,19 +220,21 @@ public class HomeSpecificInfoService {
                 .dataState(material.getDataState())
                 .dataTitle(material.getDataTitle())
                 .studyName(study.getName())
-                .week(calculateWeek(study, material))
+                .week(calculateWeek(study.getCreatedAt().toLocalDate(), material.getCreatedAt().toLocalDate()))
                 .uploaderName(memberStudy.getMember().getName())
                 .uploadedDate(material.getCreatedAt().toLocalDate())
                 .build();
     }
 
+
+    // 주차계산
     private long calculateWeek(
-            Study study,
-            StudyMaterial material
+            LocalDate startDate,
+            LocalDate compareDate
     ) {
         long elapsedDays = ChronoUnit.DAYS.between(
-                study.getCreatedAt().toLocalDate(),
-                material.getCreatedAt().toLocalDate()
+                startDate
+                ,compareDate
         );
 
         return Math.max(
@@ -198,6 +242,7 @@ public class HomeSpecificInfoService {
                 elapsedDays / 7L + 1L
         );
     }
+
 
     private int normalizeSize(int size) {
         if (size < 1) {
@@ -324,6 +369,68 @@ public class HomeSpecificInfoService {
 
 
 
+    private Map<Long, Report> getLatestReportMap(
+            List<Study> studies
+    ) {
+        List<Long> studyIds =
+                studies.stream()
+                        .map(Study::getId)
+                        .toList();
 
+        return reportRepository
+                .findLatestByStudyIds(studyIds)
+                .stream()
+                .collect(
+                        Collectors.toMap(
+                                report -> report
+                                        .getStudy()
+                                        .getId(),
+                                Function.identity()
+                        )
+                );
+    }
+
+    private ReportDetailRes.ReportInfo toReportInfo(
+            Study study,
+            Report latestReport
+    ) {
+        if (latestReport == null) {
+            return createBeforeGenerationReport(study);
+        }
+
+        return createCompletedReport(
+                study,
+                latestReport
+        );
+    }
+
+    private ReportDetailRes.ReportInfo createBeforeGenerationReport(
+            Study study
+    ) {
+        return ReportDetailRes.ReportInfo.builder()
+                .studyId(study.getId())
+                .studyName(study.getName())
+                .reportId(null)
+                .reportWeek(null)
+                .createdAt(null)
+                .generated(false)
+                .build();
+    }
+
+    private ReportDetailRes.ReportInfo createCompletedReport(
+            Study study,
+            Report latestReport
+    ) {
+
+
+        return ReportDetailRes.ReportInfo.builder()
+                .studyId(study.getId())
+                .studyName(study.getName())
+                .reportId(latestReport.getId())
+                .reportWeek(calculateWeek(study.getStartDate().toLocalDate(), latestReport.getCreatedAt().toLocalDate()))
+                .createdAt(latestReport.getCreatedAt())
+                .generated(true)
+                .build();
+    }
 
 }

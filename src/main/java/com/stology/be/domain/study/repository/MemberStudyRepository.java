@@ -39,6 +39,17 @@ public interface MemberStudyRepository extends JpaRepository<MemberStudy, Long> 
     //맴버가 속한 스터디 갯수
     long countByMemberId(Long memberId);
 
+    //맴버가 속한 스터디 리스트
+    @Query("""
+    SELECT ms.study
+    FROM MemberStudy ms
+    WHERE ms.member.id = :memberId
+    ORDER BY ms.study.createdAt DESC
+""")
+    List<Study> findStudiesByMemberId(
+            @Param("memberId") Long memberId
+    );
+
 
     Optional<MemberStudy> findByStudyIdAndMemberId(Long studyId, Long memberId);
 

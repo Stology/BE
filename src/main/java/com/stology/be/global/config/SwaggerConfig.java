@@ -82,6 +82,17 @@ public class SwaggerConfig {
 
 
     @Bean
+    public GroupedOpenApi homeTaskApi() {
+        return GroupedOpenApi.builder()
+                .group("05. homeTask")
+                .displayName("05. 홈 화면 API")     // UI 드롭다운에 보일 이름
+                .pathsToMatch(
+                        "/api/home/**") // 이 그룹에 포함될 API의 URL 패턴
+                .build();
+    }
+
+
+    @Bean
     public GroupedOpenApi allApi() {
         return GroupedOpenApi.builder()
                 .group("00. ALL")

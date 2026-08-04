@@ -1,6 +1,5 @@
 package com.stology.be.domain.home.dto.res;
 
-import com.stology.be.domain.home.dto.QuestionActivity;
 import com.stology.be.global.PageInfo;
 import lombok.Builder;
 import lombok.Getter;

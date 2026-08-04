@@ -1,9 +1,6 @@
 package com.stology.be.domain.home.controller;
 
-import com.stology.be.domain.home.dto.res.AnswerDetailRes;
-import com.stology.be.domain.home.dto.res.MaterialDetailRes;
-import com.stology.be.domain.home.dto.res.MyTodoRes;
-import com.stology.be.domain.home.dto.res.QuestionDetailRes;
+import com.stology.be.domain.home.dto.res.*;
 import com.stology.be.domain.home.service.HomeInfoService;
 import com.stology.be.domain.home.service.HomeSpecificInfoService;
 import com.stology.be.global.apiPayload.ApiResponse;
@@ -127,22 +124,18 @@ public class HomeController {
     /**
      * 리포트 상세 조회
      */
-    @GetMapping(
-            "/reports"
-    )
-    public ApiResponse<Void> getReportDetail(
+    @GetMapping("/reports")
+    public ApiResponse<ReportDetailRes> getReportDetail(
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        // TODO:
-        // homeService.getReportDetail(
-        //         studyId,
-        //         reportId,
-        //         authMember.getMemberId()
-        // );
+        ReportDetailRes response =
+                homeSpecificInfoService.getReportDetail(
+                        authMember.getMemberId()
+                );
 
         return ApiResponse.onSuccess(
                 GeneralSuccessCode.OK,
-                null
+                response
         );
     }
 }
