@@ -75,28 +75,16 @@ public interface InquiryReadRepository extends JpaRepository<QuestionRead, Long>
           )
       )
       AND (
-          :cursorTime IS NULL
-          OR q.createdAt < :cursorTime
-          OR (
-              q.createdAt = :cursorTime
-              AND (
-                  1 < :cursorTypeRank
-                  OR (
-                      1 = :cursorTypeRank
-                      AND q.id < :cursorId
-                  )
-              )
-          )
+          :cursor IS NULL
+          OR q.id < :cursor
       )
-    ORDER BY q.createdAt DESC, q.id DESC
+    ORDER BY q.id DESC
 """)
     Slice<QuestionRead> findQuestionActivities(
             @Param("memberId") Long memberId,
             @Param("startOfDay") LocalDateTime startOfDay,
             @Param("endOfDay") LocalDateTime endOfDay,
-            @Param("cursorTime") LocalDateTime cursorTime,
-            @Param("cursorTypeRank") Integer cursorTypeRank,
-            @Param("cursorId") Long cursorId,
+            @Param("cursor") Long cursor,
             Pageable pageable
     );
 

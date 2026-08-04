@@ -74,28 +74,16 @@ public interface InquiryReplyRepository extends JpaRepository<Answer, Long> {
           )
       )
       AND (
-          :cursorTime IS NULL
-          OR a.createdAt < :cursorTime
-          OR (
-              a.createdAt = :cursorTime
-              AND (
-                  0 < :cursorTypeRank
-                  OR (
-                      0 = :cursorTypeRank
-                      AND a.id < :cursorId
-                  )
-              )
-          )
+          :cursor IS NULL
+          OR a.id < :cursor
       )
-    ORDER BY a.createdAt DESC, a.id DESC
+    ORDER BY a.id DESC
 """)
     Slice<Answer> findAnswerActivities(
             @Param("memberId") Long memberId,
             @Param("startOfDay") LocalDateTime startOfDay,
             @Param("endOfDay") LocalDateTime endOfDay,
-            @Param("cursorTime") LocalDateTime cursorTime,
-            @Param("cursorTypeRank") Integer cursorTypeRank,
-            @Param("cursorId") Long cursorId,
+            @Param("cursor") Long cursor,
             Pageable pageable
     );
 }

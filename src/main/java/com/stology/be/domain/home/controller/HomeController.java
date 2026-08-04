@@ -1,5 +1,6 @@
 package com.stology.be.domain.home.controller;
 
+import com.stology.be.domain.home.dto.res.AnswerDetailRes;
 import com.stology.be.domain.home.dto.res.MaterialDetailRes;
 import com.stology.be.domain.home.dto.res.MyTodoRes;
 import com.stology.be.domain.home.dto.res.QuestionDetailRes;
@@ -83,15 +84,36 @@ public class HomeController {
     }
 
     /**
-     * 질문함 상세 조회
+     * 질문 상세 조회
      */
     @GetMapping("/questions")
     public ApiResponse<QuestionDetailRes> getQuestionDetail(
-            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Long cursor,
             @AuthenticationPrincipal AuthMember authMember
     ) {
         QuestionDetailRes response =
                 homeSpecificInfoService.getQuestionDetail(
+                        authMember.getMemberId(),
+                        cursor
+                );
+
+        return ApiResponse.onSuccess(
+                GeneralSuccessCode.OK,
+                response
+        );
+    }
+
+
+    /**
+     * 답변 상세 조회
+     */
+    @GetMapping("/answers")
+    public ApiResponse<AnswerDetailRes> getAnswerDetail(
+            @RequestParam(required = false) Long cursor,
+            @AuthenticationPrincipal AuthMember authMember
+    ) {
+        AnswerDetailRes response =
+                homeSpecificInfoService.getAnswerDetail(
                         authMember.getMemberId(),
                         cursor
                 );

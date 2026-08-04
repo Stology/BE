@@ -1,10 +1,8 @@
 package com.stology.be.domain.home.service;
 
-import com.stology.be.domain.home.converter.CursorConverter;
-import com.stology.be.domain.home.dto.QuestionActivity;
+import com.stology.be.domain.home.dto.res.AnswerDetailRes;
 import com.stology.be.domain.home.dto.res.MaterialDetailRes;
 import com.stology.be.domain.home.dto.res.QuestionDetailRes;
-import com.stology.be.domain.home.enums.QuestionActivityType;
 import com.stology.be.domain.inquiry.enums.InquiryStatus;
 import com.stology.be.domain.inquiry.repository.InquiryReadRepository;
 import com.stology.be.domain.inquiry.repository.InquiryReplyRepository;
@@ -34,11 +32,7 @@ public class HomeSpecificInfoService {
     private static final int DEFAULT_PAGE_SIZE = 10;
     private static final int MAX_PAGE_SIZE = 10;
 
-    //조회 갯수
-    private static final int QUESTION_PAGE_SIZE = 10;
-    // 응답 갯수
-    private static final int FETCH_SIZE =
-            QUESTION_PAGE_SIZE + 1;
+    private static final int ACTIVITY_PAGE_SIZE = 10;
 
 
     private final StudyMaterialRepository studyMaterialRepository;
@@ -64,49 +58,63 @@ public class HomeSpecificInfoService {
         );
     }
 
+    //질문 상세조회
+
     public QuestionDetailRes getQuestionDetail(
             Long memberId,
-            String cursor
+            Long cursor
     ) {
-        CursorConverter.CursorValue cursorValue =
-                CursorConverter.decode(cursor);
-
-//이 범위는 오늘 읽은 질문과 답글을 자정 전까지 계속 보여주기 위해 사용
         LocalDateTime startOfDay =
                 LocalDate.now().atStartOfDay();
 
         LocalDateTime endOfDay =
                 startOfDay.plusDays(1);
 
-        //UNCHECKED 또는 CHECKED 이면서 오늘 읽은 질문
-        List<QuestionActivity> questionActivities =
-                findQuestionActivities(
+
+        Slice<QuestionRead> questionSlice =
+                inquiryReadRepository.findQuestionActivities(
                         memberId,
-                        cursorValue,
                         startOfDay,
-                        endOfDay
-                );
-        //내 질문의 새 답글 조회
-        List<QuestionActivity> answerActivities =
-                findAnswerActivities(
-                        memberId,
-                        cursorValue,
-                        startOfDay,
-                        endOfDay
-                );
-        // 질문, 답글 합치기. 작성 시간 최신순, 시간이 같으면 질문이 먼저
-        List<QuestionActivity> mergedActivities =
-                mergeActivities(
-                        questionActivities,
-                        answerActivities
+                        endOfDay,
+                        cursor,
+                        PageRequest.of(
+                                0,
+                                ACTIVITY_PAGE_SIZE
+                        )
                 );
 
         return createQuestionDetailResponse(
-                mergedActivities
+                questionSlice
         );
     }
 
+    //답변 상세 조회
+    public AnswerDetailRes getAnswerDetail(
+            Long memberId,
+            Long cursor
+    ) {
+        LocalDateTime startOfDay =
+                LocalDate.now().atStartOfDay();
 
+        LocalDateTime endOfDay =
+                startOfDay.plusDays(1);
+
+        Slice<Answer> answerSlice =
+                inquiryReplyRepository.findAnswerActivities(
+                        memberId,
+                        startOfDay,
+                        endOfDay,
+                        cursor,
+                        PageRequest.of(
+                                0,
+                                ACTIVITY_PAGE_SIZE
+                        )
+                );
+
+        return createAnswerDetailResponse(
+                answerSlice
+        );
+    }
 
 
 
@@ -216,86 +224,35 @@ public class HomeSpecificInfoService {
     }
 
 
-    //질문 조회
-    private List<QuestionActivity> findQuestionActivities(
-            Long memberId,
-            CursorConverter.CursorValue cursor,
-            LocalDateTime startOfDay,
-            LocalDateTime endOfDay
+
+
+    private QuestionDetailRes createQuestionDetailResponse(
+            Slice<QuestionRead> questionSlice
     ) {
-        Slice<QuestionRead> questionReads =
-                inquiryReadRepository.findQuestionActivities(
-                        memberId,
-                        startOfDay,
-                        endOfDay,
-                        cursor.createdAt(),
-                        cursor.typeRank(),
-                        cursor.id(),
-                        PageRequest.of(
-                                0,
-                                FETCH_SIZE
+        List<QuestionDetailRes.QuestionInfo> questions =
+                questionSlice.getContent().stream()
+                        .map(this::toQuestionInfo)
+                        .toList();
+
+        Long nextCursor =
+                questionSlice.hasNext() && !questions.isEmpty()
+                        ? questions.get(questions.size() - 1)
+                        .getQuestionId()
+                        : null;
+
+        return QuestionDetailRes.builder()
+                .questions(questions)
+                .pageInfo(
+                        new PageInfo<>(
+                                nextCursor,
+                                questions.size(),
+                                questionSlice.hasNext()
                         )
-                );
-
-        return questionReads.getContent().stream()
-                .map(this::toQuestionActivity)
-                .toList();
-    }
-
-    //답글 조회
-    private List<QuestionActivity> findAnswerActivities(
-            Long memberId,
-            CursorConverter.CursorValue cursor,
-            LocalDateTime startOfDay,
-            LocalDateTime endOfDay
-    ) {
-        Slice<Answer> answers =
-                inquiryReplyRepository.findAnswerActivities(
-                        memberId,
-                        startOfDay,
-                        endOfDay,
-                        cursor.createdAt(),
-                        cursor.typeRank(),
-                        cursor.id(),
-                        PageRequest.of(
-                                0,
-                                FETCH_SIZE
-                        )
-                );
-
-        return answers.getContent().stream()
-                .map(this::toAnswerActivity)
-                .toList();
-    }
-
-    //질문과 답글 합치기.
-    private List<QuestionActivity> mergeActivities(
-            List<QuestionActivity> questions,
-            List<QuestionActivity> answers
-    ) {
-        return Stream.concat(
-                        questions.stream(),
-                        answers.stream()
                 )
-                .sorted(
-                        Comparator
-                                .comparing(
-                                        QuestionActivity::getCreatedAt,
-                                        Comparator.reverseOrder()
-                                )
-                                .thenComparing(
-                                        QuestionActivity::getTypeRank,
-                                        Comparator.reverseOrder()
-                                )
-                                .thenComparing(
-                                        QuestionActivity::getCursorId,
-                                        Comparator.reverseOrder()
-                                )
-                )
-                .limit(FETCH_SIZE)
-                .toList();
+                .build();
     }
-    private QuestionActivity toQuestionActivity(
+
+    private QuestionDetailRes.QuestionInfo toQuestionInfo(
             QuestionRead questionRead
     ) {
         Question question =
@@ -304,15 +261,13 @@ public class HomeSpecificInfoService {
         Study study =
                 question.getStudy();
 
-        return QuestionActivity.builder()
-                .activityType(QuestionActivityType.QUESTION)
+        return QuestionDetailRes.QuestionInfo.builder()
                 .checked(
                         questionRead.getInquiryStatus()
                                 == InquiryStatus.CHECKED
                 )
                 .studyId(study.getId())
                 .questionId(question.getId())
-                .answerId(null)
                 .questionTitle(question.getTitle())
                 .studyName(study.getName())
                 .writerName(question.getMemberName())
@@ -320,7 +275,33 @@ public class HomeSpecificInfoService {
                 .build();
     }
 
-    private QuestionActivity toAnswerActivity(
+    private AnswerDetailRes createAnswerDetailResponse(
+            Slice<Answer> answerSlice
+    ) {
+        List<AnswerDetailRes.AnswerInfo> answers =
+                answerSlice.getContent().stream()
+                        .map(this::toAnswerInfo)
+                        .toList();
+
+        Long nextCursor =
+                answerSlice.hasNext() && !answers.isEmpty()
+                        ? answers.get(answers.size() - 1)
+                        .getAnswerId()
+                        : null;
+
+        return AnswerDetailRes.builder()
+                .answers(answers)
+                .pageInfo(
+                        new PageInfo<>(
+                                nextCursor,
+                                answers.size(),
+                                answerSlice.hasNext()
+                        )
+                )
+                .build();
+    }
+
+    private AnswerDetailRes.AnswerInfo toAnswerInfo(
             Answer answer
     ) {
         Question question =
@@ -329,8 +310,7 @@ public class HomeSpecificInfoService {
         Study study =
                 question.getStudy();
 
-        return QuestionActivity.builder()
-                .activityType(QuestionActivityType.ANSWER)
+        return AnswerDetailRes.AnswerInfo.builder()
                 .checked(answer.getReadAtByAsker() != null)
                 .studyId(study.getId())
                 .questionId(question.getId())
@@ -342,56 +322,8 @@ public class HomeSpecificInfoService {
                 .build();
     }
 
-    private QuestionDetailRes createQuestionDetailResponse(
-            List<QuestionActivity> activities
-    ) {
-        boolean hasNext =
-                activities.size() > QUESTION_PAGE_SIZE;
 
-        List<QuestionActivity> currentPage =
-                activities.stream()
-                        .limit(QUESTION_PAGE_SIZE)
-                        .toList();
 
-        return QuestionDetailRes.builder()
-                .questions(currentPage)
-                .pageInfo(
-                        createQuestionPageInfo(
-                                currentPage,
-                                hasNext
-                        )
-                )
-                .build();
-    }
 
-    private PageInfo<String> createQuestionPageInfo(
-            List<QuestionActivity> activities,
-            boolean hasNext
-    ) {
-        String nextCursor =
-                hasNext && !activities.isEmpty()
-                        ? createQuestionCursor(
-                        activities.get(
-                                activities.size() - 1
-                        )
-                )
-                        : null;
-
-        return new PageInfo<>(
-                nextCursor,
-                activities.size(),
-                hasNext
-        );
-    }
-
-    private String createQuestionCursor(
-            QuestionActivity activity
-    ) {
-        return CursorConverter.encode(
-                activity.getCreatedAt(),
-                activity.getActivityType(),
-                activity.getCursorId()
-        );
-    }
 
 }
