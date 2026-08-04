@@ -126,34 +126,39 @@ public class HomeSpecificInfoService {
     }
 
     public ReportDetailRes getReportDetail(
-            Long memberId
+            Long memberId,
+            Long cursor
     ) {
 
-        List<Study> studies =
+        Slice<Study> studySlice =
                 memberStudyRepository
-                        .findStudiesByMemberId(memberId);
+                        .findReportStudiesByMemberId(
+                                memberId,
+                                cursor,
+                                PageRequest.of(
+                                        0,
+                                        ACTIVITY_PAGE_SIZE
+                                )
+                        );
+        //첫 요청에 스터디가 있는지 검증
+        validateReportStudies(studySlice, cursor);
 
+        List<Study> studies =
+                studySlice.getContent();
+
+        // 다음 페이지를 잘못 추가 요청했는데 더 이상 스터디가 없는 경우
         if (studies.isEmpty()) {
-            throw new StudyException(
-                    StudyErrorCode.STUDY_NOT_FOUND
-            );
+            return createEmptyReportDetail();
         }
-
 
         Map<Long, Report> latestReportMap =
                 getLatestReportMap(studies);
 
-        List<ReportDetailRes.ReportInfo> reportInfos =
-                studies.stream()
-                        .map(study -> toReportInfo(
-                                study,
-                                latestReportMap.get(study.getId())
-                        ))
-                        .toList();
 
-        return ReportDetailRes.builder()
-                .reports(reportInfos)
-                .build();
+        return createReportDetailResponse(
+                studySlice,
+                latestReportMap
+        );
     }
 
 
@@ -367,7 +372,18 @@ public class HomeSpecificInfoService {
                 .build();
     }
 
+    //리포트 관련 내부 매서드
 
+    private void validateReportStudies(
+            Slice<Study> studySlice,
+            Long cursor
+    ) {
+        if (cursor == null && studySlice.isEmpty()) {
+            throw new StudyException(
+                    StudyErrorCode.STUDY_NOT_FOUND
+            );
+        }
+    }
 
     private Map<Long, Report> getLatestReportMap(
             List<Study> studies
@@ -432,5 +448,52 @@ public class HomeSpecificInfoService {
                 .generated(true)
                 .build();
     }
+
+
+    private ReportDetailRes createReportDetailResponse(
+            Slice<Study> studySlice,
+            Map<Long, Report> latestReportMap
+    ) {
+        List<Study> studies =
+                studySlice.getContent();
+
+        List<ReportDetailRes.ReportInfo> reportInfos =
+                studies.stream()
+                        .map(study -> toReportInfo(
+                                study,
+                                latestReportMap.get(study.getId())
+                        ))
+                        .toList();
+
+        Long nextCursor =
+                studySlice.hasNext() && !studies.isEmpty()
+                        ? studies.get(studies.size() - 1).getId()
+                        : null;
+
+        return ReportDetailRes.builder()
+                .reports(reportInfos)
+                .pageInfo(
+                        new PageInfo<>(
+                                nextCursor,
+                                reportInfos.size(),
+                                studySlice.hasNext()
+                        )
+                )
+                .build();
+    }
+
+    private ReportDetailRes createEmptyReportDetail() {
+        return ReportDetailRes.builder()
+                .reports(List.of())
+                .pageInfo(
+                        new PageInfo<>(
+                                null,
+                                0,
+                                false
+                        )
+                )
+                .build();
+    }
+
 
 }

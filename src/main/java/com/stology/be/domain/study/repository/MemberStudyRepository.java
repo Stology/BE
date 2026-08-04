@@ -3,6 +3,8 @@ package com.stology.be.domain.study.repository;
 import com.stology.be.domain.member.entity.Member;
 import com.stology.be.domain.study.entity.MemberStudy;
 import com.stology.be.domain.study.entity.Study;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -44,10 +46,16 @@ public interface MemberStudyRepository extends JpaRepository<MemberStudy, Long> 
     SELECT ms.study
     FROM MemberStudy ms
     WHERE ms.member.id = :memberId
-    ORDER BY ms.study.createdAt DESC
+      AND (
+          :cursor IS NULL
+          OR ms.study.id < :cursor
+      )
+    ORDER BY ms.study.id DESC
 """)
-    List<Study> findStudiesByMemberId(
-            @Param("memberId") Long memberId
+    Slice<Study> findReportStudiesByMemberId(
+            @Param("memberId") Long memberId,
+            @Param("cursor") Long cursor,
+            Pageable pageable
     );
 
 

@@ -126,11 +126,13 @@ public class HomeController {
      */
     @GetMapping("/reports")
     public ApiResponse<ReportDetailRes> getReportDetail(
+            @RequestParam(required = false) Long cursor,
             @AuthenticationPrincipal AuthMember authMember
     ) {
         ReportDetailRes response =
                 homeSpecificInfoService.getReportDetail(
-                        authMember.getMemberId()
+                        authMember.getMemberId(),
+                        cursor
                 );
 
         return ApiResponse.onSuccess(

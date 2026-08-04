@@ -1,5 +1,6 @@
 package com.stology.be.domain.home.dto.res;
 
+import com.stology.be.global.PageInfo;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,7 +10,7 @@ import java.util.List;
 @Getter
 @Builder
 public class ReportDetailRes {
-
+    private PageInfo<Long> pageInfo;
     private List<ReportInfo> reports;
 
     @Getter
