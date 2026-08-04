@@ -20,12 +20,15 @@ public class TemplateNodeGraphNode {
 
     private int week;
 
+    private String description;
+
     @Relationship(type = "RELATED_TO", direction = Relationship.Direction.OUTGOING)
     private Set<TemplateNodeRelation> relatedNodes = new HashSet<>();
 
-    public TemplateNodeGraphNode(String name,int week) {
+    public TemplateNodeGraphNode(String name,int week,String description) {
         this.title = name;
         this.week = week;
+        this.description = description;
     }
 
 

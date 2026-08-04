@@ -64,7 +64,7 @@ public class Neo4jTemplateImportService {
             }
 
             TemplateNodeGraphNode graphNode =
-                    new TemplateNodeGraphNode(nodeTitle,nodeDto.week());
+                    new TemplateNodeGraphNode(nodeTitle,nodeDto.week(),nodeDto.description());
 
             nodeMap.put(
                     nodeTitle,

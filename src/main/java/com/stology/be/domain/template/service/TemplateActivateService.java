@@ -121,6 +121,7 @@ public class TemplateActivateService {
                 .toList();
     }
 
+
     private TemplateNodeActivateDto convertTemplateNode(
             TemplateNodeGraphNode templateNode
     ) {
@@ -134,7 +135,8 @@ public class TemplateActivateService {
         return new TemplateNodeActivateDto(
                 templateNode.getTemplateNodeId(),
                 templateNode.getTitle(),
-                templateNode.getWeek()
+                templateNode.getWeek(),
+                templateNode.getDescription()
         );
     }
 }

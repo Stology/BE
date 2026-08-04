@@ -42,6 +42,7 @@ public class MysqlTemplateActivateService {
         /*
          * saveAll만 호출해도 트랜잭션 종료 시 반영되지만,
          * 생성된 ID를 즉시 사용해야 하므로 saveAllAndFlush를 사용한다.
+         * mySql먼저
          */
         List<StudyNode> savedStudyNodes =
                 studyNodeRepository.saveAllAndFlush(studyNodes);
@@ -135,7 +136,8 @@ public class MysqlTemplateActivateService {
                     StudyNode.createFromTemplate(
                             study,
                             templateNode.title(),
-                            templateNode.week()
+                            templateNode.week(),
+                            templateNode.description()
                     );
 
             studyNodes.add(studyNode);

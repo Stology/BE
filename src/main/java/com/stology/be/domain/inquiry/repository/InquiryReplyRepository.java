@@ -1,11 +1,14 @@
 package com.stology.be.domain.inquiry.repository;
 
 import com.stology.be.domain.study.entity.Answer;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,4 +31,85 @@ public interface InquiryReplyRepository extends JpaRepository<Answer, Long> {
     @Query("update Answer a set a.readAtByAsker = CURRENT_TIMESTAMP "
             + "where a.question.id = :questionId and a.readAtByAsker is null and a.deletedAt is null")
     int markAllReadByAsker(@Param("questionId") Long questionId);
+
+
+    //답글 갯수.
+    @Query("""
+    SELECT COUNT(a)
+    FROM Answer a
+    WHERE a.question.member.id = :memberId
+      AND a.member.id <> :memberId
+      AND a.deletedAt IS NULL
+      AND a.question.deletedAt IS NULL
+      AND (
+          a.readAtByAsker IS NULL
+          OR (
+              a.readAtByAsker >= :startOfDay
+              AND a.readAtByAsker < :endOfDay
+          )
+      )
+""")
+    long countTodoAnswersForMember(
+            @Param("memberId") Long memberId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
+
+
+    //답글 정보
+    @Query("""
+    SELECT a
+    FROM Answer a
+    JOIN FETCH a.question q
+    JOIN FETCH q.study s
+    WHERE q.member.id = :memberId
+      AND a.member.id <> :memberId
+      AND q.deletedAt IS NULL
+      AND a.deletedAt IS NULL
+      AND (
+          a.readAtByAsker IS NULL
+          OR (
+              a.readAtByAsker >= :startOfDay
+              AND a.readAtByAsker < :endOfDay
+          )
+      )
+      AND (
+          :cursor IS NULL
+          OR a.id < :cursor
+      )
+    ORDER BY a.id DESC
+""")
+    Slice<Answer> findAnswerActivities(
+            @Param("memberId") Long memberId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay,
+            @Param("cursor") Long cursor,
+            Pageable pageable
+    );
+
+
+
+
+
+    //최근(cutoff 이전) 답글 조회
+    @Query("""
+    SELECT a
+    FROM Answer a
+    JOIN FETCH a.question q
+    JOIN FETCH q.study s
+    WHERE s.id IN :studyIds
+      AND a.deletedAt IS NULL
+      AND q.deletedAt IS NULL
+      AND a.createdAt >= :cutoff
+      AND a.createdAt <= :now
+    ORDER BY a.createdAt DESC, a.id DESC
+""")
+    List<Answer> findRecentTeamAnswers(
+            @Param("studyIds") List<Long> studyIds,
+            @Param("cutoff") LocalDateTime cutoff,
+            @Param("now") LocalDateTime now
+    );
+
+
+
 }

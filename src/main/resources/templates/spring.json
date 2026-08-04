@@ -1,0 +1,633 @@
+{
+  "title": "Spring Boot",
+  "description": "데이터베이스 기초부터 Spring Boot 웹 애플리케이션과 인증 구현까지 단계적으로 학습하는 9주 템플릿입니다. 개념 사이의 기반, 맥락, 확장, 대조 관계를 따라 전체 개발 흐름을 이해할 수 있습니다.",
+  "nodes": [
+    {
+      "title": "데이터베이스",
+      "description": "구조화된 데이터를 저장하고 조회하며 관리하는 시스템입니다. 애플리케이션이 데이터를 안전하게 지속시키는 기반을 이해하게 합니다.",
+      "week": 1
+    },
+    {
+      "title": "RDBMS",
+      "description": "데이터를 행과 열로 구성된 테이블과 관계로 관리하는 데이터베이스 시스템입니다. Spring 애플리케이션의 관계형 데이터 저장 방식을 이해하는 출발점입니다.",
+      "week": 1
+    },
+    {
+      "title": "테이블",
+      "description": "관계형 데이터베이스에서 같은 구조의 데이터를 행과 열로 저장하는 단위입니다. 엔티티가 실제 데이터 구조와 연결되는 방식을 파악하게 합니다.",
+      "week": 1
+    },
+    {
+      "title": "기본 키",
+      "description": "테이블의 각 행을 유일하게 식별하는 하나 이상의 열입니다. 데이터 식별과 엔티티 정체성의 중요성을 이해하게 합니다.",
+      "week": 1
+    },
+    {
+      "title": "외래 키",
+      "description": "다른 테이블의 기본 키를 참조해 테이블 사이의 관계를 표현하는 열입니다. 데이터 간 연결과 참조 무결성을 설계하는 데 필요합니다.",
+      "week": 1
+    },
+    {
+      "title": "ERD",
+      "description": "데이터 엔티티와 속성 및 관계를 그림으로 나타낸 설계 모델입니다. 구현 전에 데이터 구조와 제약을 함께 검토하게 합니다.",
+      "week": 1
+    },
+    {
+      "title": "관계",
+      "description": "데이터 모델에서 서로 다른 엔티티가 연결되는 방식을 뜻합니다. 테이블과 JPA 엔티티의 연관 구조를 일관되게 설계하는 데 중요합니다.",
+      "week": 1
+    },
+    {
+      "title": "카디널리티",
+      "description": "관계에 참여하는 엔티티 인스턴스 수의 대응 규칙입니다. 일대일과 일대다 및 다대다 구조를 정확히 구분하게 합니다.",
+      "week": 1
+    },
+    {
+      "title": "정규화",
+      "description": "데이터 중복과 갱신 이상을 줄이도록 테이블을 분해하는 설계 과정입니다. 일관성 있는 스키마와 적절한 관계를 만드는 기준을 제공합니다.",
+      "week": 1
+    },
+    {
+      "title": "SQL",
+      "description": "관계형 데이터베이스의 데이터를 정의하고 조회하며 변경하는 언어입니다. 애플리케이션이 저장소와 주고받는 작업의 실체를 이해하게 합니다.",
+      "week": 1
+    },
+    {
+      "title": "JOIN",
+      "description": "관련 열을 기준으로 여러 테이블의 행을 하나의 결과로 결합하는 SQL 연산입니다. 분리된 관계형 데이터를 함께 조회하는 원리를 익히게 합니다.",
+      "week": 1
+    },
+    {
+      "title": "서브쿼리",
+      "description": "하나의 SQL 문 안에 포함되어 다른 쿼리의 조건이나 결과로 사용되는 쿼리입니다. 복잡한 조회를 단계적인 논리로 표현하는 방법을 제공합니다.",
+      "week": 1
+    },
+    {
+      "title": "SQL 페이징",
+      "description": "SQL 조회 결과를 일정한 크기의 묶음으로 나누어 가져오는 방식입니다. 큰 데이터 집합의 응답 비용을 제어하는 기초가 됩니다.",
+      "week": 1
+    },
+    {
+      "title": "오프셋 페이지네이션",
+      "description": "건너뛸 행 수와 가져올 행 수를 지정해 페이지를 조회하는 방식입니다. 구현은 단순하지만 뒤쪽 페이지의 비용과 데이터 변동 영향을 이해해야 합니다.",
+      "week": 1
+    },
+
+    {
+      "title": "HTTP",
+      "description": "클라이언트와 서버가 요청과 응답을 교환하기 위한 웹 통신 프로토콜입니다. REST API와 Spring MVC 요청 처리의 공통 기반이 됩니다.",
+      "week": 2
+    },
+    {
+      "title": "API",
+      "description": "소프트웨어 구성 요소가 기능과 데이터를 주고받도록 정의한 접점입니다. 서버 기능을 예측 가능한 계약으로 외부에 제공하게 합니다.",
+      "week": 2
+    },
+    {
+      "title": "REST",
+      "description": "리소스를 URI로 식별하고 HTTP의 표현과 동작을 활용하는 아키텍처 방식입니다. 일관되고 확장 가능한 웹 API를 설계하는 기준을 제공합니다.",
+      "week": 2
+    },
+    {
+      "title": "리소스",
+      "description": "REST에서 이름을 붙여 식별하고 표현을 주고받는 대상입니다. API를 행위보다 도메인 중심으로 설계하게 합니다.",
+      "week": 2
+    },
+    {
+      "title": "URI",
+      "description": "웹에서 리소스의 위치나 이름을 식별하는 문자열입니다. REST API의 주소 체계를 명확하고 일관되게 만드는 데 중요합니다.",
+      "week": 2
+    },
+    {
+      "title": "HTTP 메서드",
+      "description": "요청이 리소스에 수행하려는 조회와 생성 및 변경 같은 의미를 나타냅니다. URI와 동작을 분리해 API 의도를 분명하게 전달합니다.",
+      "week": 2
+    },
+    {
+      "title": "멱등성",
+      "description": "같은 요청을 여러 번 수행해도 서버 상태에 미치는 결과가 같은 성질입니다. 재시도 가능한 HTTP 동작을 안전하게 판단하는 기준입니다.",
+      "week": 2
+    },
+    {
+      "title": "요청 데이터 전달",
+      "description": "클라이언트 입력을 URL과 헤더 또는 본문에 담아 서버로 보내는 과정입니다. 데이터의 역할과 민감도에 맞는 전달 위치를 선택하게 합니다.",
+      "week": 2
+    },
+    {
+      "title": "경로 변수",
+      "description": "URI 경로의 일부에 리소스 식별값을 포함하는 요청 전달 방식입니다. 특정 리소스를 직관적으로 지정하는 데 사용합니다.",
+      "week": 2
+    },
+    {
+      "title": "쿼리 파라미터",
+      "description": "URI 뒤의 질의 문자열에 필터와 정렬 같은 선택 조건을 담는 방식입니다. 동일한 리소스 조회에 다양한 조건을 표현하게 합니다.",
+      "week": 2
+    },
+    {
+      "title": "요청 본문",
+      "description": "HTTP 요청의 본문 영역에 구조화된 데이터를 담는 방식입니다. 생성과 수정에 필요한 복합 입력을 전달하는 데 적합합니다.",
+      "week": 2
+    },
+    {
+      "title": "HTTP 헤더",
+      "description": "요청과 응답에 콘텐츠 형식과 인증 같은 부가 정보를 전달하는 영역입니다. 본문과 메타데이터의 역할을 구분하게 합니다.",
+      "week": 2
+    },
+    {
+      "title": "API 명세",
+      "description": "API의 경로와 입력 및 응답과 오류 규칙을 문서화한 계약입니다. 개발자 사이의 합의를 만들고 구현과 검증의 기준이 됩니다.",
+      "week": 2
+    },
+
+    {
+      "title": "Spring Framework",
+      "description": "자바 애플리케이션의 객체 관리와 웹 및 데이터 접근을 지원하는 프레임워크입니다. Spring Boot가 자동화하는 핵심 원리를 이해하는 기반입니다.",
+      "week": 3
+    },
+    {
+      "title": "IoC",
+      "description": "객체 생성과 생명주기 및 제어 흐름을 애플리케이션 코드가 아닌 컨테이너가 맡는 원리입니다. Spring의 객체 관리 방식을 설명하는 핵심 개념입니다.",
+      "week": 3
+    },
+    {
+      "title": "의존성 주입",
+      "description": "객체가 필요한 의존 객체를 직접 생성하지 않고 외부에서 전달받는 설계 방식입니다. 결합도를 낮추고 테스트와 구현 교체를 쉽게 만듭니다.",
+      "week": 3
+    },
+    {
+      "title": "Spring Bean",
+      "description": "Spring 컨테이너가 생성하고 구성하며 생명주기를 관리하는 객체입니다. 의존성 주입이 실제 애플리케이션 객체에 적용되는 단위입니다.",
+      "week": 3
+    },
+    {
+      "title": "ApplicationContext",
+      "description": "Bean 생성과 조회 및 의존성 연결을 담당하는 Spring의 핵심 컨테이너입니다. IoC와 의존성 주입이 동작하는 실행 환경을 제공합니다.",
+      "week": 3
+    },
+    {
+      "title": "Servlet Container",
+      "description": "Servlet의 생명주기를 관리하고 HTTP 요청과 응답 처리를 지원하는 실행 환경입니다. Spring MVC가 웹 서버 요청을 받는 기반을 제공합니다.",
+      "week": 3
+    },
+    {
+      "title": "Servlet",
+      "description": "자바 웹 환경에서 요청을 받아 응답을 만드는 서버 측 구성 요소입니다. DispatcherServlet과 Spring MVC 요청 처리의 기반 규약입니다.",
+      "week": 3
+    },
+    {
+      "title": "DispatcherServlet",
+      "description": "Spring MVC 요청을 중앙에서 받아 적절한 핸들러로 전달하는 프론트 컨트롤러입니다. 웹 요청 처리 구성 요소를 하나의 흐름으로 조정합니다.",
+      "week": 3
+    },
+    {
+      "title": "Spring MVC",
+      "description": "모델과 뷰 및 컨트롤러 역할을 분리해 웹 요청을 처리하는 Spring 모듈입니다. HTTP 요청을 애플리케이션 로직과 연결하는 표준 구조를 제공합니다.",
+      "week": 3
+    },
+    {
+      "title": "Spring MVC 요청 흐름",
+      "description": "요청이 DispatcherServlet과 핸들러 매핑 및 컨트롤러를 거쳐 응답으로 변환되는 과정입니다. 문제 발생 지점과 각 구성 요소의 책임을 추적하게 합니다.",
+      "week": 3
+    },
+
+    {
+      "title": "Spring Boot",
+      "description": "Spring 애플리케이션의 설정과 실행 환경 구성을 단순화하는 프레임워크입니다. 핵심 Spring 원리를 유지하면서 프로젝트 시작 비용을 줄입니다.",
+      "week": 4
+    },
+    {
+      "title": "Spring Boot 프로젝트 구성",
+      "description": "소스와 설정 및 의존성을 목적에 맞게 배치한 Spring Boot 프로젝트 구조입니다. 실행 가능한 애플리케이션의 구성 요소와 책임을 빠르게 찾게 합니다.",
+      "week": 4
+    },
+    {
+      "title": "계층형 아키텍처",
+      "description": "애플리케이션 책임을 표현과 비즈니스 및 데이터 접근 계층으로 나누는 구조입니다. 변경 범위를 제한하고 계층별 역할을 명확하게 합니다.",
+      "week": 4
+    },
+    {
+      "title": "Gradle",
+      "description": "소스 컴파일과 테스트 및 패키징을 자동화하는 빌드 도구입니다. Spring Boot 프로젝트의 반복 가능한 빌드와 실행을 관리합니다.",
+      "week": 4
+    },
+    {
+      "title": "의존성 관리",
+      "description": "애플리케이션이 사용하는 라이브러리와 버전 및 전이 의존성을 통제하는 작업입니다. 호환되는 실행 환경과 재현 가능한 빌드를 만드는 데 중요합니다.",
+      "week": 4
+    },
+    {
+      "title": "자동 구성",
+      "description": "클래스패스와 설정 조건을 바탕으로 Spring Boot가 필요한 Bean 구성을 제공하는 기능입니다. 기본값을 활용하면서 필요한 부분만 명시적으로 조정하게 합니다.",
+      "week": 4
+    },
+    {
+      "title": "OpenAPI",
+      "description": "HTTP API의 경로와 요청 및 응답 구조를 기계가 읽을 수 있게 표현하는 표준입니다. 명세에서 문서와 도구를 일관되게 생성할 수 있습니다.",
+      "week": 4
+    },
+    {
+      "title": "Swagger UI",
+      "description": "OpenAPI 명세를 대화형 웹 문서로 보여 주는 도구입니다. API 사용자가 요청을 탐색하고 직접 시험하도록 돕습니다.",
+      "week": 4
+    },
+    {
+      "title": "springdoc-openapi",
+      "description": "Spring MVC 애플리케이션에서 OpenAPI 명세 생성을 지원하는 라이브러리입니다. 코드와 API 문서의 차이를 줄이는 데 활용합니다.",
+      "week": 4
+    },
+
+    {
+      "title": "Controller",
+      "description": "HTTP 요청을 애플리케이션 입력으로 변환하고 처리 결과를 응답으로 반환하는 계층입니다. 웹 계약과 비즈니스 로직의 경계를 형성합니다.",
+      "week": 5
+    },
+    {
+      "title": "Service",
+      "description": "도메인 규칙과 유스케이스의 실행 순서를 담당하는 애플리케이션 계층입니다. 웹과 저장소 기술에서 핵심 비즈니스 로직을 분리합니다.",
+      "week": 5
+    },
+    {
+      "title": "Repository",
+      "description": "도메인 객체의 저장과 조회를 추상화하는 데이터 접근 계층입니다. 비즈니스 로직이 구체적인 데이터 저장 기술에 덜 의존하게 합니다.",
+      "week": 5
+    },
+    {
+      "title": "DTO",
+      "description": "계층이나 프로세스 사이에서 필요한 데이터만 전달하는 객체입니다. 외부 계약과 내부 도메인 모델의 직접 결합을 줄입니다.",
+      "week": 5
+    },
+    {
+      "title": "요청 DTO",
+      "description": "클라이언트 요청 데이터를 애플리케이션 입력 형태로 표현하는 객체입니다. 입력 검증과 API 계약을 명시적으로 관리하게 합니다.",
+      "week": 5
+    },
+    {
+      "title": "응답 DTO",
+      "description": "처리 결과를 클라이언트에 공개할 형태로 구성하는 객체입니다. 내부 엔티티 노출을 막고 안정적인 응답 계약을 제공합니다.",
+      "week": 5
+    },
+    {
+      "title": "응답 통일",
+      "description": "성공과 실패 응답을 공통된 필드와 구조로 제공하는 설계입니다. 클라이언트가 결과와 오류를 일관되게 처리하도록 돕습니다.",
+      "week": 5
+    },
+    {
+      "title": "오류 코드",
+      "description": "실패 원인을 프로그램이 구분할 수 있도록 정한 안정적인 식별값입니다. HTTP 상태만으로 부족한 도메인 오류 의미를 전달합니다.",
+      "week": 5
+    },
+    {
+      "title": "예외 처리",
+      "description": "정상 흐름에서 벗어난 오류를 감지하고 적절한 결과로 전환하는 과정입니다. 실패를 예측 가능한 API 동작으로 만드는 데 필요합니다.",
+      "week": 5
+    },
+    {
+      "title": "전역 예외 처리",
+      "description": "여러 컨트롤러에서 발생한 예외를 한곳에서 공통 응답으로 변환하는 방식입니다. 중복을 줄이고 오류 정책을 일관되게 적용합니다.",
+      "week": 5
+    },
+
+    {
+      "title": "ORM",
+      "description": "객체와 관계형 데이터베이스 테이블 사이의 변환을 자동화하는 기술입니다. 객체 중심 코드와 SQL 저장 구조의 차이를 다루게 합니다.",
+      "week": 6
+    },
+    {
+      "title": "JPA",
+      "description": "자바 객체와 관계형 데이터를 매핑하고 관리하기 위한 표준 명세입니다. Spring 애플리케이션의 ORM 동작을 이해하는 기준을 제공합니다.",
+      "week": 6
+    },
+    {
+      "title": "Spring Data JPA",
+      "description": "JPA 기반 Repository 구현과 반복적인 데이터 접근 코드를 줄이는 Spring 모듈입니다. JPA 원리 위에서 선언적인 저장소 계층을 구성하게 합니다.",
+      "week": 6
+    },
+    {
+      "title": "영속성 컨텍스트",
+      "description": "EntityManager가 엔티티를 추적하고 데이터베이스와 동기화하는 논리적 공간입니다. 캐시와 변경 감지 및 생명주기를 함께 이해하는 핵심입니다.",
+      "week": 6
+    },
+    {
+      "title": "EntityManager",
+      "description": "엔티티 저장과 조회 및 삭제와 영속성 컨텍스트 관리를 수행하는 JPA 인터페이스입니다. JPA 작업이 실제로 실행되는 중심 경계를 제공합니다.",
+      "week": 6
+    },
+    {
+      "title": "엔티티",
+      "description": "JPA가 관계형 데이터와 연결해 영속 상태로 관리하는 도메인 객체입니다. 객체 모델과 테이블 구조를 매핑하는 기본 단위입니다.",
+      "week": 6
+    },
+    {
+      "title": "엔티티 생명주기",
+      "description": "엔티티가 비영속과 영속 및 준영속과 삭제 상태를 오가는 규칙입니다. JPA 연산이 데이터베이스에 반영되는 시점을 판단하게 합니다.",
+      "week": 6
+    },
+    {
+      "title": "1차 캐시",
+      "description": "영속성 컨텍스트가 관리 중인 엔티티를 식별자별로 보관하는 내부 캐시입니다. 같은 트랜잭션의 동일성 보장과 조회 동작을 이해하게 합니다.",
+      "week": 6
+    },
+    {
+      "title": "변경 감지",
+      "description": "영속 엔티티의 상태 변화를 추적해 트랜잭션 동기화 시점에 수정 SQL을 만드는 기능입니다. 명시적인 수정 호출 없이 갱신되는 이유를 설명합니다.",
+      "week": 6
+    },
+    {
+      "title": "연관관계",
+      "description": "하나의 엔티티가 다른 엔티티를 참조해 도메인 연결을 표현하는 구조입니다. 객체 관계와 외래 키 관계의 차이를 함께 다뤄야 합니다.",
+      "week": 6
+    },
+    {
+      "title": "연관관계 매핑",
+      "description": "엔티티 참조와 테이블 외래 키의 대응 및 주인을 설정하는 작업입니다. 저장과 조회 방향을 예측 가능하게 만드는 데 중요합니다.",
+      "week": 6
+    },
+    {
+      "title": "지연 로딩",
+      "description": "연관된 엔티티를 실제로 사용할 때 조회하도록 로딩 시점을 늦추는 전략입니다. 불필요한 조회를 줄이면서 쿼리 발생 시점을 주의하게 합니다.",
+      "week": 6
+    },
+    {
+      "title": "JPQL",
+      "description": "테이블이 아닌 엔티티와 필드를 대상으로 작성하는 JPA 객체 지향 쿼리 언어입니다. 도메인 모델 중심으로 복합 조회를 표현하게 합니다.",
+      "week": 6
+    },
+
+    {
+      "title": "페이징",
+      "description": "많은 조회 결과를 일정한 크기의 부분 집합으로 나누어 제공하는 기법입니다. 응답 시간과 메모리 사용량을 통제하는 데 필요합니다.",
+      "week": 7
+    },
+    {
+      "title": "Pageable",
+      "description": "요청한 페이지 번호와 크기 및 정렬 정보를 표현하는 Spring Data 인터페이스입니다. 웹 요청의 페이징 조건을 저장소 조회와 연결합니다.",
+      "week": 7
+    },
+    {
+      "title": "Page",
+      "description": "현재 페이지 내용과 전체 원소 수 및 전체 페이지 수를 함께 제공하는 결과 타입입니다. 전체 개수가 필요한 화면의 페이지 탐색에 적합합니다.",
+      "week": 7
+    },
+    {
+      "title": "Slice",
+      "description": "현재 묶음의 내용과 다음 묶음 존재 여부를 제공하고 전체 개수는 요구하지 않는 결과 타입입니다. 전체 개수 쿼리 비용을 피할 때 유용합니다.",
+      "week": 7
+    },
+    {
+      "title": "페이지네이션 구현",
+      "description": "요청 조건을 조회 쿼리에 적용하고 페이지 메타데이터와 함께 응답하는 구현 과정입니다. 데이터베이스와 API 계층의 페이징 책임을 연결합니다.",
+      "week": 7
+    },
+    {
+      "title": "커서 기반 페이지네이션",
+      "description": "마지막으로 조회한 항목의 정렬 기준값을 다음 조회 시작점으로 사용하는 방식입니다. 큰 데이터와 빈번한 변경에서 안정적인 다음 묶음 조회를 제공합니다.",
+      "week": 7
+    },
+    {
+      "title": "Bean Validation",
+      "description": "객체 필드와 값에 선언한 제약 조건을 검사하는 자바 검증 표준입니다. 입력 규칙을 DTO 가까이에 일관되게 표현하게 합니다.",
+      "week": 7
+    },
+    {
+      "title": "제약 조건 어노테이션",
+      "description": "빈 값과 길이 및 범위 같은 검증 규칙을 필드에 선언하는 표식입니다. 반복적인 조건 검사를 명확하고 재사용 가능하게 만듭니다.",
+      "week": 7
+    },
+    {
+      "title": "@Valid",
+      "description": "메서드 인자나 중첩 객체에 Bean Validation 검사를 실행하도록 지시하는 어노테이션입니다. 컨트롤러 진입 시점에 잘못된 입력을 차단하게 합니다.",
+      "week": 7
+    },
+
+    {
+      "title": "Spring Security",
+      "description": "Spring 애플리케이션의 인증과 인가 및 보안 필터 구성을 제공하는 프레임워크입니다. 최신 구성에서는 SecurityFilterChain Bean으로 웹 보안 규칙을 정의합니다.",
+      "week": 8
+    },
+    {
+      "title": "인증",
+      "description": "사용자나 시스템이 주장하는 신원을 확인하는 과정입니다. 보호된 기능을 누가 요청했는지 신뢰할 수 있게 합니다.",
+      "week": 8
+    },
+    {
+      "title": "인가",
+      "description": "인증된 주체가 특정 자원이나 동작에 접근할 권한이 있는지 판단하는 과정입니다. 신원 확인 이후 권한별 접근 범위를 통제합니다.",
+      "week": 8
+    },
+    {
+      "title": "SecurityFilterChain",
+      "description": "요청에 적용할 보안 필터와 접근 규칙을 구성하는 Spring Security의 핵심 Bean입니다. Spring Security 6 방식의 명시적인 웹 보안 구성을 이해하게 합니다.",
+      "week": 8
+    },
+    {
+      "title": "보안 필터",
+      "description": "Servlet 요청이 컨트롤러에 도달하기 전에 인증과 보안 처리를 수행하는 필터입니다. 웹 계층 앞에서 공통 보안 정책을 적용합니다.",
+      "week": 8
+    },
+    {
+      "title": "Authentication",
+      "description": "Spring Security에서 인증 요청이나 인증된 주체와 권한을 표현하는 객체입니다. 인증 전후의 보안 상태가 전달되는 형태를 이해하게 합니다.",
+      "week": 8
+    },
+    {
+      "title": "AuthenticationManager",
+      "description": "전달받은 Authentication의 인증 처리를 적절한 구성 요소에 위임하는 인터페이스입니다. 인증 흐름의 진입점과 조정 역할을 담당합니다.",
+      "week": 8
+    },
+    {
+      "title": "AuthenticationProvider",
+      "description": "특정 인증 방식의 자격 증명을 확인하고 인증된 Authentication을 만드는 구성 요소입니다. 인증 방식별 검증 책임을 분리합니다.",
+      "week": 8
+    },
+    {
+      "title": "UserDetailsService",
+      "description": "사용자 이름을 기준으로 계정 정보와 권한을 불러오는 Spring Security 인터페이스입니다. 저장된 사용자 데이터와 인증 검증을 연결합니다.",
+      "week": 8
+    },
+    {
+      "title": "SecurityContext",
+      "description": "현재 실행 흐름의 인증된 Authentication을 보관하는 보안 컨텍스트입니다. 이후 인가와 사용자 정보 조회가 같은 인증 상태를 사용하게 합니다.",
+      "week": 8
+    },
+    {
+      "title": "폼 로그인",
+      "description": "웹 로그인 폼에서 받은 자격 증명으로 인증하고 세션에 인증 상태를 유지하는 방식입니다. Spring Security의 기본 인증 흐름을 실습하기에 적합합니다.",
+      "week": 8
+    },
+
+    {
+      "title": "세션 인증",
+      "description": "서버가 로그인 상태를 세션에 저장하고 클라이언트가 세션 식별자를 보내는 인증 방식입니다. 상태 저장 방식의 생명주기와 서버 부담을 이해하게 합니다.",
+      "week": 9
+    },
+    {
+      "title": "토큰 인증",
+      "description": "클라이언트가 발급받은 토큰을 요청마다 제시해 신원을 증명하는 인증 방식입니다. 서버 세션과 다른 상태 관리 및 만료 전략을 요구합니다.",
+      "week": 9
+    },
+    {
+      "title": "JWT",
+      "description": "서명된 헤더와 클레임 및 서명으로 정보를 전달하는 토큰 형식입니다. 토큰 위변조 검증과 만료 처리를 포함한 인증 흐름을 구현하게 합니다.",
+      "week": 9
+    },
+    {
+      "title": "Access Token",
+      "description": "보호된 API 접근 권한을 짧은 기간 동안 증명하는 토큰입니다. 요청 인증에 직접 사용되므로 노출 범위와 만료 시간을 제한해야 합니다.",
+      "week": 9
+    },
+    {
+      "title": "Refresh Token",
+      "description": "Access Token이 만료됐을 때 새 토큰을 발급받는 데 사용하는 장기 토큰입니다. 재로그인 빈도를 줄이면서 별도의 안전한 저장과 폐기 정책이 필요합니다.",
+      "week": 9
+    },
+    {
+      "title": "JWT 필터",
+      "description": "요청의 JWT를 추출하고 검증해 인증 정보를 SecurityContext에 설정하는 보안 필터입니다. 토큰 인증을 Spring Security 필터 체인에 연결합니다.",
+      "week": 9
+    },
+    {
+      "title": "OAuth 2.0",
+      "description": "사용자가 비밀번호를 공유하지 않고 제삼자 애플리케이션에 제한된 접근 권한을 부여하는 인가 프레임워크입니다. 소셜 로그인에서 권한 위임과 사용자 인증의 경계를 이해하게 합니다.",
+      "week": 9
+    },
+    {
+      "title": "OAuth2 Client",
+      "description": "Spring Security에서 OAuth 제공자와의 인가 요청과 토큰 교환을 처리하는 클라이언트 기능입니다. 표준 프로토콜 흐름을 애플리케이션 로그인과 연결합니다.",
+      "week": 9
+    },
+    {
+      "title": "소셜 로그인",
+      "description": "외부 서비스의 계정과 인증 흐름을 이용해 애플리케이션에 로그인하는 방식입니다. OAuth 기반 위임 결과를 내부 사용자와 연결하는 과정을 익히게 합니다.",
+      "week": 9
+    }
+  ],
+  "relations": [
+    { "sourceTitle": "데이터베이스", "targetTitle": "RDBMS", "relation": "확장" },
+    { "sourceTitle": "RDBMS", "targetTitle": "테이블", "relation": "맥락" },
+    { "sourceTitle": "테이블", "targetTitle": "기본 키", "relation": "맥락" },
+    { "sourceTitle": "테이블", "targetTitle": "외래 키", "relation": "맥락" },
+    { "sourceTitle": "기본 키", "targetTitle": "외래 키", "relation": "기반" },
+    { "sourceTitle": "데이터베이스", "targetTitle": "ERD", "relation": "맥락" },
+    { "sourceTitle": "ERD", "targetTitle": "관계", "relation": "맥락" },
+    { "sourceTitle": "관계", "targetTitle": "카디널리티", "relation": "맥락" },
+    { "sourceTitle": "RDBMS", "targetTitle": "정규화", "relation": "맥락" },
+    { "sourceTitle": "RDBMS", "targetTitle": "SQL", "relation": "맥락" },
+    { "sourceTitle": "SQL", "targetTitle": "JOIN", "relation": "확장" },
+    { "sourceTitle": "SQL", "targetTitle": "서브쿼리", "relation": "확장" },
+    { "sourceTitle": "JOIN", "targetTitle": "서브쿼리", "relation": "대조" },
+    { "sourceTitle": "SQL", "targetTitle": "SQL 페이징", "relation": "확장" },
+    { "sourceTitle": "SQL 페이징", "targetTitle": "오프셋 페이지네이션", "relation": "확장" },
+
+    { "sourceTitle": "HTTP", "targetTitle": "API", "relation": "기반" },
+    { "sourceTitle": "API", "targetTitle": "REST", "relation": "확장" },
+    { "sourceTitle": "HTTP", "targetTitle": "REST", "relation": "기반" },
+    { "sourceTitle": "REST", "targetTitle": "리소스", "relation": "맥락" },
+    { "sourceTitle": "리소스", "targetTitle": "URI", "relation": "기반" },
+    { "sourceTitle": "HTTP", "targetTitle": "HTTP 메서드", "relation": "맥락" },
+    { "sourceTitle": "HTTP 메서드", "targetTitle": "멱등성", "relation": "맥락" },
+    { "sourceTitle": "API", "targetTitle": "요청 데이터 전달", "relation": "맥락" },
+    { "sourceTitle": "요청 데이터 전달", "targetTitle": "경로 변수", "relation": "확장" },
+    { "sourceTitle": "요청 데이터 전달", "targetTitle": "쿼리 파라미터", "relation": "확장" },
+    { "sourceTitle": "요청 데이터 전달", "targetTitle": "요청 본문", "relation": "확장" },
+    { "sourceTitle": "요청 데이터 전달", "targetTitle": "HTTP 헤더", "relation": "확장" },
+    { "sourceTitle": "경로 변수", "targetTitle": "쿼리 파라미터", "relation": "대조" },
+    { "sourceTitle": "API", "targetTitle": "API 명세", "relation": "맥락" },
+
+    { "sourceTitle": "Spring Framework", "targetTitle": "IoC", "relation": "맥락" },
+    { "sourceTitle": "IoC", "targetTitle": "의존성 주입", "relation": "확장" },
+    { "sourceTitle": "의존성 주입", "targetTitle": "Spring Bean", "relation": "맥락" },
+    { "sourceTitle": "Spring Framework", "targetTitle": "ApplicationContext", "relation": "맥락" },
+    { "sourceTitle": "ApplicationContext", "targetTitle": "Spring Bean", "relation": "맥락" },
+    { "sourceTitle": "Servlet Container", "targetTitle": "Servlet", "relation": "맥락" },
+    { "sourceTitle": "Servlet", "targetTitle": "DispatcherServlet", "relation": "확장" },
+    { "sourceTitle": "HTTP", "targetTitle": "Spring MVC", "relation": "기반" },
+    { "sourceTitle": "Spring MVC", "targetTitle": "DispatcherServlet", "relation": "맥락" },
+    { "sourceTitle": "DispatcherServlet", "targetTitle": "Spring MVC 요청 흐름", "relation": "맥락" },
+    { "sourceTitle": "Servlet Container", "targetTitle": "Spring MVC 요청 흐름", "relation": "기반" },
+
+    { "sourceTitle": "Spring Framework", "targetTitle": "Spring Boot", "relation": "확장" },
+    { "sourceTitle": "Spring Boot", "targetTitle": "Spring Boot 프로젝트 구성", "relation": "맥락" },
+    { "sourceTitle": "Spring Boot 프로젝트 구성", "targetTitle": "계층형 아키텍처", "relation": "맥락" },
+    { "sourceTitle": "Spring Boot 프로젝트 구성", "targetTitle": "Gradle", "relation": "맥락" },
+    { "sourceTitle": "Gradle", "targetTitle": "의존성 관리", "relation": "맥락" },
+    { "sourceTitle": "Spring Boot", "targetTitle": "자동 구성", "relation": "맥락" },
+    { "sourceTitle": "API 명세", "targetTitle": "OpenAPI", "relation": "확장" },
+    { "sourceTitle": "OpenAPI", "targetTitle": "Swagger UI", "relation": "확장" },
+    { "sourceTitle": "OpenAPI", "targetTitle": "springdoc-openapi", "relation": "확장" },
+    { "sourceTitle": "Spring Boot", "targetTitle": "springdoc-openapi", "relation": "맥락" },
+
+    { "sourceTitle": "계층형 아키텍처", "targetTitle": "Controller", "relation": "맥락" },
+    { "sourceTitle": "계층형 아키텍처", "targetTitle": "Service", "relation": "맥락" },
+    { "sourceTitle": "계층형 아키텍처", "targetTitle": "Repository", "relation": "맥락" },
+    { "sourceTitle": "Repository", "targetTitle": "Service", "relation": "기반" },
+    { "sourceTitle": "Service", "targetTitle": "Controller", "relation": "기반" },
+    { "sourceTitle": "Controller", "targetTitle": "DTO", "relation": "맥락" },
+    { "sourceTitle": "DTO", "targetTitle": "요청 DTO", "relation": "확장" },
+    { "sourceTitle": "DTO", "targetTitle": "응답 DTO", "relation": "확장" },
+    { "sourceTitle": "응답 DTO", "targetTitle": "응답 통일", "relation": "기반" },
+    { "sourceTitle": "오류 코드", "targetTitle": "응답 통일", "relation": "기반" },
+    { "sourceTitle": "예외 처리", "targetTitle": "전역 예외 처리", "relation": "확장" },
+    { "sourceTitle": "Spring MVC", "targetTitle": "전역 예외 처리", "relation": "맥락" },
+    { "sourceTitle": "전역 예외 처리", "targetTitle": "응답 통일", "relation": "맥락" },
+
+    { "sourceTitle": "데이터베이스", "targetTitle": "ORM", "relation": "맥락" },
+    { "sourceTitle": "ORM", "targetTitle": "JPA", "relation": "확장" },
+    { "sourceTitle": "JPA", "targetTitle": "Spring Data JPA", "relation": "확장" },
+    { "sourceTitle": "Spring Data JPA", "targetTitle": "Repository", "relation": "맥락" },
+    { "sourceTitle": "JPA", "targetTitle": "EntityManager", "relation": "맥락" },
+    { "sourceTitle": "EntityManager", "targetTitle": "영속성 컨텍스트", "relation": "맥락" },
+    { "sourceTitle": "JPA", "targetTitle": "엔티티", "relation": "맥락" },
+    { "sourceTitle": "영속성 컨텍스트", "targetTitle": "엔티티 생명주기", "relation": "맥락" },
+    { "sourceTitle": "영속성 컨텍스트", "targetTitle": "1차 캐시", "relation": "맥락" },
+    { "sourceTitle": "영속성 컨텍스트", "targetTitle": "변경 감지", "relation": "맥락" },
+    { "sourceTitle": "엔티티", "targetTitle": "연관관계", "relation": "맥락" },
+    { "sourceTitle": "관계", "targetTitle": "연관관계", "relation": "기반" },
+    { "sourceTitle": "연관관계", "targetTitle": "연관관계 매핑", "relation": "확장" },
+    { "sourceTitle": "연관관계 매핑", "targetTitle": "지연 로딩", "relation": "맥락" },
+    { "sourceTitle": "JPA", "targetTitle": "JPQL", "relation": "맥락" },
+    { "sourceTitle": "SQL", "targetTitle": "JPQL", "relation": "대조" },
+
+    { "sourceTitle": "페이징", "targetTitle": "SQL 페이징", "relation": "확장" },
+    { "sourceTitle": "페이징", "targetTitle": "페이지네이션 구현", "relation": "확장" },
+    { "sourceTitle": "JPA", "targetTitle": "페이지네이션 구현", "relation": "맥락" },
+    { "sourceTitle": "Pageable", "targetTitle": "페이지네이션 구현", "relation": "기반" },
+    { "sourceTitle": "Pageable", "targetTitle": "Page", "relation": "맥락" },
+    { "sourceTitle": "Pageable", "targetTitle": "Slice", "relation": "맥락" },
+    { "sourceTitle": "Page", "targetTitle": "Slice", "relation": "대조" },
+    { "sourceTitle": "페이징", "targetTitle": "커서 기반 페이지네이션", "relation": "확장" },
+    { "sourceTitle": "오프셋 페이지네이션", "targetTitle": "커서 기반 페이지네이션", "relation": "대조" },
+    { "sourceTitle": "DTO", "targetTitle": "Bean Validation", "relation": "맥락" },
+    { "sourceTitle": "Bean Validation", "targetTitle": "제약 조건 어노테이션", "relation": "맥락" },
+    { "sourceTitle": "제약 조건 어노테이션", "targetTitle": "@Valid", "relation": "기반" },
+    { "sourceTitle": "@Valid", "targetTitle": "Controller", "relation": "맥락" },
+
+    { "sourceTitle": "HTTP", "targetTitle": "Spring Security", "relation": "기반" },
+    { "sourceTitle": "Spring Security", "targetTitle": "인증", "relation": "맥락" },
+    { "sourceTitle": "Spring Security", "targetTitle": "인가", "relation": "맥락" },
+    { "sourceTitle": "인증", "targetTitle": "인가", "relation": "기반" },
+    { "sourceTitle": "Spring Security", "targetTitle": "SecurityFilterChain", "relation": "맥락" },
+    { "sourceTitle": "SecurityFilterChain", "targetTitle": "보안 필터", "relation": "맥락" },
+    { "sourceTitle": "Spring Security", "targetTitle": "Authentication", "relation": "맥락" },
+    { "sourceTitle": "AuthenticationProvider", "targetTitle": "AuthenticationManager", "relation": "기반" },
+    { "sourceTitle": "AuthenticationManager", "targetTitle": "Authentication", "relation": "맥락" },
+    { "sourceTitle": "UserDetailsService", "targetTitle": "AuthenticationProvider", "relation": "기반" },
+    { "sourceTitle": "인증", "targetTitle": "SecurityContext", "relation": "맥락" },
+    { "sourceTitle": "SecurityContext", "targetTitle": "인가", "relation": "기반" },
+    { "sourceTitle": "Spring Security", "targetTitle": "폼 로그인", "relation": "확장" },
+
+    { "sourceTitle": "인증", "targetTitle": "세션 인증", "relation": "확장" },
+    { "sourceTitle": "인증", "targetTitle": "토큰 인증", "relation": "확장" },
+    { "sourceTitle": "세션 인증", "targetTitle": "토큰 인증", "relation": "대조" },
+    { "sourceTitle": "세션 인증", "targetTitle": "폼 로그인", "relation": "맥락" },
+    { "sourceTitle": "토큰 인증", "targetTitle": "JWT", "relation": "확장" },
+    { "sourceTitle": "JWT", "targetTitle": "Access Token", "relation": "확장" },
+    { "sourceTitle": "JWT", "targetTitle": "Refresh Token", "relation": "확장" },
+    { "sourceTitle": "Access Token", "targetTitle": "Refresh Token", "relation": "대조" },
+    { "sourceTitle": "JWT", "targetTitle": "JWT 필터", "relation": "맥락" },
+    { "sourceTitle": "SecurityFilterChain", "targetTitle": "JWT 필터", "relation": "맥락" },
+    { "sourceTitle": "인가", "targetTitle": "OAuth 2.0", "relation": "확장" },
+    { "sourceTitle": "OAuth 2.0", "targetTitle": "OAuth2 Client", "relation": "맥락" },
+    { "sourceTitle": "OAuth 2.0", "targetTitle": "소셜 로그인", "relation": "확장" },
+    { "sourceTitle": "Spring Security", "targetTitle": "OAuth2 Client", "relation": "맥락" }
+  ]
+}

@@ -46,11 +46,19 @@ public class ReadService {
         }
 
         if (markQuestion) {
-            // getReferenceById: FK만 채우면 되므로 프록시로 받아 불필요한 SELECT를 피한다
-            inquiryReadRepository.save(QuestionRead.builder()
-                    .member(memberRepository.getReferenceById(memberId))
-                    .question(inquiryRepository.getReferenceById(questionId))
-                    .build());
+            QuestionRead questionRead =
+                    inquiryReadRepository
+                            .findByMemberIdAndQuestionId(
+                                    memberId,
+                                    questionId
+                            )
+                            .orElseGet(() -> QuestionRead.builder()
+                                    .member(memberRepository.getReferenceById(memberId))
+                                    .question(inquiryRepository.getReferenceById(questionId))
+                                    .build());
+
+            questionRead.check();
+            inquiryReadRepository.save(questionRead);
         }
     }
 }
