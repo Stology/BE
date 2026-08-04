@@ -36,9 +36,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class HomeSpecificInfoService {
 
-    private static final int DEFAULT_PAGE_SIZE = 10;
-    private static final int MAX_PAGE_SIZE = 10;
-
     private static final int ACTIVITY_PAGE_SIZE = 10;
 
 
@@ -50,16 +47,14 @@ public class HomeSpecificInfoService {
 
     public MaterialDetailRes getMaterialDetail(
             Long memberId,
-            Long cursor,
-            Integer size
+            Long cursor
     ) {
-        int pageSize = normalizeSize(size);
 
         Slice<StudyMaterial> materialSlice =
                 findMaterials(
                         memberId,
                         cursor,
-                        pageSize
+                        ACTIVITY_PAGE_SIZE
                 );
 
         return createMaterialDetailResponse(
@@ -248,14 +243,6 @@ public class HomeSpecificInfoService {
         );
     }
 
-
-    private int normalizeSize(int size) {
-        if (size < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-
-        return Math.min(size, MAX_PAGE_SIZE);
-    }
 
     private PageInfo<Long> createPageInfo(
             List<StudyMaterial> materials,

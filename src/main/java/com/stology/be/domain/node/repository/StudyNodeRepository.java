@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -64,5 +65,22 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
             @Param("studyId") Long studyId,
             @Param("startOfWeek") java.time.LocalDateTime startOfWeek,
             @Param("endOfWeek") java.time.LocalDateTime endOfWeek
+    );
+
+
+    // 스터디안 최신(cutoff) 활성화 노드 리스트 찾기.
+    @Query("""
+    SELECT sn
+    FROM StudyNode sn
+    JOIN FETCH sn.study s
+    WHERE s.id IN :studyIds
+      AND sn.activatedAt >= :cutoff
+      AND sn.activatedAt <= :now
+    ORDER BY sn.activatedAt DESC, sn.id DESC
+""")
+    List<StudyNode> findRecentActivatedNodes(
+            @Param("studyIds") List<Long> studyIds,
+            @Param("cutoff") LocalDateTime cutoff,
+            @Param("now") LocalDateTime now
     );
 }

@@ -38,8 +38,17 @@ public interface MemberStudyRepository extends JpaRepository<MemberStudy, Long> 
             @Param("studyId") Long studyId
     );
 
-    //맴버가 속한 스터디 갯수
+    // 맴버가 속한 스터디 갯수
     long countByMemberId(Long memberId);
+
+    // 맴버가 속한 모든 스터디를 리스트로 가져옵니다
+    @Query("""
+    SELECT ms.study
+    FROM MemberStudy ms
+    WHERE ms.member.id = :memberId
+    ORDER BY ms.study.id DESC
+""")
+    List<Study> findStudiesByMemberId(@Param("memberId") Long memberId);
 
     //맴버가 속한 스터디 리스트
     @Query("""

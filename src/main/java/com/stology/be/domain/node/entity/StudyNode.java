@@ -5,6 +5,9 @@ import com.stology.be.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Builder
@@ -38,6 +41,8 @@ public class StudyNode extends BaseEntity {
     @Column(name = "recommend_week")
     private Integer recommendWeek;
 
+    private LocalDateTime activatedAt;
+
     public static StudyNode createFromTemplate(
             Study study,
             String title,
@@ -53,6 +58,8 @@ public class StudyNode extends BaseEntity {
 
     }
     public void increaseActiveLevel() {
+        if(this.activeLevel == 0)
+            this.activatedAt = LocalDateTime.now();
         this.activeLevel++;
     }
     public void decreaseActiveLevel() {

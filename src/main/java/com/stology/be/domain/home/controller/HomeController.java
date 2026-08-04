@@ -42,19 +42,23 @@ public class HomeController {
      * 나머진 특정 스터디 에서의 조회.
      */
     @GetMapping("/studies/{studyId}/actives")
-    public ApiResponse<Void> getTeamTodos(
+    public ApiResponse<TeamActivityRes> getTeamTodos(
             @PathVariable Long studyId,
+            @RequestParam(required = false) String cursor,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        // TODO:
-        // homeService.getTeamTodos(
-        //         studyId,
-        //         authMember.getMemberId()
-        // );
+
+        TeamActivityRes response = homeInfoService.getTeamTodos(
+                studyId,
+                cursor,
+                authMember.getMemberId()
+        );
+
+
 
         return ApiResponse.onSuccess(
                 GeneralSuccessCode.OK,
-                null
+                response
         );
     }
 
@@ -64,14 +68,12 @@ public class HomeController {
     @GetMapping("/materials")
     public ApiResponse<MaterialDetailRes> getMaterialDetail(
             @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal AuthMember authMember
     ) {
         MaterialDetailRes response =
                 homeSpecificInfoService.getMaterialDetail(
                         authMember.getMemberId(),
-                        cursor,
-                        size
+                        cursor
                 );
 
         return ApiResponse.onSuccess(

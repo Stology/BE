@@ -86,4 +86,30 @@ public interface InquiryReplyRepository extends JpaRepository<Answer, Long> {
             @Param("cursor") Long cursor,
             Pageable pageable
     );
+
+
+
+
+
+    //최근(cutoff 이전) 답글 조회
+    @Query("""
+    SELECT a
+    FROM Answer a
+    JOIN FETCH a.question q
+    JOIN FETCH q.study s
+    WHERE s.id IN :studyIds
+      AND a.deletedAt IS NULL
+      AND q.deletedAt IS NULL
+      AND a.createdAt >= :cutoff
+      AND a.createdAt <= :now
+    ORDER BY a.createdAt DESC, a.id DESC
+""")
+    List<Answer> findRecentTeamAnswers(
+            @Param("studyIds") List<Long> studyIds,
+            @Param("cutoff") LocalDateTime cutoff,
+            @Param("now") LocalDateTime now
+    );
+
+
+
 }
