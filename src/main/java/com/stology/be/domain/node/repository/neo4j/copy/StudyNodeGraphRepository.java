@@ -44,15 +44,33 @@ public interface StudyNodeGraphRepository
                   (studyNode:StudyNode)
 
             OPTIONAL MATCH (studyNode)
-                  -[similarRelation:SIMILAR_TO]->
+                  -[relatedRelation:RELATED_TO]->
                   (relatedNode:StudyNode)
 
             RETURN studyNode,
-                   collect(similarRelation),
+                   collect(relatedRelation),
                    collect(relatedNode)
             """)
     List<StudyNodeGraphNode> findAllWithRelationsByStudyId(
             @Param("studyId") Long studyId
+    );
+
+    @Query("""
+            MATCH (:TemplateStudy {studyId: $studyId})
+                  -[:HAS_NODE]->
+                  (studyNode:StudyNode {studyNodeId: $studyNodeId})
+
+            OPTIONAL MATCH (studyNode)
+                  -[relatedRelation:RELATED_TO]->
+                  (relatedNode:StudyNode)
+
+            RETURN studyNode,
+                   collect(relatedRelation),
+                   collect(relatedNode)
+            """)
+    Optional<StudyNodeGraphNode> findWithRelationsByStudyIdAndStudyNodeId(
+            @Param("studyId") Long studyId,
+            @Param("studyNodeId") Long studyNodeId
     );
 
     @Query("""
