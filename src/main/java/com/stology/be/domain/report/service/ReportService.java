@@ -21,9 +21,6 @@ import com.stology.be.domain.study.entity.Study;
 import com.stology.be.global.external.ai.dto.AiReportOutputDto;
 
 import com.stology.be.domain.report.dto.WeeklyCoreNodeDto;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -178,7 +175,7 @@ public class ReportService {
         Study study = studyRepository.findById(studyId)
                 .orElseThrow(() -> new ReportException(ReportErrorCode.STUDY_NOT_FOUND));
 
-        if (study.getStartDate() == null) return;
+        if (study.getStartDate() == null || study.getStartDate().isAfter(LocalDateTime.now())) return;
         
         int currentWeek = (int) ChronoUnit.WEEKS.between(study.getStartDate(), LocalDateTime.now()) + 1;
         List<Report> reports = reportRepository.findAllByStudyIdOrderByCreatedAtAsc(studyId);
