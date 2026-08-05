@@ -53,6 +53,8 @@ public interface StudyNodeRepository extends JpaRepository<StudyNode, Long> {
 
     Integer countByStudy_IdAndActiveLevelGreaterThan(Long studyId, Integer activeLevel);
 
+    List<StudyNode> findByStudy_Id(Long studyId);
+
     List<StudyNode> findByStudy_IdAndRecommendWeek(Long studyId, Integer recommendWeek);
 
     @Query("""
