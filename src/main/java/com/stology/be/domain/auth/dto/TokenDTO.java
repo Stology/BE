@@ -1,6 +1,7 @@
 package com.stology.be.domain.auth.dto;
 
-public record TokenPair(
+public record TokenDTO(
+        Long userId,
         String accessToken,
         String refreshToken
 ) { }
