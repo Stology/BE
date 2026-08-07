@@ -8,6 +8,7 @@ import com.stology.be.domain.node.enums.CandidateState;
 import com.stology.be.domain.node.repository.NodeCandidateRepository;
 import com.stology.be.domain.node.repository.StudyNodeRepository;
 import com.stology.be.domain.study.repository.MemberStudyRepository;
+import com.stology.be.global.external.s3.S3PresignedUrlGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ public class WeekNodeService {
     private final StudyNodeRepository studyNodeRepository;
     private final MemberStudyRepository memberStudyRepository;
     private final NodeCandidateRepository nodeCandidateRepository;
-
+    private final S3PresignedUrlGenerator s3PresignedUrlGenerator;
 
     private static final int MIN_ACTIVE_LEVEL = 1;
 
@@ -81,7 +82,14 @@ public class WeekNodeService {
         List<NodeInfoRes.MaterialInfo> materials =
                 acceptedCandidates.stream()
                         .map(NodeCandidate::getStudyMaterial)
-                        .map(NodeInfoRes.MaterialInfo::from)
+                        .map(studyMaterial ->
+                                NodeInfoRes.MaterialInfo.from(
+                                        studyMaterial,
+                                        s3PresignedUrlGenerator.generateGetUrl(
+                                                studyMaterial.getObjectKey()
+                                        )
+                                )
+                        )
                         .toList();
 
         // 5. 최종 응답 조립

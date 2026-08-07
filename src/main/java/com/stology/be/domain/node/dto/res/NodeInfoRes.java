@@ -24,17 +24,20 @@ public record NodeInfoRes(
     public record MaterialInfo(
             Long studyMaterialId,
             String dataTitle,
-            String fileUrl,
+            String presignedUrl,
             String uploaderName,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
 
-        public static MaterialInfo from(StudyMaterial studyMaterial) {
+        public static MaterialInfo from(
+                StudyMaterial studyMaterial,
+                String presignedUrl
+        ) {
             return new MaterialInfo(
                     studyMaterial.getId(),
                     studyMaterial.getDataTitle(),
-                    studyMaterial.getFileUrl(),
+                    presignedUrl,
                     studyMaterial.getMemberStudy()
                             .getMember()
                             .getName(),
