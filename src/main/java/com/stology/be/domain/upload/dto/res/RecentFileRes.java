@@ -10,6 +10,7 @@ public record RecentFileRes(
         String uploaderName,
         String dataTitle,
         DataState dataState,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Long materialId
 ) {
 }

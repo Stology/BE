@@ -47,7 +47,6 @@ public class HomeController {
             @RequestParam(required = false) String cursor,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-
         TeamActivityRes response = homeInfoService.getTeamTodos(
                 studyId,
                 cursor,

@@ -29,10 +29,12 @@ public class StudyMaterial extends BaseEntity {
     private String objectKey;
 
 
+    //자료 설명
     @Lob
     @Column(name = "content", columnDefinition = "LONGTEXT")
     private String content;
 
+    //요약본
     @Lob
     @Column(columnDefinition = "TEXT")
     private String summary;
@@ -42,6 +44,7 @@ public class StudyMaterial extends BaseEntity {
     @Builder.Default
     private DataState dataState = DataState.READY;
 
+    //자료 제목
     @Column(name = "data_title")
     private String dataTitle;
 
