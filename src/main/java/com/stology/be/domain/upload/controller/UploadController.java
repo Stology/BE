@@ -37,14 +37,26 @@ public class UploadController {
             value = "/uploadSSE",
             produces = MediaType.TEXT_EVENT_STREAM_VALUE
     )
-    public SseEmitter uploadSSE(
+    public ResponseEntity<SseEmitter> uploadSSE(
             @PathVariable Long studyId,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        return sseService.subscribe(
-                studyId,
-                authMember.getMemberId()
-        );
+        SseEmitter emitter =
+                sseService.subscribe(
+                        studyId,
+                        authMember.getMemberId()
+                );
+
+        return ResponseEntity.ok()
+                .header(
+                        "Cache-Control",
+                        "no-cache, no-store"
+                )
+                .header(
+                        "X-Accel-Buffering",
+                        "no"
+                )
+                .body(emitter);
     }
 
     /**
