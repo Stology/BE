@@ -22,7 +22,8 @@ public interface StudyMaterialRepository extends CrudRepository<StudyMaterial, L
                 m.name,
                 sm.dataTitle,
                 sm.dataState,
-                sm.createdAt
+                sm.createdAt,
+                sm.id
             )
             FROM StudyMaterial sm
             JOIN sm.memberStudy ms

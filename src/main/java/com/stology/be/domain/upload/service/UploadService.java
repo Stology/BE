@@ -62,6 +62,7 @@ public class UploadService {
         MemberStudy memberStudy = getMemberStudy(studyId, memberId);
 
         MultipartFile file = request.getFile();
+        //자료 설명.
         String content = request.getDescription();
 
         //파일 검증
