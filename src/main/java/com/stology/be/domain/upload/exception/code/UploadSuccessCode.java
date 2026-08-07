@@ -8,16 +8,36 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum UploadSuccessCode implements BaseSuccessCode {
-    UPLOAD_SUCCESS(HttpStatus.OK,
-            "Upload200_1",
-            "성공적으로 업로드 완료."),
-    MEMBER_CREATED(HttpStatus.CREATED,
-            "MEMBER201_1",
-            "성공적으로 유저를 생성했습니다."),
-    UPDATE_SUCCESS(HttpStatus.OK,
-            "Upload200_1",
-                    "성공적으로 업데이트 완료.")
-    ;
+
+    UPLOAD_SUCCESS(
+            HttpStatus.OK,
+            "UPLOAD200_1",
+            "자료 업로드 요청에 성공했습니다."
+    ),
+
+    RECENT_FILES_GET_SUCCESS(
+            HttpStatus.OK,
+            "UPLOAD200_2",
+            "최근 업로드 자료 조회에 성공했습니다."
+    ),
+
+    MATERIAL_UPDATE_SUCCESS(
+            HttpStatus.OK,
+            "UPLOAD200_3",
+            "자료 정보 수정에 성공했습니다."
+    ),
+
+    REANALYZE_REQUEST_SUCCESS(
+            HttpStatus.OK,
+            "UPLOAD200_4",
+            "자료 재분석 요청에 성공했습니다."
+    ),
+
+    SUMMARY_GET_SUCCESS(
+            HttpStatus.OK,
+            "UPLOAD200_5",
+            "자료 AI 요약 조회에 성공했습니다."
+    );
 
     private final HttpStatus httpStatus;
     private final String code;

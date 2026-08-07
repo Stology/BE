@@ -32,7 +32,7 @@ public class StudyNodeFlowController {
     ) {
 
 
-        return ApiResponse.onSuccess(NodeSuccessCode.GET_SUCCESS,
+        return ApiResponse.onSuccess(NodeSuccessCode.NODE_VOTE_SUCCESS,
                 nodeVoteService.vote(
                 studyId,
                 authMember,
@@ -56,6 +56,6 @@ public class StudyNodeFlowController {
                         authMember.getMemberId()
                 );
 
-        return ApiResponse.onSuccess(NodeSuccessCode.GET_SUCCESS,response);
+        return ApiResponse.onSuccess(NodeSuccessCode.EXAMINATION_INFO_GET_SUCCESS,response);
     }
 }

@@ -24,7 +24,7 @@ public class ActiveNodeController {
             @RequestParam int week,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        return ApiResponse.onSuccess(NodeSuccessCode.GET_SUCCESS,
+        return ApiResponse.onSuccess(NodeSuccessCode.ACTIVE_NODES_GET_SUCCESS,
                 weekNodeService.getWeekNodes(studyId, week, authMember.getMemberId())
         );
     }
@@ -36,7 +36,7 @@ public class ActiveNodeController {
             @AuthenticationPrincipal AuthMember authMember
     ) {
         return ApiResponse.onSuccess(
-                NodeSuccessCode.GET_SUCCESS,
+                NodeSuccessCode.NODE_INFO_GET_SUCCESS,
                 weekNodeService.getNodeInfo(
                         studyId,
                         nodeId,

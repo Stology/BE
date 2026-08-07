@@ -1,6 +1,7 @@
 package com.stology.be.domain.home.controller;
 
 import com.stology.be.domain.home.dto.res.*;
+import com.stology.be.domain.home.exception.code.HomeSuccessCode;
 import com.stology.be.domain.home.service.HomeInfoService;
 import com.stology.be.domain.home.service.HomeSpecificInfoService;
 import com.stology.be.global.apiPayload.ApiResponse;
@@ -31,7 +32,7 @@ public class HomeController {
                 );
 
         return ApiResponse.onSuccess(
-                GeneralSuccessCode.OK,
+                HomeSuccessCode.MY_TODO_GET_SUCCESS,
                 response
         );
     }
@@ -56,7 +57,7 @@ public class HomeController {
 
 
         return ApiResponse.onSuccess(
-                GeneralSuccessCode.OK,
+                HomeSuccessCode.TEAM_ACTIVITY_GET_SUCCESS,
                 response
         );
     }
@@ -76,7 +77,8 @@ public class HomeController {
                 );
 
         return ApiResponse.onSuccess(
-                GeneralSuccessCode.OK,
+
+                HomeSuccessCode.MATERIAL_DETAIL_GET_SUCCESS,
                 response
         );
     }
@@ -96,7 +98,8 @@ public class HomeController {
                 );
 
         return ApiResponse.onSuccess(
-                GeneralSuccessCode.OK,
+
+                HomeSuccessCode.QUESTION_DETAIL_GET_SUCCESS,
                 response
         );
     }
@@ -117,7 +120,7 @@ public class HomeController {
                 );
 
         return ApiResponse.onSuccess(
-                GeneralSuccessCode.OK,
+                HomeSuccessCode.ANSWER_DETAIL_GET_SUCCESS,
                 response
         );
     }
@@ -137,7 +140,7 @@ public class HomeController {
                 );
 
         return ApiResponse.onSuccess(
-                GeneralSuccessCode.OK,
+                HomeSuccessCode.REPORT_DETAIL_GET_SUCCESS,
                 response
         );
     }

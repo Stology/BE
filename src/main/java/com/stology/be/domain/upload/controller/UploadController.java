@@ -63,11 +63,14 @@ public class UploadController {
         uploadService.upload(studyId,authMember.getMemberId(),request);
 
 
-        return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,null);
+        return ApiResponse.onSuccess(
+                UploadSuccessCode.UPLOAD_SUCCESS,
+                null
+        );
     }
     /**
      * 스터디 자료 조회
-     * POST /api/study/{studyId}/upload
+     * Get /api/study/{studyId}/upload
      */
 
     @GetMapping("/upload")
@@ -79,7 +82,10 @@ public class UploadController {
 
         RecentFilesRes result = uploadService.getStudyUploadFiles(studyId,authMember.getMemberId());
 
-        return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,result);
+        return ApiResponse.onSuccess(
+                UploadSuccessCode.RECENT_FILES_GET_SUCCESS,
+                result
+        );
     }
 
 
@@ -103,7 +109,7 @@ public class UploadController {
         );
 
         return ApiResponse.onSuccess(
-                UploadSuccessCode.UPDATE_SUCCESS,
+                UploadSuccessCode.MATERIAL_UPDATE_SUCCESS,
                 null
         );
     }
@@ -123,7 +129,10 @@ public class UploadController {
         // TODO: 업로드된 자료 AI 분석
         uploadService.reAnalyzeMaterial(studyId,studyMaterialId,authMember);
 
-        return ApiResponse.onSuccess(UploadSuccessCode.UPLOAD_SUCCESS,null);
+        return ApiResponse.onSuccess(
+                UploadSuccessCode.REANALYZE_REQUEST_SUCCESS,
+                null
+        );
     }
 
 
@@ -136,8 +145,12 @@ public class UploadController {
 
 
         return ApiResponse.onSuccess(
-                UploadSuccessCode.UPLOAD_SUCCESS
-                ,uploadService.getMaterialSummary(studyId,studyMaterialId,authMember)
-                );
+                UploadSuccessCode.SUMMARY_GET_SUCCESS,
+                uploadService.getMaterialSummary(
+                        studyId,
+                        studyMaterialId,
+                        authMember
+                )
+        );
     }
 }
