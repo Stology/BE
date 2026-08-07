@@ -1,6 +1,6 @@
 package com.stology.be.domain.auth.service;
 
-import com.stology.be.domain.auth.dto.TokenPair;
+import com.stology.be.domain.auth.dto.TokenDTO;
 import com.stology.be.domain.auth.exception.AuthException;
 import com.stology.be.domain.auth.exception.code.AuthErrorCode;
 import com.stology.be.domain.auth.repository.BlacklistTokenRepository;
@@ -24,7 +24,7 @@ public class AuthService {
     private final BlacklistTokenRepository blacklistTokenRepository;
     private final MemberRepository memberRepository;
 
-    public TokenPair reissue(String refreshToken) {
+    public TokenDTO reissue(String refreshToken) {
         if (refreshToken == null || !jwtUtil.isValid(refreshToken)) {
             System.out.println("refreshToken: " + refreshToken);
             System.out.println("isValid: " + jwtUtil.isValid(refreshToken));
@@ -48,7 +48,7 @@ public class AuthService {
         String newRefreshToken = jwtUtil.createRefreshToken(member);
         refreshTokenRepository.save(uid, newRefreshToken, 7 * 24 * 60 * 60);
 
-        return new TokenPair(newAccessToken, newRefreshToken);
+        return new TokenDTO(member.getMemberId(), newAccessToken, newRefreshToken);
     }
 
     public void logout(String refreshToken, String accessToken) {

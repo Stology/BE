@@ -6,6 +6,7 @@ public class AuthResDTO {
     ) {}
 
     public record Reissue(
+            Long userId,
             String accessToken
     ) {}
 }

@@ -1,7 +1,7 @@
 package com.stology.be.domain.auth.controller;
 
 import com.stology.be.domain.auth.dto.AuthResDTO;
-import com.stology.be.domain.auth.dto.TokenPair;
+import com.stology.be.domain.auth.dto.TokenDTO;
 import com.stology.be.domain.auth.exception.AuthException;
 import com.stology.be.domain.auth.exception.code.AuthErrorCode;
 import com.stology.be.domain.auth.exception.code.AuthSuccessCode;
@@ -32,9 +32,9 @@ public class AuthController {
             HttpServletResponse response
     ) {
         Cookie cookie = getRefreshTokenCookie(request);
-        TokenPair tokenPair = authService.reissue(cookie.getValue());
+        TokenDTO tokenDTO = authService.reissue(cookie.getValue());
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenPair.refreshToken())
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenDTO.refreshToken())
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -43,7 +43,7 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        AuthResDTO.Reissue res = new AuthResDTO.Reissue(tokenPair.accessToken());
+        AuthResDTO.Reissue res = new AuthResDTO.Reissue(tokenDTO.userId(), tokenDTO.accessToken());
         return ApiResponse.onSuccess(AuthSuccessCode.AUTH_REISSUE_SUCCESS, res);
     }
 
