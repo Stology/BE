@@ -78,7 +78,7 @@ public class SecurityConfig {
                 "https://stology.sublumen.xyz",
                 "https://dev.stology.sublumen.xyz"
         ));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
