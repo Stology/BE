@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -151,16 +150,16 @@ public class StudyService {
     // 온톨로지 템플릿 검색
     public StudyResDTO.GetTemplate getTemplate(String search) {
         List<Template> templates;
-        Stream<Template> stream = templateRepository.findAll().stream();
+        // search 필터링
         if(search == null || search.isEmpty()){
             templates = templateRepository.findAll();
         } else {
-            templates = templateRepository.findByNameContainingIgnoreCase(search.trim());
+            templates = templateRepository.findByTitleContainingIgnoreCase(search.trim());
         }
         List<StudyResDTO.Template> templateList = templates.stream()
                 .map(template -> new StudyResDTO.Template(
                         template.getId(),
-                        template.getName(),
+                        template.getTitle(),
                         template.getUploader().getName(),
                         template.getDescription()))
                 .toList();
@@ -186,6 +185,7 @@ public class StudyService {
         study.validateLeader(member);
         // maxReviewerCount
         Integer maxCount = memberStudyRepository.countByStudyId(study.getId());
+        // 최대 인원수 초과 시 예외 처리
         if(dto.reviewerCount()>maxCount){
             throw new StudyException(StudyErrorCode.REVIEWER_COUNT_EXCEEDED);
         }

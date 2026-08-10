@@ -23,7 +23,7 @@ public class StudyResDTO {
     ){}
     public record Template(
             Long templateId,
-            String name,
+            String title,
             String uploader,
             String description
     ){}
