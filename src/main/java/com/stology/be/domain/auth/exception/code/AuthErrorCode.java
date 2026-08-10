@@ -16,7 +16,10 @@ public enum AuthErrorCode implements BaseErrorCode {
             "유효하지 않은 Refresh Token입니다."),
     AUTH_REFRESH_TOKEN_MISSING(HttpStatus.BAD_REQUEST,
             "AUTH_400_1",
-            "Refresh Token은 필수입니다.")
+            "Refresh Token은 필수입니다."),
+    AUTH_UNAUTHORIZED_SECRET_TOKEN(HttpStatus.BAD_REQUEST,
+            "AUTH_400_2",
+            "유효하지 않은 secretCode입니다.")
     ;
 
     private final HttpStatus httpStatus;
