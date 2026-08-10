@@ -101,6 +101,31 @@ public class SwaggerConfig {
                 .build();
     }
 
+    @Bean
+    public GroupedOpenApi studyApi() {
+        return GroupedOpenApi.builder()
+                .group("06. study")
+                .displayName("06. 스터디 API")
+                .pathsToMatch(
+                        "/api/study",
+                        "/api/template",
+                        "/api/study/{studyId}",
+                        "/api/study/{studyId}/close",
+                        "/api/user/me/study",
+                        "/api/study/{studyId}/reviewer-count") // 모든 경로 포함
+                .build();
+    }
 
+    @Bean
+    public GroupedOpenApi invitationApi() {
+        return GroupedOpenApi.builder()
+                .group("07. invitation")
+                .displayName("07. 스터디 초대 API")
+                .pathsToMatch(
+                        "/api/study/{studyId}/invitation",
+                        "/api/study/invitation/{token}",
+                        "/api/study/invitation/{token}/accept") // 모든 경로 포함
+                .build();
+    }
 
 }
