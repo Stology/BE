@@ -75,3 +75,8 @@ jwt:
     expiration:
       access: ${JWT_ACCESS_EXPIRATION:3600000}
       refresh: ${JWT_REFRESH_EXPIRATION:604800000}
+
+app:
+  oauth:
+    success-redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL:https://stology.vercel.app/}
+    allowed-redirect-urls: ${OAUTH_ALLOWED_REDIRECT_URLS:https://stology.vercel.app/,http://localhost:5173/}
