@@ -1,15 +1,12 @@
 package com.stology.be.global.security.handler;
 
-import com.stology.be.domain.auth.dto.AuthResDTO;
-import com.stology.be.domain.auth.exception.code.AuthSuccessCode;
 import com.stology.be.domain.auth.repository.RefreshTokenRepository;
-import com.stology.be.domain.member.converter.MemberConverter;
-import com.stology.be.global.apiPayload.ApiResponse;
-import com.stology.be.global.apiPayload.code.BaseSuccessCode;
 import com.stology.be.global.security.entity.AuthMember;
 import com.stology.be.global.security.entity.OAuthMember;
+import com.stology.be.global.security.service.OAuthRedirectService;
 import com.stology.be.global.security.util.JwtUtil;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +15,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
@@ -28,6 +24,7 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final OAuthRedirectService oAuthRedirectService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -35,22 +32,11 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
             HttpServletResponse response,
             Authentication authentication
     ) throws IOException, ServletException {
-        // 사전 작업: Response 매핑할 ObjectMapper 선언
-        ObjectMapper objectMapper = new ObjectMapper();
-        BaseSuccessCode code = AuthSuccessCode.AUTH_LOGIN_SUCCESS;
-
-        // Content-Type, Status 설정
-        response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(code.getHttpStatus().value());
-
-        // 인증 객체 컨테이너에서 OAuth 인증 객체 가져오기
         OAuthMember member = (OAuthMember) authentication.getPrincipal();
+        AuthMember authMember = new AuthMember(member.getMember());
 
-        // 토큰 제작을 위해 OAuth 인증 객체에서 Member 추출 -> AuthMember 제작
-        String accessToken = jwtUtil.createAccessToken(new AuthMember(member.getMember()));
-        String refreshToken = jwtUtil.createRefreshToken(new AuthMember(member.getMember()));
+        String refreshToken = jwtUtil.createRefreshToken(authMember);
 
-        // refresh token 발급 (http-only secure 쿠키)
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(true)
@@ -61,13 +47,35 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
         refreshTokenRepository.save(member.getName(), refreshToken, 7 * 24 * 60 * 60);
 
-        // 응답 통일 객체 래핑
-        ApiResponse<AuthResDTO.Login> responseBody = ApiResponse.onSuccess(
-                code,
-                MemberConverter.toLogin(accessToken)
-        );
+        String successRedirectUrl = resolveSuccessRedirectUrl(request);
+        response.addHeader(HttpHeaders.SET_COOKIE, expireRedirectCookie().toString());
+        response.sendRedirect(successRedirectUrl);
+    }
 
-        // 응답 출력
-        objectMapper.writeValue(response.getOutputStream(), responseBody);
+    private String resolveSuccessRedirectUrl(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return oAuthRedirectService.resolveRedirectUrl(null);
+        }
+
+        for (Cookie cookie : cookies) {
+            if (OAuthRedirectService.REDIRECT_COOKIE_NAME.equals(cookie.getName())) {
+                return oAuthRedirectService.resolveRedirectUrl(
+                        oAuthRedirectService.decode(cookie.getValue())
+                );
+            }
+        }
+
+        return oAuthRedirectService.resolveRedirectUrl(null);
+    }
+
+    private ResponseCookie expireRedirectCookie() {
+        return ResponseCookie.from(OAuthRedirectService.REDIRECT_COOKIE_NAME, null)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
     }
 }

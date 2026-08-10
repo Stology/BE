@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum AuthSuccessCode implements BaseSuccessCode {
-    AUTH_LOGIN_SUCCESS(HttpStatus.UNAUTHORIZED,
+    AUTH_LOGIN_SUCCESS(HttpStatus.OK,
             "AUTH200_1",
             "로그인에 성공하였습니다."),
     AUTH_REISSUE_SUCCESS(HttpStatus.OK,
