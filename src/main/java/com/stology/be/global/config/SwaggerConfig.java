@@ -83,8 +83,8 @@ public class SwaggerConfig {
     @Bean
     public GroupedOpenApi reportApi() {
         return GroupedOpenApi.builder()
-                .group("05. report")
-                .displayName("05. 리포트 API")
+                .group("08. report")
+                .displayName("08. 리포트 API")
                 .pathsToMatch("/api/study/{studyId}/report/**")
                 .build();
     }
@@ -92,8 +92,8 @@ public class SwaggerConfig {
     @Bean
     public GroupedOpenApi knowledgeGraphApi() {
         return GroupedOpenApi.builder()
-                .group("06. knowledgeGraph")
-                .displayName("06. 지식 구조(그래프) API")
+                .group("09. knowledgeGraph")
+                .displayName("09. 지식 구조(그래프) API")
                 .pathsToMatch("/api/study/{studyId}/knowledge-graph/**")
                 .build();
     }
