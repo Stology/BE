@@ -80,6 +80,24 @@ public class SwaggerConfig {
                 .build();
     }
 
+    @Bean
+    public GroupedOpenApi reportApi() {
+        return GroupedOpenApi.builder()
+                .group("05. report")
+                .displayName("05. 리포트 API")
+                .pathsToMatch("/api/study/{studyId}/report/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi knowledgeGraphApi() {
+        return GroupedOpenApi.builder()
+                .group("06. knowledgeGraph")
+                .displayName("06. 지식 구조(그래프) API")
+                .pathsToMatch("/api/study/{studyId}/knowledge-graph/**")
+                .build();
+    }
+
 
     @Bean
     public GroupedOpenApi homeTaskApi() {
