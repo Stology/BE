@@ -347,9 +347,8 @@ public class NodeVoteService {
                                 CandidateState.PENDING
                         )
                         .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "해당 스터디 노드에 속한 " +
-                                                "검토 중인 노드 후보가 아닙니다."
+                                new NodeException(
+                                        NodeErrorCode.NODE_CANDIDATE_NOT_PENDING
                                 )
                         );
     }

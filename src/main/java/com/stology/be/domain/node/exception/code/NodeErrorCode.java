@@ -33,6 +33,11 @@ public enum NodeErrorCode implements BaseErrorCode {
             "NODE409_1",
             "아직 스터디가 시작되지 않았습니다."
     ),
+    NODE_CANDIDATE_NOT_PENDING(
+            HttpStatus.CONFLICT,
+            "NODE409_2",
+            "검토 중인 노드 후보가 아니거나 이미 처리가 완료되었습니다."
+    ),
 
     // template
     TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "TEMPLATE404_1", "해당 템플릿을 찾을 수 없습니다."),

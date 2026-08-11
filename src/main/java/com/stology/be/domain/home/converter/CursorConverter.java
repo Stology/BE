@@ -2,6 +2,7 @@ package com.stology.be.domain.home.converter;
 
 import com.stology.be.domain.home.enums.TeamActivityType;
 import com.stology.be.domain.home.exception.HomeException;
+import com.stology.be.domain.home.exception.code.HomeErrorCode;
 import com.stology.be.global.apiPayload.code.GeneralErrorCode;
 import com.stology.be.global.apiPayload.exception.GeneralException;
 
@@ -63,8 +64,8 @@ public final class CursorConverter {
                     Long.parseLong(fields[2])
             );
         } catch (RuntimeException exception) {
-            throw new GeneralException(
-                    GeneralErrorCode.BAD_REQUEST
+            throw new HomeException(
+                    HomeErrorCode.CURSOR_INVALID
             );
         }
     }
