@@ -10,6 +10,8 @@ import com.stology.be.domain.node.entity.NodeCandidateVoteInfo;
 import com.stology.be.domain.node.entity.StudyNode;
 import com.stology.be.domain.node.enums.CandidateState;
 import com.stology.be.domain.node.enums.VoteType;
+import com.stology.be.domain.node.exception.NodeException;
+import com.stology.be.domain.node.exception.code.NodeErrorCode;
 import com.stology.be.domain.node.repository.NodeCandidateRepository;
 import com.stology.be.domain.node.repository.NodeCandidateVoteInfoRepository;
 import com.stology.be.domain.node.repository.StudyNodeRepository;
@@ -23,6 +25,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -290,19 +295,26 @@ public class NodeVoteService {
     }
 
 
-    private void increaseStudyNodeActiveLevel(
-            Long studyNodeId
-    ) {
-        StudyNode studyNode =
-                studyNodeRepository
-                        .findByIdForUpdate(studyNodeId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "스터디 노드를 찾을 수 없습니다."
-                                )
-                        );
+    private void increaseStudyNodeActiveLevel(Long studyNodeId) {
+        StudyNode studyNode = studyNodeRepository
+                .findByIdForUpdate(studyNodeId)
+                .orElseThrow(() ->
+                        new NodeException(NodeErrorCode.STUDY_NODE_NOT_FOUND)
+                );
 
-        studyNode.increaseActiveLevel();
+        LocalDate startDate = studyNode.getStudy().getStartDate().toLocalDate();
+        long elapsedDays = ChronoUnit.DAYS.between(
+                startDate,
+                LocalDate.now()
+        );
+
+        if (elapsedDays < 0) {
+            throw new NodeException(NodeErrorCode.STUDY_NOT_STARTED);
+        }
+
+        int activationWeek = (int) (elapsedDays / 7) + 1;
+
+        studyNode.increaseActiveLevel(activationWeek);
     }
 
     /*
@@ -321,9 +333,7 @@ public class NodeVoteService {
                         );
 
         if (!isStudyMember) {
-            throw new IllegalArgumentException(
-                    "해당 스터디에 참여 중인 회원이 아닙니다."
-            );
+            throw new NodeException(NodeErrorCode.STUDY_ACCESS_DENIED);
         }
     }
     private NodeCandidate validateNodeCandidate(AcceptNodeReq.NodeVoteReq request, Long studyId)
@@ -337,9 +347,8 @@ public class NodeVoteService {
                                 CandidateState.PENDING
                         )
                         .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "해당 스터디 노드에 속한 " +
-                                                "검토 중인 노드 후보가 아닙니다."
+                                new NodeException(
+                                        NodeErrorCode.NODE_CANDIDATE_NOT_PENDING
                                 )
                         );
     }

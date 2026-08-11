@@ -57,11 +57,15 @@ public class StudyNode extends BaseEntity {
                 .build();
 
     }
-    public void increaseActiveLevel() {
-        if(this.activeLevel == 0)
+    public void increaseActiveLevel(int activationWeek) {
+        if (this.activeLevel == 0) {
             this.activatedAt = LocalDateTime.now();
+            this.activationWeek = activationWeek;
+        }
+
         this.activeLevel++;
     }
+
     public void decreaseActiveLevel() {
         this.activeLevel--;
     }

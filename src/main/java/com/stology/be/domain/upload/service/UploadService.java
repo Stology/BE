@@ -130,11 +130,23 @@ public class UploadService {
             AuthMember authMember
     ){
         // 1. 검증
-        getMemberStudy(studyId, authMember.getMemberId());
-
+        MemberStudy memberStudy =
+                getMemberStudy(studyId, authMember.getMemberId());
         // 2 스터디 메터리얼 찾기 + 검증
-        StudyMaterial studyMaterial = getStudyMaterial(studyMaterialId);
-        //
+        StudyMaterial studyMaterial =
+                getStudyMaterial(studyMaterialId);
+
+        // 3. 스터이 원인지.
+        if (!studyMaterial.getMemberStudy()
+                .getStudy()
+                .getId()
+                .equals(studyId)) {
+            throw new UploadException(
+                    UploadErrorCode.STUDY_MATERIAL_NOT_FOUND
+            );
+        }
+
+
         if (studyMaterial.getSummary() == null || studyMaterial.getSummary().isEmpty()) {
             throw new UploadException(UploadErrorCode.AI_SUMMARY_NOT_COMPLETE);
         }

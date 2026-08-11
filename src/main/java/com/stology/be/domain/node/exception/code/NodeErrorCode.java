@@ -18,6 +18,27 @@ public enum NodeErrorCode implements BaseErrorCode {
     STUDY_LEADER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "STUDY403_2", "스터디장만 접근할 수 있습니다."),
     STUDY_NAME_DUPLICATE(HttpStatus.CONFLICT, "STUDY409_1", "이미 사용 중인 스터디 이름입니다."),
 
+    STUDY_NODE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "NODE404_1",
+            "해당 스터디 노드를 찾을 수 없습니다."
+    ),
+    ACTIVATION_WEEK_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "NODE400_1",
+            "주차는 1 이상이어야 합니다."
+    ),
+    STUDY_NOT_STARTED(
+            HttpStatus.CONFLICT,
+            "NODE409_1",
+            "아직 스터디가 시작되지 않았습니다."
+    ),
+    NODE_CANDIDATE_NOT_PENDING(
+            HttpStatus.CONFLICT,
+            "NODE409_2",
+            "검토 중인 노드 후보가 아니거나 이미 처리가 완료되었습니다."
+    ),
+
     // template
     TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "TEMPLATE404_1", "해당 템플릿을 찾을 수 없습니다."),
 
