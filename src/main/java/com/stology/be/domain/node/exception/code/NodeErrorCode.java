@@ -28,6 +28,11 @@ public enum NodeErrorCode implements BaseErrorCode {
             "NODE400_1",
             "주차는 1 이상이어야 합니다."
     ),
+    STUDY_NOT_STARTED(
+            HttpStatus.CONFLICT,
+            "NODE409_1",
+            "아직 스터디가 시작되지 않았습니다."
+    ),
 
     // template
     TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "TEMPLATE404_1", "해당 템플릿을 찾을 수 없습니다."),

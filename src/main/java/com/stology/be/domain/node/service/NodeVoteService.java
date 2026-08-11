@@ -10,6 +10,8 @@ import com.stology.be.domain.node.entity.NodeCandidateVoteInfo;
 import com.stology.be.domain.node.entity.StudyNode;
 import com.stology.be.domain.node.enums.CandidateState;
 import com.stology.be.domain.node.enums.VoteType;
+import com.stology.be.domain.node.exception.NodeException;
+import com.stology.be.domain.node.exception.code.NodeErrorCode;
 import com.stology.be.domain.node.repository.NodeCandidateRepository;
 import com.stology.be.domain.node.repository.NodeCandidateVoteInfoRepository;
 import com.stology.be.domain.node.repository.StudyNodeRepository;
@@ -297,9 +299,7 @@ public class NodeVoteService {
         StudyNode studyNode = studyNodeRepository
                 .findByIdForUpdate(studyNodeId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "스터디 노드를 찾을 수 없습니다."
-                        )
+                        new NodeException(NodeErrorCode.STUDY_NODE_NOT_FOUND)
                 );
 
         LocalDate startDate = studyNode.getStudy().getStartDate().toLocalDate();
@@ -309,9 +309,7 @@ public class NodeVoteService {
         );
 
         if (elapsedDays < 0) {
-            throw new IllegalStateException(
-                    "아직 스터디가 시작되지 않았습니다."
-            );
+            throw new NodeException(NodeErrorCode.STUDY_NOT_STARTED);
         }
 
         int activationWeek = (int) (elapsedDays / 7) + 1;
@@ -335,9 +333,7 @@ public class NodeVoteService {
                         );
 
         if (!isStudyMember) {
-            throw new IllegalArgumentException(
-                    "해당 스터디에 참여 중인 회원이 아닙니다."
-            );
+            throw new NodeException(NodeErrorCode.STUDY_ACCESS_DENIED);
         }
     }
     private NodeCandidate validateNodeCandidate(AcceptNodeReq.NodeVoteReq request, Long studyId)

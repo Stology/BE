@@ -17,6 +17,11 @@ public enum HomeErrorCode implements BaseErrorCode {
     STUDY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "STUDY403_1", "해당 스터디방에 접근할 권한이 없습니다."),
     STUDY_LEADER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "STUDY403_2", "스터디장만 접근할 수 있습니다."),
     STUDY_NAME_DUPLICATE(HttpStatus.CONFLICT, "STUDY409_1", "이미 사용 중인 스터디 이름입니다."),
+    CURSOR_INVALID(
+            HttpStatus.BAD_REQUEST,
+            "HOME400_1",
+            "유효하지 않은 커서 형식입니다."
+    ),
 
     // template
     TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "TEMPLATE404_1", "해당 템플릿을 찾을 수 없습니다."),

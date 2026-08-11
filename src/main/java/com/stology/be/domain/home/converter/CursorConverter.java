@@ -1,6 +1,7 @@
 package com.stology.be.domain.home.converter;
 
 import com.stology.be.domain.home.enums.TeamActivityType;
+import com.stology.be.domain.home.exception.HomeException;
 import com.stology.be.global.apiPayload.code.GeneralErrorCode;
 import com.stology.be.global.apiPayload.exception.GeneralException;
 
@@ -72,9 +73,7 @@ public final class CursorConverter {
             String[] fields
     ) {
         if (fields.length != CURSOR_FIELD_COUNT) {
-            throw new IllegalArgumentException(
-                    "Invalid cursor field count"
-            );
+            throw new HomeException(HomeErrorCode.CURSOR_INVALID);
         }
     }
 
