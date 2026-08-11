@@ -23,6 +23,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -290,19 +293,30 @@ public class NodeVoteService {
     }
 
 
-    private void increaseStudyNodeActiveLevel(
-            Long studyNodeId
-    ) {
-        StudyNode studyNode =
-                studyNodeRepository
-                        .findByIdForUpdate(studyNodeId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "스터디 노드를 찾을 수 없습니다."
-                                )
-                        );
+    private void increaseStudyNodeActiveLevel(Long studyNodeId) {
+        StudyNode studyNode = studyNodeRepository
+                .findByIdForUpdate(studyNodeId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "스터디 노드를 찾을 수 없습니다."
+                        )
+                );
 
-        studyNode.increaseActiveLevel();
+        LocalDate startDate = studyNode.getStudy().getStartDate().toLocalDate();
+        long elapsedDays = ChronoUnit.DAYS.between(
+                startDate,
+                LocalDate.now()
+        );
+
+        if (elapsedDays < 0) {
+            throw new IllegalStateException(
+                    "아직 스터디가 시작되지 않았습니다."
+            );
+        }
+
+        int activationWeek = (int) (elapsedDays / 7) + 1;
+
+        studyNode.increaseActiveLevel(activationWeek);
     }
 
     /*
