@@ -52,7 +52,7 @@ public class SwaggerConfig {
                 .pathsToMatch(
                         "/api/study/{studyId}/upload",
                         "/api/study/{studyId}/uploadSSE",
-                        "/api/study/{studyId}/analyze",
+                        "/api/study/{studyId}/studyMaterial/{studyMaterialId}//analyze",
                         "/api/study/{studyId}/studyMaterial/{studyMaterialId}/summary",
                         "/api/study/{studyId}/studyMaterial/{studyMaterialId}/upload") // 이 그룹에 포함될 API의 URL 패턴
                 .build();
