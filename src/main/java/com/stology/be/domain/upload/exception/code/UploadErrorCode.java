@@ -44,6 +44,12 @@ public enum UploadErrorCode implements BaseErrorCode {
             "해당 스터디에 참여한 회원만 자료를 업로드할 수 있습니다."
     ),
 
+    MEMBER_NOT_IN_STUDY(
+            HttpStatus.FORBIDDEN,
+            "UPLOAD403_1",
+            "해당 스터디에 참여한 회원만 SSE 등록 가능합니다."
+    ),
+
     UPLOAD_MEMBER_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "UPLOAD404_1",
