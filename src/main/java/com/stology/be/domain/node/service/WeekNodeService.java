@@ -5,6 +5,8 @@ import com.stology.be.domain.node.dto.res.WeekNodeRes;
 import com.stology.be.domain.node.entity.NodeCandidate;
 import com.stology.be.domain.node.entity.StudyNode;
 import com.stology.be.domain.node.enums.CandidateState;
+import com.stology.be.domain.node.exception.NodeException;
+import com.stology.be.domain.node.exception.code.NodeErrorCode;
 import com.stology.be.domain.node.repository.NodeCandidateRepository;
 import com.stology.be.domain.node.repository.StudyNodeRepository;
 import com.stology.be.domain.study.repository.MemberStudyRepository;
@@ -114,10 +116,9 @@ public class WeekNodeService {
         memberStudyRepository
                 .findByStudyIdAndMemberId(studyId, memberId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "해당 스터디에 참여하고 있는 회원이 아닙니다."
-                        )
+                    new NodeException(NodeErrorCode.STUDY_ACCESS_DENIED)
                 );
+
     }
 
     private StudyNode getStudyNode(
@@ -127,17 +128,14 @@ public class WeekNodeService {
         return studyNodeRepository
                 .findByIdAndStudyId(nodeId, studyId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "해당 스터디에 존재하지 않는 노드입니다."
-                        )
+                        new NodeException(NodeErrorCode.STUDY_NODE_NOT_FOUND)
                 );
     }
 
     private void validateWeek(Integer week) {
         if (week == null || week < 1) {
-            throw new IllegalArgumentException(
-                    "주차는 1 이상이어야 합니다."
-            );
+            throw new NodeException(NodeErrorCode.ACTIVATION_WEEK_INVALID);
+
         }
     }
 }
