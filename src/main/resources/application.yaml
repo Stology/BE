@@ -12,7 +12,7 @@ spring:
           kakao:
             client-id: ${KAKAO_REST_API_KEY}
             client-secret: ${KAKAO_REST_API_SECRET}
-            redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
+            redirect-uri: ${KAKAO_REDIRECT_URI}
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             scope: profile_nickname, account_email
@@ -34,7 +34,7 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -43,6 +43,12 @@ spring:
     redis:
       host: localhost
       port: 6379
+
+  neo4j:
+    uri: ${NEO_URL}
+    authentication:
+      username: ${NEO_USERNAME}
+      password: ${NEO_PW}
 
   cloud:
     aws:
@@ -55,6 +61,13 @@ spring:
         bucket: stology-s3
         path: dev/
 
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+
 jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}
@@ -62,3 +75,8 @@ jwt:
     expiration:
       access: ${JWT_ACCESS_EXPIRATION:3600000}
       refresh: ${JWT_REFRESH_EXPIRATION:604800000}
+
+app:
+  oauth:
+    success-redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL:https://stology.vercel.app/}
+    allowed-redirect-urls: ${OAUTH_ALLOWED_REDIRECT_URLS:https://stology.vercel.app/,http://localhost:5173/}

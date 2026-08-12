@@ -1,4 +1,4 @@
-package com.stology.be.global.security.config;
+package com.stology.be.global.config;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;

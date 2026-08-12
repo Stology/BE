@@ -1,5 +1,6 @@
 package com.stology.be.global.security.config;
 
+import com.stology.be.domain.auth.repository.BlacklistTokenRepository;
 import com.stology.be.domain.auth.repository.RefreshTokenRepository;
 import com.stology.be.global.security.filter.JwtAuthFilter;
 import com.stology.be.global.security.handler.CustomAccessDenied;
@@ -33,6 +34,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistTokenRepository blacklistTokenRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, CustomLogoutSuccessHandler customLogoutSuccessHandler) throws Exception {
@@ -41,11 +43,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/oauth2/**", "/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/", "/login", "/oauth2/**", "/api/auth/oauth2/**", "/api/auth/reissue", "/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
-                        .loginPage("/oauth2/authorization/kakao")
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuthService))
                         .successHandler(oAuthSuccessHandler)
                         .failureUrl("/login?error=true")
@@ -73,9 +74,12 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "https://your-vercel-app.vercel.app"
+                "http://localhost:5173",
+                "https://stology.vercel.app",
+                "https://stology.sublumen.xyz",
+                "https://dev.stology.sublumen.xyz"
         ));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
@@ -87,7 +91,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthFilter jwtAuthFilter() {
-        return new JwtAuthFilter(jwtUtil, customUserDetailsService);
+        return new JwtAuthFilter(jwtUtil, customUserDetailsService, blacklistTokenRepository);
     }
 
     @Bean
@@ -102,6 +106,6 @@ public class SecurityConfig {
 
     @Bean
     public CustomLogoutSuccessHandler customLogoutSuccessHandler() {
-        return new CustomLogoutSuccessHandler(jwtUtil, refreshTokenRepository);
+        return new CustomLogoutSuccessHandler(jwtUtil, refreshTokenRepository, blacklistTokenRepository);
     }
 }

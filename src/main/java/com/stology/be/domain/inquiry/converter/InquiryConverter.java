@@ -1,0 +1,121 @@
+package com.stology.be.domain.inquiry.converter;
+
+import com.stology.be.domain.inquiry.dto.request.InquiryReqDTO;
+import com.stology.be.domain.inquiry.dto.response.InquiryResDTO;
+import com.stology.be.domain.member.entity.Member;
+import com.stology.be.domain.study.entity.Answer;
+import com.stology.be.domain.study.entity.AnswerImage;
+import com.stology.be.domain.study.entity.Question;
+import com.stology.be.domain.study.entity.QuestionImage;
+import com.stology.be.domain.study.entity.Study;
+import org.springframework.data.domain.Page;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class InquiryConverter {
+
+    public static Question toQuestion(InquiryReqDTO.WriteQuestion request, Study study, Member member, boolean hasImage) {
+        return Question.builder()
+                .study(study)
+                .member(member)
+                .title(request.getTitle())
+                .content(request.getContent())
+                .memberName(member.getName())
+                .answerCount(0)
+                .isAttached(hasImage)
+                .build();
+    }
+
+    public static QuestionImage toQuestionImage(String imageUrl, Question question) {
+        return QuestionImage.builder()
+                .question(question)
+                .imageUrl(imageUrl)
+                .build();
+    }
+
+    public static Answer toAnswer(InquiryReqDTO.WriteAnswer request, Question question, Member member) {
+        return Answer.builder()
+                .question(question)
+                .member(member)
+                .content(request.getContent())
+                .memberName(member.getName())
+                .build();
+    }
+
+    public static AnswerImage toAnswerImage(String imageUrl, Answer answer) {
+        return AnswerImage.builder()
+                .answer(answer)
+                .imageUrl(imageUrl)
+                .build();
+    }
+
+    /**
+     * isMine은 작성자 FK(member_id) 기준이다. authorName으로 내려가는 memberName은 작성 시점 스냅샷이라
+     * 동명이인이면 남의 글이 내 글로 보일 수 있어 판별에 쓰지 않는다.
+     */
+    public static InquiryResDTO.QuestionSummary toQuestionSummary(Question question, Long currentMemberId) {
+        return new InquiryResDTO.QuestionSummary(
+                question.getId(),
+                question.getTitle(),
+                question.getMemberName(),
+                question.getCreatedAt(),
+                question.getAnswerCount(),
+                question.getIsAttached(),
+                isMine(question.getMember(), currentMemberId)
+        );
+    }
+
+    public static InquiryResDTO.QuestionList toQuestionList(Page<Question> questionPage, boolean studyEnded, Long currentMemberId) {
+        List<InquiryResDTO.QuestionSummary> questionList = questionPage.stream()
+                .map(question -> toQuestionSummary(question, currentMemberId))
+                .collect(Collectors.toList());
+
+        return new InquiryResDTO.QuestionList(
+                questionList,
+                questionPage.getNumber(),        // 현재 페이지 번호(0-based)
+                questionList.size(),
+                questionPage.getTotalPages(),
+                questionPage.getTotalElements(),
+                questionPage.isFirst(),
+                questionPage.isLast(),
+                studyEnded
+        );
+    }
+
+    public static InquiryResDTO.AnswerDetail toAnswerDetail(Answer answer, List<InquiryResDTO.ImageInfo> images, Long currentMemberId) {
+        return new InquiryResDTO.AnswerDetail(
+                answer.getId(),
+                answer.getMemberName(),
+                answer.getCreatedAt(),
+                answer.getContent(),
+                images,
+                isMine(answer.getMember(), currentMemberId)
+        );
+    }
+
+    public static InquiryResDTO.QuestionDetail toQuestionDetail(
+            Question question,
+            List<InquiryResDTO.ImageInfo> images,
+            List<InquiryResDTO.AnswerDetail> answerList,
+            boolean studyEnded,
+            Long currentMemberId
+    ) {
+        return new InquiryResDTO.QuestionDetail(
+                question.getId(),
+                question.getTitle(),
+                question.getContent(),
+                question.getMemberName(),
+                question.getCreatedAt(),
+                images,
+                answerList,
+                studyEnded,
+                isMine(question.getMember(), currentMemberId)
+        );
+    }
+
+    /** member_id가 비어 있는 행(FK 도입 이전 데이터)은 소유자를 특정할 수 없어 남의 글로 취급한다. */
+    private static boolean isMine(Member author, Long currentMemberId) {
+        return author != null && author.getId().equals(currentMemberId);
+    }
+}

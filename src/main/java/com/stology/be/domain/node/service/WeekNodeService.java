@@ -1,0 +1,164 @@
+package com.stology.be.domain.node.service;
+
+import com.stology.be.domain.node.dto.res.NodeInfoRes;
+import com.stology.be.domain.node.dto.res.WeekNodeRes;
+import com.stology.be.domain.node.entity.NodeCandidate;
+import com.stology.be.domain.node.entity.StudyNode;
+import com.stology.be.domain.node.enums.CandidateState;
+import com.stology.be.domain.node.exception.NodeException;
+import com.stology.be.domain.node.exception.code.NodeErrorCode;
+import com.stology.be.domain.node.repository.NodeCandidateRepository;
+import com.stology.be.domain.node.repository.StudyNodeRepository;
+import com.stology.be.domain.study.repository.MemberStudyRepository;
+import com.stology.be.global.external.s3.S3PresignedUrlGenerator;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class WeekNodeService {
+
+    private final StudyNodeRepository studyNodeRepository;
+    private final MemberStudyRepository memberStudyRepository;
+    private final NodeCandidateRepository nodeCandidateRepository;
+    private final S3PresignedUrlGenerator s3PresignedUrlGenerator;
+
+    private static final int MIN_ACTIVE_LEVEL = 1;
+
+    @Transactional(readOnly = true)
+    public WeekNodeRes getWeekNodes(Long studyId, int week, Long authMemberId) {
+
+        //검증
+        validateStudyMember(studyId, authMemberId);
+        validateWeek(week);
+
+        List<WeekNodeRes.WeekNodeInfo> nodes =
+                studyNodeRepository
+                        .findByStudy_IdAndActivationWeekAndActiveLevelGreaterThanEqualOrderByActiveLevelAsc(
+                                studyId,
+                                week,
+                                MIN_ACTIVE_LEVEL
+                        )
+                        .stream()
+                        .map(WeekNodeRes.WeekNodeInfo::from)
+                        .toList();
+
+        return new WeekNodeRes(nodes);
+    }
+
+
+    @Transactional(readOnly = true)
+    public NodeInfoRes getNodeInfo(
+            Long studyId,
+            Long nodeId,
+            Long memberId
+    ) {
+
+        // 1. 요청한 사용자가 해당 스터디의 멤버인지 확인
+        validateStudyMember(studyId, memberId);
+
+        // 2. 요청한 노드가 해당 스터디에 속하는지 확인
+        StudyNode studyNode = getStudyNode(studyId, nodeId);
+
+
+        // 3. 해당 스터디 노드에 연결된 ACCEPTED 상태의 후보 조회
+        List<NodeCandidate> acceptedCandidates =
+                nodeCandidateRepository.findAcceptedCandidatesWithMaterial(
+                        studyId,
+                        nodeId,
+                        CandidateState.ACCEPTED
+                );
+
+        // 승인된 후보가 없으면 빈 리스트 반환
+        if (acceptedCandidates.isEmpty()) {
+            return NodeInfoRes.of(
+                    studyNode.getId(),
+                    List.of()
+            );
+        }
+
+        // 4. NodeCandidate가 참조하는 StudyMaterial을 DTO로 변환
+        List<NodeInfoRes.MaterialInfo> materials =
+                acceptedCandidates.stream()
+                        .map(NodeCandidate::getStudyMaterial)
+                        .map(studyMaterial ->
+                                NodeInfoRes.MaterialInfo.from(
+                                        studyMaterial,
+                                        s3PresignedUrlGenerator.generateGetUrl(
+                                                studyMaterial.getObjectKey()
+                                        )
+                                )
+                        )
+                        .toList();
+
+        // 5. 최종 응답 조립
+                return NodeInfoRes.of(
+                        studyNode.getId(),
+                        materials
+                );
+
+    }
+
+
+    /*
+
+    내부 함수
+     */
+
+
+    private void validateStudyMember(
+            Long studyId,
+            Long memberId
+    ) {
+        memberStudyRepository
+                .findByStudyIdAndMemberId(studyId, memberId)
+                .orElseThrow(() ->
+                    new NodeException(NodeErrorCode.STUDY_ACCESS_DENIED)
+                );
+
+    }
+
+    private StudyNode getStudyNode(
+            Long studyId,
+            Long nodeId
+    ) {
+        return studyNodeRepository
+                .findByIdAndStudyId(nodeId, studyId)
+                .orElseThrow(() ->
+                        new NodeException(NodeErrorCode.STUDY_NODE_NOT_FOUND)
+                );
+    }
+
+    private void validateWeek(Integer week) {
+        if (week == null || week < 1) {
+            throw new NodeException(NodeErrorCode.ACTIVATION_WEEK_INVALID);
+
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
+
+
+

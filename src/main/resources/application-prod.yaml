@@ -41,6 +41,15 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PW}
+    neo4j:
+      repositories:
+        bootstrap-mode: default
+
+  neo4j:
+    uri: ${NEO_URL}
+    authentication:
+      username: ${NEO_USERNAME}
+      password: ${NEO_PW}
 
   cloud:
     aws:
@@ -53,6 +62,11 @@ spring:
         bucket: stology-s3
         path: ${S3_PATH}
 
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
+    url: ${GEMINI_API_URL}
+
 jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}
@@ -60,3 +74,8 @@ jwt:
     expiration:
       access: ${JWT_ACCESS_EXPIRATION:3600000}
       refresh: ${JWT_REFRESH_EXPIRATION:604800000}
+
+app:
+  oauth:
+    success-redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL:https://stology.vercel.app/}
+    allowed-redirect-urls: ${OAUTH_ALLOWED_REDIRECT_URLS:https://stology.vercel.app/,http://localhost:5173/}

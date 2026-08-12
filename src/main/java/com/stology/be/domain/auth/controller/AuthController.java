@@ -1,7 +1,7 @@
 package com.stology.be.domain.auth.controller;
 
 import com.stology.be.domain.auth.dto.AuthResDTO;
-import com.stology.be.domain.auth.dto.TokenPair;
+import com.stology.be.domain.auth.dto.TokenDTO;
 import com.stology.be.domain.auth.exception.AuthException;
 import com.stology.be.domain.auth.exception.code.AuthErrorCode;
 import com.stology.be.domain.auth.exception.code.AuthSuccessCode;
@@ -32,9 +32,9 @@ public class AuthController {
             HttpServletResponse response
     ) {
         Cookie cookie = getRefreshTokenCookie(request);
-        TokenPair tokenPair = authService.reissue(cookie.getValue());
+        TokenDTO tokenDTO = authService.reissue(cookie.getValue());
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenPair.refreshToken())
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenDTO.refreshToken())
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -43,7 +43,7 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        AuthResDTO.Reissue res = new AuthResDTO.Reissue(tokenPair.accessToken());
+        AuthResDTO.Reissue res = new AuthResDTO.Reissue(tokenDTO.userId(), tokenDTO.accessToken());
         return ApiResponse.onSuccess(AuthSuccessCode.AUTH_REISSUE_SUCCESS, res);
     }
 
@@ -54,7 +54,7 @@ public class AuthController {
             HttpServletResponse response
     ) {
         Cookie cookie = getRefreshTokenCookie(request);
-        authService.logout(cookie.getValue());
+        authService.logout(cookie.getValue(), resolveAccessToken(request));
         response.addHeader(HttpHeaders.SET_COOKIE, getExpiredRefreshTokenCookie().toString());
 
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
@@ -67,7 +67,7 @@ public class AuthController {
             HttpServletResponse response,
             @AuthenticationPrincipal AuthMember authMember) {
         Cookie cookie = getRefreshTokenCookie(request);
-        authService.deleteMember(authMember, cookie.getValue());
+        authService.deleteMember(authMember, cookie.getValue(), resolveAccessToken(request));
         response.addHeader(HttpHeaders.SET_COOKIE, getExpiredRefreshTokenCookie().toString());
 
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
@@ -83,6 +83,14 @@ public class AuthController {
             }
         }
         throw new AuthException(AuthErrorCode.AUTH_REFRESH_TOKEN_MISSING);
+    }
+
+    private String resolveAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     private ResponseCookie getExpiredRefreshTokenCookie() {

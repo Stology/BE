@@ -27,4 +27,8 @@ public abstract class BaseEntity {
     @Column(name = "deleted_at")
     @Setter(AccessLevel.PROTECTED)
     private LocalDateTime deletedAt;
+
+    public void delete(){
+        this.deletedAt = LocalDateTime.now();
+    }
 }

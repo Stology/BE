@@ -6,6 +6,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,4 +34,116 @@ public class SwaggerConfig {
                 .addSecurityItem(securityRequirement)
                 .components(components);
     }
+
+    @Bean
+    public GroupedOpenApi authApi() {
+        return GroupedOpenApi.builder()
+                .group("01. auth")
+                .displayName("01. 인증 API")     // UI 드롭다운에 보일 이름
+                .pathsToMatch("/api/auth/**") // 이 그룹에 포함될 API의 URL 패턴
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi uploadApi() {
+        return GroupedOpenApi.builder()
+                .group("02. upload")
+                .displayName("02. 스터디 자료 업로드 API")     // UI 드롭다운에 보일 이름
+                .pathsToMatch(
+                        "/api/study/{studyId}/upload",
+                        "/api/study/{studyId}/uploadSSE",
+                        "/api/study/{studyId}/studyMaterial/{studyMaterialId}//analyze",
+                        "/api/study/{studyId}/studyMaterial/{studyMaterialId}/summary",
+                        "/api/study/{studyId}/studyMaterial/{studyMaterialId}/upload") // 이 그룹에 포함될 API의 URL 패턴
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi weekRecordApi() {
+        return GroupedOpenApi.builder()
+                .group("03. weekRecord")
+                .displayName("03. 주차별 기록 API")     // UI 드롭다운에 보일 이름
+                .pathsToMatch(
+                        "/api/study/{studyId}/node/{nodeId}/info",
+                        "/api/study/{studyId}/active-nodes") // 이 그룹에 포함될 API의 URL 패턴
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi notionNodeApi() {
+        return GroupedOpenApi.builder()
+                .group("04. notionNode")
+                .displayName("04. 개념 노드 API")     // UI 드롭다운에 보일 이름
+                .pathsToMatch(
+                        "/api/study/{studyId}/accept-node",
+                        "/api/study/{studyId}/node/get-examination-info") // 이 그룹에 포함될 API의 URL 패턴
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi reportApi() {
+        return GroupedOpenApi.builder()
+                .group("08. report")
+                .displayName("08. 리포트 API")
+                .pathsToMatch("/api/study/{studyId}/report/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi knowledgeGraphApi() {
+        return GroupedOpenApi.builder()
+                .group("09. knowledgeGraph")
+                .displayName("09. 지식 구조(그래프) API")
+                .pathsToMatch("/api/study/{studyId}/knowledge-graph/**")
+                .build();
+    }
+
+
+    @Bean
+    public GroupedOpenApi homeTaskApi() {
+        return GroupedOpenApi.builder()
+                .group("05. homeTask")
+                .displayName("05. 홈 화면 API")     // UI 드롭다운에 보일 이름
+                .pathsToMatch(
+                        "/api/home/**") // 이 그룹에 포함될 API의 URL 패턴
+                .build();
+    }
+
+
+    @Bean
+    public GroupedOpenApi allApi() {
+        return GroupedOpenApi.builder()
+                .group("00. ALL")
+                .displayName("00. 전체 API")
+                .pathsToMatch("/**") // 모든 경로 포함
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi studyApi() {
+        return GroupedOpenApi.builder()
+                .group("06. study")
+                .displayName("06. 스터디 API")
+                .pathsToMatch(
+                        "/api/study",
+                        "/api/template",
+                        "/api/study/{studyId}",
+                        "/api/study/{studyId}/close",
+                        "/api/user/me/study",
+                        "/api/study/{studyId}/reviewer-count") // 모든 경로 포함
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi invitationApi() {
+        return GroupedOpenApi.builder()
+                .group("07. invitation")
+                .displayName("07. 스터디 초대 API")
+                .pathsToMatch(
+                        "/api/study/{studyId}/invitation",
+                        "/api/study/invitation/{token}",
+                        "/api/study/invitation/{token}/accept") // 모든 경로 포함
+                .build();
+    }
+
 }

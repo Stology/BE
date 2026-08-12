@@ -1,0 +1,100 @@
+{
+  "title": "Java",
+  "description": "Java의 실행 환경, 객체지향 개념, 언어 기능 및 관련 프레임워크를 학습하기 위한 템플릿입니다.",
+  "nodes": [
+    { "title": "Java", "week": 1 },
+    { "title": "JVM", "week": 1 },
+    { "title": "JDK", "week": 1 },
+    { "title": "JRE", "week": 1 },
+
+    { "title": "클래스", "week": 2 },
+    { "title": "객체", "week": 2 },
+    { "title": "인터페이스", "week": 2 },
+    { "title": "추상 클래스", "week": 2 },
+
+    { "title": "상속", "week": 3 },
+    { "title": "다형성", "week": 3 },
+    { "title": "캡슐화", "week": 3 },
+
+    { "title": "예외 처리", "week": 4 },
+    { "title": "컬렉션 프레임워크", "week": 4 },
+    { "title": "Spring Boot", "week": 4 }
+  ],
+  "relations": [
+    {
+      "sourceTitle": "Java",
+      "targetTitle": "JVM",
+      "relation": "실행 환경"
+    },
+    {
+      "sourceTitle": "Java",
+      "targetTitle": "JDK",
+      "relation": "개발 도구"
+    },
+    {
+      "sourceTitle": "JDK",
+      "targetTitle": "JRE",
+      "relation": "포함"
+    },
+    {
+      "sourceTitle": "JRE",
+      "targetTitle": "JVM",
+      "relation": "포함"
+    },
+    {
+      "sourceTitle": "Java",
+      "targetTitle": "클래스",
+      "relation": "핵심 개념"
+    },
+    {
+      "sourceTitle": "클래스",
+      "targetTitle": "객체",
+      "relation": "생성"
+    },
+    {
+      "sourceTitle": "상속",
+      "targetTitle": "클래스",
+      "relation": "확장"
+    },
+    {
+      "sourceTitle": "인터페이스",
+      "targetTitle": "클래스",
+      "relation": "구현"
+    },
+    {
+      "sourceTitle": "추상 클래스",
+      "targetTitle": "클래스",
+      "relation": "특수 형태"
+    },
+    {
+      "sourceTitle": "Java",
+      "targetTitle": "상속",
+      "relation": "객체지향 특징"
+    },
+    {
+      "sourceTitle": "Java",
+      "targetTitle": "다형성",
+      "relation": "객체지향 특징"
+    },
+    {
+      "sourceTitle": "Java",
+      "targetTitle": "캡슐화",
+      "relation": "객체지향 특징"
+    },
+    {
+      "sourceTitle": "Java",
+      "targetTitle": "예외 처리",
+      "relation": "언어 기능"
+    },
+    {
+      "sourceTitle": "Java",
+      "targetTitle": "컬렉션 프레임워크",
+      "relation": "표준 라이브러리"
+    },
+    {
+      "sourceTitle": "Spring Boot",
+      "targetTitle": "Java",
+      "relation": "기반 언어"
+    }
+  ]
+}

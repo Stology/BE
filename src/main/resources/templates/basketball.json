@@ -1,0 +1,85 @@
+{
+  "title": "농구",
+  "description": "농구의 기본 개념, 장비, 기술, 규칙 및 프로 리그를 학습하기 위한 템플릿입니다.",
+  "nodes": [
+    { "title": "농구", "week": 1 },
+    { "title": "농구공", "week": 1 },
+    { "title": "골대", "week": 1 },
+
+    { "title": "드리블", "week": 2 },
+    { "title": "패스", "week": 2 },
+    { "title": "슛", "week": 2 },
+
+    { "title": "레이업", "week": 3 },
+    { "title": "덩크슛", "week": 3 },
+    { "title": "3점슛", "week": 3 },
+    { "title": "리바운드", "week": 3 },
+    { "title": "어시스트", "week": 3 },
+
+    { "title": "파울", "week": 4 },
+    { "title": "자유투", "week": 4 },
+    { "title": "NBA", "week": 4 }
+  ],
+  "relations": [
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "농구공",
+      "relation": "사용 장비"
+    },
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "골대",
+      "relation": "목표"
+    },
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "드리블",
+      "relation": "기본 기술"
+    },
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "패스",
+      "relation": "기본 기술"
+    },
+    {
+      "sourceTitle": "농구",
+      "targetTitle": "슛",
+      "relation": "기본 기술"
+    },
+    {
+      "sourceTitle": "슛",
+      "targetTitle": "레이업",
+      "relation": "종류"
+    },
+    {
+      "sourceTitle": "슛",
+      "targetTitle": "덩크슛",
+      "relation": "종류"
+    },
+    {
+      "sourceTitle": "슛",
+      "targetTitle": "3점슛",
+      "relation": "종류"
+    },
+    {
+      "sourceTitle": "슛",
+      "targetTitle": "리바운드",
+      "relation": "실패 후 발생"
+    },
+    {
+      "sourceTitle": "패스",
+      "targetTitle": "어시스트",
+      "relation": "성공 결과"
+    },
+    {
+      "sourceTitle": "파울",
+      "targetTitle": "자유투",
+      "relation": "발생 시 부여"
+    },
+    {
+      "sourceTitle": "NBA",
+      "targetTitle": "농구",
+      "relation": "프로 리그"
+    }
+  ]
+}

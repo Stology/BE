@@ -1,0 +1,75 @@
+package com.stology.be.domain.report.dto.response;
+
+import com.stology.be.domain.report.dto.WeeklyCoreNodeDto;
+import com.stology.be.global.external.ai.dto.RecommendedNodeDto;
+import com.stology.be.global.external.ai.dto.MemberActivityStatisticsDto;
+import lombok.Builder;
+import lombok.Getter;
+import java.util.List;
+
+public class ReportResponseDto {
+
+    @Getter
+    @Builder
+    public static class ReportSummaryResponse {
+        private Long reportId;
+        private Integer totalNodeCount;
+        private Integer newActiveNodeCount;
+        private Integer newActiveNodePercentage;
+        private Integer reinforcedNodeCount;
+        private Integer reinforcedNodePercentage;
+    }
+
+    @Getter
+    @Builder
+    public static class WeeklyCoreNodeResponse {
+        private List<WeeklyCoreNodeDto> weeklyCoreNodeList;
+    }
+
+    @Getter
+    @Builder
+    public static class AiReviewResponse {
+        private String aiReviewContent;
+    }
+
+    @Getter
+    @Builder
+    public static class RecommendedNodeResponse {
+        private List<RecommendedNodeDto> recommendedNodeList;
+    }
+
+    @Getter
+    @Builder
+    public static class MemberActivityStatisticsResponse {
+        private List<MemberActivityStatisticsDto> memberActivityStatisticsList;
+    }
+
+    @Getter
+    @Builder
+    public static class FullReportResponse {
+        private Long reportId;
+        private Integer totalWeeks;    // 전체 생성된 리포트 주차 수 (탭 렌더링용)
+        private Integer currentWeek;   // 현재 조회 중인 주차 번호
+        private Integer totalNodeCount;
+        private Integer newActiveNodeCount;
+        private Integer newActiveNodePercentage;
+        private Integer reinforcedNodeCount;
+        private Integer reinforcedNodePercentage;
+        private List<WeeklyCoreNodeDto> weeklyCoreNodeList;
+        private String aiReviewContent;
+        private List<RecommendedNodeDto> recommendedNodeList;
+        private List<MemberActivityStatisticsDto> memberActivityStatisticsList;
+    }
+
+    @Getter
+    @Builder
+    public static class UnreadReportResponse {
+        private boolean hasUnread;
+        private Long latestUnreadReportId;
+
+        public UnreadReportResponse(boolean hasUnread, Long latestUnreadReportId) {
+            this.hasUnread = hasUnread;
+            this.latestUnreadReportId = latestUnreadReportId;
+        }
+    }
+}
