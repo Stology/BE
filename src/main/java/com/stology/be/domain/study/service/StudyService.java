@@ -21,7 +21,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -258,5 +260,17 @@ public class StudyService {
         } else if(study.getDeletedAt()!=null){
             throw new StudyException(StudyErrorCode.STUDY_ALREADY_DELETED);
         }
+    }
+
+    // 스터디 단일 조회
+    public StudyResDTO.GetStudyDetail getStudyDetail(Long studyId, Member member) {
+        Study study = studyRepository.findById(studyId)
+                .orElseThrow(() -> new StudyException(StudyErrorCode.STUDY_NOT_FOUND));
+        // currentWeek
+        long daysElapsed = ChronoUnit.DAYS.between(study.getStartDate().toLocalDate(), LocalDate.now());
+        Integer currentWeek = daysElapsed >= 0 ? (int)(daysElapsed / 7) + 1 : 0;
+        // isLeader
+        Boolean isLeader = studyRepository.existsByIdAndLeaderMemberId(study.getId(), member.getId());
+        return StudyConverter.toGetStudyDetail(study, currentWeek, isLeader);
     }
 }

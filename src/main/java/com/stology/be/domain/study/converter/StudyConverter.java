@@ -65,4 +65,15 @@ public class StudyConverter {
                 .uploadedMaterialCount(uploadedMaterialCount)
                 .build();
     }
+
+    // 스터디 단일 조회
+    public static StudyResDTO.GetStudyDetail toGetStudyDetail(Study study, Integer currentWeek, Boolean isLeader) {
+        return StudyResDTO.GetStudyDetail.builder()
+                .studyId(study.getId())
+                .name(study.getName())
+                .currentWeek(currentWeek)
+                .isActive(study.getIsActive())
+                .isLeader(isLeader)
+                .build();
+    }
 }
