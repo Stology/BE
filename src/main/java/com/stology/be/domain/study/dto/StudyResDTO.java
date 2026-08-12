@@ -63,6 +63,7 @@ public class StudyResDTO {
             Boolean isActive,
             Boolean isLeader,
             LocalDate startDate,
+            LocalDate closeDate,
             List<String> members
     ){}
 }

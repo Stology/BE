@@ -77,6 +77,7 @@ public class StudyConverter {
                 .isLeader(isLeader)
                 .startDate(study.getStartDate().toLocalDate())
                 .members(members)
+                .closeDate(study.getCloseDate())
                 .build();
     }
 }
