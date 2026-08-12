@@ -8,6 +8,7 @@ import com.stology.be.domain.study.exception.code.StudyErrorCode;
 import com.stology.be.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -42,6 +43,8 @@ public class Study extends BaseEntity {
 
     private LocalDateTime startDate;
 
+    private LocalDate closeDate;
+
     // 스터디장 확인
     public void validateLeader(Member member){
         if(!leaderMemberId.equals(member.getId())){
@@ -57,6 +60,7 @@ public class Study extends BaseEntity {
     // 스터디 종료
     public void close(){
         this.isActive = false;
+        this.closeDate = LocalDate.now();
     }
     // 검토 인원수 조정
     public void updateReviewer(Integer count){
@@ -66,5 +70,6 @@ public class Study extends BaseEntity {
     public void createToken(String token){
         this.invitationToken =  token;
     }
+
 }
 
