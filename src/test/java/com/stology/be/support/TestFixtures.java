@@ -34,7 +34,7 @@ public final class TestFixtures {
     public static Template template(Long id) {
         return Template.builder()
                 .id(id)
-                .name("template" + id)
+                .title("template" + id)
                 .description("test template")
                 .build();
     }
