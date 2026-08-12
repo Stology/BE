@@ -8,6 +8,7 @@ import com.stology.be.domain.study.entity.MemberStudy;
 import com.stology.be.domain.study.entity.Study;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class StudyConverter {
     // 스터디 방 생성
@@ -67,13 +68,15 @@ public class StudyConverter {
     }
 
     // 스터디 단일 조회
-    public static StudyResDTO.GetStudyDetail toGetStudyDetail(Study study, Integer currentWeek, Boolean isLeader) {
+    public static StudyResDTO.GetStudyDetail toGetStudyDetail(Study study, Integer currentWeek, Boolean isLeader, List<String> members) {
         return StudyResDTO.GetStudyDetail.builder()
                 .studyId(study.getId())
                 .name(study.getName())
                 .currentWeek(currentWeek)
                 .isActive(study.getIsActive())
                 .isLeader(isLeader)
+                .startDate(study.getStartDate().toLocalDate())
+                .members(members)
                 .build();
     }
 }

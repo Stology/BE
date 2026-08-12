@@ -1,6 +1,8 @@
 package com.stology.be.domain.study.dto;
 
 import lombok.Builder;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -59,7 +61,9 @@ public class StudyResDTO {
             String name,
             Integer currentWeek,  // 스터디 시작일 기준 현재 몇 주차인지
             Boolean isActive,
-            Boolean isLeader
+            Boolean isLeader,
+            LocalDate startDate,
+            List<String> members
     ){}
 }
 

@@ -271,6 +271,10 @@ public class StudyService {
         Integer currentWeek = daysElapsed >= 0 ? (int)(daysElapsed / 7) + 1 : 0;
         // isLeader
         Boolean isLeader = studyRepository.existsByIdAndLeaderMemberId(study.getId(), member.getId());
-        return StudyConverter.toGetStudyDetail(study, currentWeek, isLeader);
+        List<String> members = memberStudyRepository.findByStudyId(study.getId())
+                .stream()
+                .map(memberStudy -> memberStudy.getMember().getName())
+                .toList();
+        return StudyConverter.toGetStudyDetail(study, currentWeek, isLeader, members);
     }
 }
