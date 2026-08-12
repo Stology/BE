@@ -13,5 +13,5 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT s.id FROM Study s WHERE s.isActive = true")
     java.util.List<Long> findIdsByIsActiveTrue();
 
-    
+    Boolean existsByIdAndLeaderMemberId(Long id, Long id1);
 }
