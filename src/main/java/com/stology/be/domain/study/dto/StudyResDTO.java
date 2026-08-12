@@ -51,5 +51,15 @@ public class StudyResDTO {
             Integer uploadedMaterialCount,
             Integer questionCount
     ){}
+
+    // 스터디 단일 조회
+    @Builder
+    public record GetStudyDetail(
+            Long studyId,
+            String name,
+            Integer currentWeek,  // 스터디 시작일 기준 현재 몇 주차인지
+            Boolean isActive,
+            Boolean isLeader
+    ){}
 }
 

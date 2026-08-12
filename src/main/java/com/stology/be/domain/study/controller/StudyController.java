@@ -128,4 +128,15 @@ public class StudyController {
         BaseSuccessCode code = StudySuccessCode.INVITATION_TOKEN_ACCEPT_SUCCESS;
         return ApiResponse.onSuccess(code, studyService.acceptInvitationToken(token, authMember.getMember()));
     }
+
+    // 스터디 단일 조회
+    @GetMapping("/study/{studyId}")
+    public ApiResponse<StudyResDTO.GetStudyDetail> getStudyDetail(
+            @PathVariable Long studyId,
+            @AuthenticationPrincipal AuthMember authMember
+    ){
+        BaseSuccessCode code = StudySuccessCode.STUDY_GET_SUCCESS;
+        return ApiResponse.onSuccess(code, studyService.getStudyDetail(studyId, authMember.getMember()));
+    }
+
 }
